@@ -34,7 +34,7 @@ export function Hero() {
           </h1>
 
           <p className="font-mono text-sm sm:text-base md:text-lg text-black max-w-2xl mx-auto pt-4 leading-relaxed font-bold">
-            Earn your spot. Verify holder eligibility on-chain. Enter live partner & genesis whitelist allocations.
+            Earn your spot. Verify minter eligibility on-chain. Enter live partner & genesis whitelist allocations.
           </p>
         </div>
 
@@ -71,12 +71,12 @@ export function Hero() {
         <div className="mt-14 border-3 border-black bg-black text-lime py-2.5 overflow-hidden shadow-pixel-sm">
           <div className="animate-marquee font-pixel text-[10px] sm:text-xs flex gap-8 whitespace-nowrap uppercase font-bold">
             <span>★ FLAMEBOUND WHITELIST RAFFLES LIVE</span>
-            <span>■ 100% ON-CHAIN HOLDER VERIFICATION</span>
+            <span>■ 100% ON-CHAIN MINTER VERIFICATION</span>
             <span>★ GUARANTEED MINT ALLOCATIONS</span>
             <span>■ PROVABLY FAIR WINNER SELECTION</span>
             <span>★ OFFICIAL OPENSEA COLLECTION VERIFIED</span>
             <span>■ FLAMEBOUND WHITELIST RAFFLES LIVE</span>
-            <span>★ 100% ON-CHAIN HOLDER VERIFICATION</span>
+            <span>★ 100% ON-CHAIN MINTER VERIFICATION</span>
             <span>■ GUARANTEED MINT ALLOCATIONS</span>
             <span>★ PROVABLY FAIR WINNER SELECTION</span>
           </div>

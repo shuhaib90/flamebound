@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Raffle, HolderVerificationResult } from '@/lib/types';
@@ -67,14 +67,14 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
     }
   }, [isConnected, address, raffle]);
 
-  // Sync holder status into Task automatically
+  // Sync minter status into Task automatically
   useEffect(() => {
     if (holderStatus && holderStatus.isHolder) {
       setTasks(prev => ({ ...prev, holderCheck: true }));
       setError(null);
     } else if (holderStatus && !holderStatus.isHolder && isConnected) {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(holderStatus.message || 'Your wallet does not currently hold a Flamebound NFT.');
+      setError(holderStatus.message || 'Your wallet is not a verified minter for Flamebound.');
     }
   }, [holderStatus, isConnected]);
 
@@ -246,7 +246,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   WHITELIST ENTRY CONFIRMED!
                 </h3>
                 <p className="font-mono text-[11px] sm:text-xs text-black font-bold max-w-md mx-auto">
-                  Your on-chain Flamebound holder status was verified. Your wallet is officially enrolled into this whitelist raffle!
+                  Your on-chain Flamebound minter status was verified. Your wallet is officially enrolled into this whitelist raffle!
                 </p>
               </div>
 
@@ -276,7 +276,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED HOLDINGS:</span>
+                    <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
                     <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
                       {entryReceipt.tokenBalance} Flamebound NFT(s)
                     </span>
@@ -327,7 +327,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                 <div className="border-t border-black/20 pt-1.5 flex flex-wrap justify-between gap-1.5 text-[10px] sm:text-[11px] text-gray-800 font-bold">
                   <span>MAX: {raffle.maxMintPerWallet || '1 PER WL'}</span>
                   <span>[{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]</span>
-                  <span className="text-black">HOLDERS ONLY</span>
+                  <span className="text-black">MINTERS ONLY</span>
                 </div>
               </div>
 
@@ -526,7 +526,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   </div>
                 </div>
 
-                {/* 6. ON-CHAIN HOLDER STATUS */}
+                {/* 6. ON-CHAIN MINTER STATUS */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.holderCheck ? 'bg-lime/25' : 'bg-white'
                 }`}>
@@ -534,8 +534,8 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     <Flame size={14} className="text-black shrink-0" />
                     <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
                       {holderStatus && holderStatus.isHolder 
-                        ? `VERIFIED (${holderStatus.tokenBalance} NFT)`
-                        : 'HOLDER CHECK'}
+                        ? `VERIFIED MINTER (${holderStatus.tokenBalance} NFT)`
+                        : 'MINTER CHECK'}
                     </span>
                   </div>
 
@@ -552,7 +552,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                         ? 'CHECKING...' 
                         : tasks.holderCheck 
                         ? '✓ VERIFIED' 
-                        : '[VERIFY HOLDER]'}
+                        : '[VERIFY MINTER]'}
                     </span>
                   </button>
                 </div>

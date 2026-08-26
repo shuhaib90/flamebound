@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Wallet, Share2, ShieldCheck, Trophy, ArrowRight } from 'lucide-react';
@@ -19,15 +19,15 @@ export function HowItWorks() {
     },
     {
       num: '03',
-      title: 'ON-CHAIN HOLDER CHECK',
-      desc: 'Our engine verifies active Flamebound NFT holdings directly on-chain in real-time.',
+      title: 'ON-CHAIN MINTER CHECK',
+      desc: 'Our engine verifies your Flamebound NFT mints directly on-chain in real-time.',
       icon: ShieldCheck,
       highlight: true,
     },
     {
       num: '04',
       title: 'PROVABLY FAIR DRAW',
-      desc: 'When the timer closes, verified holders are entered into the verifiable random draw for guaranteed whitelist spots.',
+      desc: 'When the timer closes, verified minters are entered into the verifiable random draw for guaranteed whitelist spots.',
       icon: Trophy,
     },
   ];
@@ -45,7 +45,7 @@ export function HowItWorks() {
             HOW FLAMEBOUND RAFFLES WORK
           </h2>
           <p className="font-mono text-xs sm:text-sm text-black font-bold mt-3">
-            100% On-Chain Verifiable • Zero Fake Entries • Holder Priority
+            100% On-Chain Verifiable • Zero Fake Entries • Minter Priority
           </p>
         </div>
 

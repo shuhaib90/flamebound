@@ -85,8 +85,8 @@ export function AdminDashboard() {
     title: 'FLAMEBOUND PARTNER WL',
     project: 'FLAMEBOUND',
     type: 'WL RAFFLE',
-    subtitle: 'Exclusive whitelist raffle for verified Flamebound holders.',
-    description: 'Whitelist allocation for verified Flamebound holders with priority access.',
+    subtitle: 'Exclusive whitelist raffle for verified Flamebound minters.',
+    description: 'Whitelist allocation for verified Flamebound minters with priority access.',
     supply: 50,
     nftTotalSupply: '1,000 NFTs',
     mintPrice: '0.0001 ETH',
@@ -481,7 +481,7 @@ export function AdminDashboard() {
               <span className="font-mono text-[11px] text-gray-600">Across all collections</span>
             </div>
             <div className="bg-black text-lime border-4 border-black p-4 shadow-pixel-sm">
-              <span className="font-pixel text-[9px] uppercase text-gray-300 block font-bold">VERIFIED HOLDERS</span>
+              <span className="font-pixel text-[9px] uppercase text-gray-300 block font-bold">VERIFIED MINTERS</span>
               <span className="font-pixel text-2xl font-bold text-lime mt-1 block">{stats.totalVerifiedHolders}</span>
               <span className="font-mono text-[11px] text-gray-300">100% On-chain Verified</span>
             </div>

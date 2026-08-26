@@ -112,7 +112,7 @@ export default function SingleRafflePage() {
       setError(null);
     } else if (holderStatus && !holderStatus.isHolder && isConnected) {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(holderStatus.message || 'Your wallet does not currently hold a Flamebound NFT.');
+      setError(holderStatus.message || 'Your wallet is not a verified minter for Flamebound.');
     }
   }, [holderStatus, isConnected]);
 
@@ -406,7 +406,7 @@ export default function SingleRafflePage() {
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
                         <span className="font-bold">ELIGIBILITY:</span>
-                        <span className="font-bold text-black">FLAMEBOUND HOLDERS ONLY</span>
+                        <span className="font-bold text-black">FLAMEBOUND MINTERS ONLY</span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-black/10">
                         <span className="font-bold">TOTAL ENTRIES:</span>
@@ -484,7 +484,7 @@ export default function SingleRafflePage() {
                         WHITELIST ENTRY CONFIRMED!
                       </h3>
                       <p className="font-mono text-xs text-black font-bold">
-                        Your on-chain Flamebound holder status was verified. Your wallet is officially enrolled into this whitelist raffle!
+                        Your on-chain Flamebound minter status was verified. Your wallet is officially enrolled into this whitelist raffle!
                       </p>
                     </div>
 
@@ -518,7 +518,7 @@ export default function SingleRafflePage() {
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-300 block text-[9px] sm:text-[10px]">HOLDINGS:</span>
+                          <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
                           <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
                             {entryReceipt.tokenBalance} Flamebound NFT(s)
                           </span>
@@ -711,14 +711,14 @@ export default function SingleRafflePage() {
                         </div>
                       </div>
 
-                      {/* 6. ON-CHAIN HOLDER STATUS */}
+                      {/* 6. ON-CHAIN MINTER STATUS */}
                       <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-lime/25' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Flame size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
                             {holderStatus && holderStatus.isHolder 
-                              ? ('VERIFIED (' + holderStatus.tokenBalance + ' NFT)')
-                              : 'HOLDER CHECK'}
+                              ? ('VERIFIED MINTER (' + holderStatus.tokenBalance + ' NFT)')
+                              : 'MINTER CHECK'}
                           </span>
                         </div>
 
@@ -733,7 +733,7 @@ export default function SingleRafflePage() {
                               ? 'CHECKING...' 
                               : tasks.holderCheck 
                               ? '✓ VERIFIED' 
-                              : '[VERIFY HOLDER]'}
+                              : '[VERIFY MINTER]'}
                           </span>
                         </button>
                       </div>

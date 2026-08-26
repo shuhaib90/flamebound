@@ -94,13 +94,13 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const balance = holderStatus?.tokenBalance || 0;
 
-  // Determine Holding Tier
+  // Determine Minter Tier
   const getTierInfo = (count: number) => {
-    if (count >= 10) return { title: 'ELDER FLAME WHALE', badge: '👑 VIP TIER', color: 'bg-black text-lime border-lime' };
+    if (count >= 10) return { title: 'ELDER MINTER WHALE', badge: '👑 VIP MINTER', color: 'bg-black text-lime border-lime' };
     if (count >= 6) return { title: 'FLAMEBOUND TITAN', badge: '★★★ TIER 3', color: 'bg-black text-lime border-white' };
-    if (count >= 3) return { title: 'INFERNO LORD', badge: '★★ TIER 2', color: 'bg-lime text-black border-black' };
-    if (count >= 1) return { title: 'FLAME KEEPER', badge: '★ TIER 1', color: 'bg-white text-black border-black' };
-    return { title: 'NON-HOLDER', badge: 'UNVERIFIED', color: 'bg-gray-200 text-gray-700 border-black' };
+    if (count >= 3) return { title: 'INFERNO MINTER LORD', badge: '★★ TIER 2', color: 'bg-lime text-black border-black' };
+    if (count >= 1) return { title: 'VERIFIED MINTER', badge: '★ TIER 1', color: 'bg-white text-black border-black' };
+    return { title: 'NON-MINTER', badge: 'UNVERIFIED', color: 'bg-gray-200 text-gray-700 border-black' };
   };
 
   const tier = getTierInfo(balance);
@@ -142,7 +142,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           {!isConnected || !address ? (
             <div className="bg-lime/20 border-3 border-black p-6 text-center space-y-3 shadow-pixel-sm">
               <p className="font-pixel text-xs text-black uppercase font-bold">
-                CONNECT YOUR EVM WALLET TO VIEW YOUR ENTRIES & HOLDER TIER
+                CONNECT YOUR EVM WALLET TO VIEW YOUR ENTRIES & MINTER TIER
               </p>
               <div className="flex justify-center pt-2">
                 <ConnectButton />
@@ -177,12 +177,12 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 {/* Holdings & Tier Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                   <div className="bg-lime/10 border-2 border-lime/40 p-2">
-                    <span className="text-[9px] text-gray-300 block font-bold">NFT HOLDINGS</span>
+                    <span className="text-[9px] text-gray-300 block font-bold">TOTAL MINTS</span>
                     <span className="font-pixel text-base text-lime font-bold mt-0.5 block">{balance} NFT</span>
                   </div>
 
                   <div className="bg-lime/10 border-2 border-lime/40 p-2">
-                    <span className="text-[9px] text-gray-300 block font-bold">HOLDER TIER</span>
+                    <span className="text-[9px] text-gray-300 block font-bold">MINTER TIER</span>
                     <span className="font-pixel text-[10px] text-white font-bold mt-1 block truncate">{tier.title}</span>
                   </div>
 
@@ -207,7 +207,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   }`}
                 >
                   <Flame size={12} />
-                  <span>HOLDINGS & PERKS</span>
+                  <span>MINTER PERKS</span>
                 </button>
 
                 <button
@@ -231,13 +231,13 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 </button>
               </div>
 
-              {/* TAB 1: HOLDINGS & TIER PERKS */}
+              {/* TAB 1: MINTER PERKS */}
               {activeTab === 'holdings' && (
                 <div className="space-y-4">
                   <div className="bg-white border-3 border-black p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-pixel text-xs text-black font-bold uppercase">
-                        ON-CHAIN VERIFIED HOLDINGS
+                        ON-CHAIN VERIFIED MINTS
                       </h3>
                       <button
                         onClick={() => checkHolderEligibility()}

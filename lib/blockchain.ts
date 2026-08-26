@@ -1,4 +1,4 @@
-﻿import { createPublicClient, http, isAddress, getAddress, parseAbi } from 'viem';
+import { createPublicClient, http, isAddress, getAddress, parseAbi } from 'viem';
 import { mainnet } from 'viem/chains';
 import { HolderVerificationResult } from './types';
 
@@ -92,18 +92,18 @@ export async function verifyFlameboundHolder(
         isHolder: true,
         walletAddress: walletAddress,
         contractAddress: targetContract,
-        network: 'ETHEREUM / RPC',
+        network: 'ROBINHOOD NETWORK / ETHEREUM',
         tokenBalance: balance,
         verifiedOnChain: true,
         timestamp,
-        message: `✓ FLAMEBOUND HOLDER VERIFIED ON-CHAIN! Balance: ${balance} NFT(s).`
+        message: `✓ FLAMEBOUND MINTER VERIFIED ON-CHAIN! (${balance} NFT minted)`
       };
     }
   } catch (err: any) {
     console.warn(`[OnChainCheck] RPC query exception for ${walletAddress} on ${targetContract}:`, err?.message);
   }
 
-  // 3. Check Known Test Registry (Allows testing both holders & non-holders seamlessly)
+  // 3. Check Known Test Registry (Allows testing both minters & non-minters seamlessly)
   const knownHolder = KNOWN_TEST_HOLDERS[normalizedWallet];
   if (knownHolder) {
     const isHolder = knownHolder.balance > 0;
@@ -111,14 +111,14 @@ export async function verifyFlameboundHolder(
       isHolder,
       walletAddress: walletAddress,
       contractAddress: targetContract,
-      network: 'ETHEREUM / FLAMEBOUND',
+      network: 'ROBINHOOD NETWORK / FLAMEBOUND',
       tokenBalance: knownHolder.balance,
       tokenIds: knownHolder.tokenIds,
       verifiedOnChain: true,
       timestamp,
       message: isHolder 
-        ? `✓ FLAMEBOUND HOLDER VERIFIED. Balance: ${knownHolder.balance} NFT(s).`
-        : `✕ NO FLAMEBOUND NFT FOUND. Balance: 0.`
+        ? `✓ FLAMEBOUND MINTER VERIFIED. (${knownHolder.balance} NFT minted)`
+        : `✕ NO FLAMEBOUND MINTS FOUND. Balance: 0.`
     };
   }
 
@@ -127,10 +127,10 @@ export async function verifyFlameboundHolder(
     isHolder: false,
     walletAddress: walletAddress,
     contractAddress: targetContract,
-    network: 'ETHEREUM / RPC',
+    network: 'ROBINHOOD NETWORK / RPC',
     tokenBalance: 0,
     verifiedOnChain: true,
     timestamp,
-    message: `✕ NO FLAMEBOUND NFT FOUND (Balance: 0). Contract: ${formatAddress(targetContract)}`
+    message: `✕ NO FLAMEBOUND MINTS FOUND (Balance: 0). Contract: ${formatAddress(targetContract)}`
   };
 }

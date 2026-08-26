@@ -1,4 +1,4 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { Raffle, RaffleEntry, Winner, AdminStats } from './types';
 import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from './blockchain';
@@ -18,7 +18,7 @@ const DEFAULT_RAFFLES: Raffle[] = [
     project: 'FLAMEBOUND',
     type: 'WL RAFFLE',
     subtitle: 'Win a guaranteed Flamebound Genesis whitelist spot.',
-    description: 'The official whitelist raffle for the upcoming Flamebound Genesis collection. Verify your Flamebound NFT holdings on-chain to enter.',
+    description: 'The official whitelist raffle for the upcoming Flamebound Genesis collection. Verify your Flamebound NFT mints on-chain to enter.',
     status: 'live',
     supply: 50,
     nftTotalSupply: '1,000 NFTs',
