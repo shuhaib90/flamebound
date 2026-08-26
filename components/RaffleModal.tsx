@@ -29,13 +29,13 @@ interface RaffleModalProps {
 }
 
 export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalProps) {
-  const { address, isConnected, holderStatus, isVerifyingHolder, checkHolderEligibility } = useWallet();
+  const { address, shortAddress, isConnected, holderStatus, isVerifyingHolder, checkHolderEligibility } = useWallet();
 
   // Unified single Twitter/X handle
   const [twitterHandle, setTwitterHandle] = useState('');
   const [handleConfirmed, setHandleConfirmed] = useState(false);
 
-  // 5 Simple Checklist Tasks
+  // 6 Simple Checklist Tasks
   const [tasks, setTasks] = useState({
     handleLinked: false,
     followPartner: false,
@@ -197,27 +197,27 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 select-none overflow-y-auto">
-      <div className="bg-white border-4 border-black shadow-pixel-xl w-full max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 select-none overflow-y-auto w-full">
+      <div className="bg-white border-3 sm:border-4 border-black w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         
         {/* Modal Header */}
-        <div className="bg-lime border-b-4 border-black p-4 sm:p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3 truncate">
+        <div className="bg-lime border-b-3 sm:border-b-4 border-black p-3 sm:p-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
             {raffle.logoUrl ? (
-              <img src={raffle.logoUrl} alt={projectName} className="w-8 h-8 object-contain shrink-0 drop-shadow-sm" />
+              <img src={raffle.logoUrl} alt={projectName} className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             ) : (
-              <img src="/images/flamebound-logo.png" alt="Flamebound" className="w-8 h-8 object-contain shrink-0 drop-shadow-sm" />
+              <img src="/images/flamebound-logo.png" alt="Flamebound" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             )}
-            <div className="truncate">
-              <div className="flex items-center gap-2">
-                <span className="font-pixel text-[9px] bg-black text-lime px-2 py-0.5 font-bold uppercase">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold uppercase truncate">
                   {projectName}
                 </span>
-                <span className="font-pixel text-[9px] bg-white text-black px-2 py-0.5 border border-black font-bold">
+                <span className="font-pixel text-[8px] sm:text-[9px] bg-white text-black px-1.5 py-0.5 border border-black font-bold">
                   {raffle.type || 'WL RAFFLE'}
                 </span>
               </div>
-              <h2 className="font-pixel text-base sm:text-lg text-black font-bold uppercase mt-1 truncate">
+              <h2 className="font-pixel text-xs sm:text-base text-black font-bold uppercase mt-1 truncate">
                 {raffle.title}
               </h2>
             </div>
@@ -225,37 +225,37 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
           <button
             onClick={onClose}
-            className="p-2 border-2 border-black bg-black text-lime hover:bg-white hover:text-black transition-colors shrink-0"
+            className="p-1.5 sm:p-2 border-2 border-black bg-black text-lime hover:bg-white hover:text-black transition-colors shrink-0"
             aria-label="Close modal"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-4 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto font-mono text-xs">
+        <div className="p-3 sm:p-5 space-y-3 max-h-[82vh] overflow-y-auto font-mono text-xs overflow-x-hidden">
           
           {/* SUCCESS RECEIPT STATE */}
           {entryReceipt ? (
-            <div className="space-y-6 py-4">
-              <div className="bg-lime border-4 border-black p-6 text-center space-y-3 shadow-pixel">
-                <div className="inline-block p-3 bg-black text-lime mb-1">
-                  <CheckCircle size={36} />
+            <div className="space-y-4 sm:space-y-6 py-2">
+              <div className="bg-lime border-3 sm:border-4 border-black p-4 sm:p-6 text-center space-y-2.5">
+                <div className="inline-block p-2.5 bg-black text-lime mb-1">
+                  <CheckCircle size={32} />
                 </div>
-                <h3 className="font-pixel text-base sm:text-lg font-bold text-black uppercase">
+                <h3 className="font-pixel text-sm sm:text-lg font-bold text-black uppercase">
                   WHITELIST ENTRY CONFIRMED!
                 </h3>
-                <p className="font-mono text-xs text-black font-bold max-w-md mx-auto">
+                <p className="font-mono text-[11px] sm:text-xs text-black font-bold max-w-md mx-auto">
                   Your on-chain Flamebound holder status was verified. Your wallet is officially enrolled into this whitelist raffle!
                 </p>
               </div>
 
               {/* Receipt Specs Card */}
-              <div className="bg-black text-lime border-4 border-black p-5 space-y-3 shadow-pixel-sm">
+              <div className="bg-black text-lime border-3 sm:border-4 border-black p-3.5 sm:p-5 space-y-2.5">
                 <div className="flex items-center justify-between border-b-2 border-lime/30 pb-2">
-                  <span className="font-pixel text-[10px] text-white">ENTRY TICKET ID:</span>
+                  <span className="font-pixel text-[9px] sm:text-[10px] text-white">ENTRY TICKET ID:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-pixel text-sm font-bold text-lime tracking-wider select-all">
+                    <span className="font-pixel text-xs sm:text-sm font-bold text-lime tracking-wider select-all">
                       {entryReceipt.id}
                     </span>
                     <button
@@ -263,29 +263,29 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                       className="p-1 bg-lime text-black border border-black hover:bg-white transition-colors"
                       title="Copy Entry ID"
                     >
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? <Check size={13} /> : <Copy size={13} />}
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
                   <div>
-                    <span className="text-gray-300 block text-[10px]">REGISTERED WALLET:</span>
-                    <span className="font-mono font-bold text-white select-all break-all">
+                    <span className="text-gray-300 block text-[9px] sm:text-[10px]">REGISTERED WALLET:</span>
+                    <span className="font-mono font-bold text-white select-all break-all text-[11px] sm:text-xs">
                       {entryReceipt.walletAddress}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-300 block text-[10px]">VERIFIED HOLDINGS:</span>
-                    <span className="font-mono font-bold text-lime">
+                    <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED HOLDINGS:</span>
+                    <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
                       {entryReceipt.tokenBalance} Flamebound NFT(s)
                     </span>
                   </div>
                 </div>
 
                 {twitterHandle && (
-                  <div className="pt-1 border-t border-lime/20 flex justify-between">
-                    <span className="text-gray-300 text-[10px]">X / TWITTER USERNAME:</span>
+                  <div className="pt-1 border-t border-lime/20 flex justify-between text-[11px] sm:text-xs">
+                    <span className="text-gray-300 text-[9px] sm:text-[10px]">X / TWITTER USERNAME:</span>
                     <span className="font-bold text-white">@{twitterHandle.replace('@', '')}</span>
                   </div>
                 )}
@@ -293,7 +293,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
               <button
                 onClick={onClose}
-                className="w-full pixel-btn text-xs py-3.5 shadow-pixel"
+                className="w-full pixel-btn text-xs py-3"
               >
                 [DONE / RETURN TO RAFFLES]
               </button>
@@ -302,42 +302,42 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
             /* SIMPLE CLEAN ENTRY FORM */
             <>
               {/* NFT Collection Specs Drawer */}
-              <div className="bg-lime/15 border-3 border-black p-3.5 space-y-2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+              <div className="bg-lime/15 border-2 sm:border-3 border-black p-2.5 sm:p-3.5 space-y-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] sm:text-xs">
                   <div>
-                    <span className="text-[9px] font-pixel text-gray-700 block font-bold">WL SPOTS:</span>
-                    <span className="font-pixel text-xs text-black font-bold">{raffle.supply} SPOTS</span>
+                    <span className="text-[8px] sm:text-[9px] font-pixel text-gray-700 block font-bold">WL SPOTS:</span>
+                    <span className="font-pixel text-[11px] sm:text-xs text-black font-bold">{raffle.supply} SPOTS</span>
                   </div>
                   <div>
-                    <span className="text-[9px] font-pixel text-gray-700 block font-bold">TOTAL SUPPLY:</span>
+                    <span className="text-[8px] sm:text-[9px] font-pixel text-gray-700 block font-bold">TOTAL SUPPLY:</span>
                     <span className="font-bold text-black">{raffle.nftTotalSupply || 'TBA'}</span>
                   </div>
                   <div>
-                    <span className="text-[9px] font-pixel text-gray-700 block font-bold">MINT PRICE:</span>
+                    <span className="text-[8px] sm:text-[9px] font-pixel text-gray-700 block font-bold">MINT PRICE:</span>
                     <span className="font-bold text-black bg-white px-1 border border-black inline-block">
                       {raffle.mintPrice || 'FREE'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[9px] font-pixel text-gray-700 block font-bold">MINT DATE:</span>
-                    <span className="font-bold text-black truncate">{raffle.mintDate || 'TBA'}</span>
+                    <span className="text-[8px] sm:text-[9px] font-pixel text-gray-700 block font-bold">MINT DATE:</span>
+                    <span className="font-bold text-black truncate block">{raffle.mintDate || 'TBA'}</span>
                   </div>
                 </div>
 
-                <div className="border-t border-black/20 pt-2 flex flex-wrap justify-between gap-2 text-[11px] text-gray-800 font-bold">
-                  <span>MAX MINT: {raffle.maxMintPerWallet || '1 PER WL'}</span>
-                  <span>NETWORK: [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]</span>
-                  <span className="text-black">ELIGIBILITY: FLAMEBOUND HOLDERS ONLY</span>
+                <div className="border-t border-black/20 pt-1.5 flex flex-wrap justify-between gap-1.5 text-[10px] sm:text-[11px] text-gray-800 font-bold">
+                  <span>MAX: {raffle.maxMintPerWallet || '1 PER WL'}</span>
+                  <span>[{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]</span>
+                  <span className="text-black">HOLDERS ONLY</span>
                 </div>
               </div>
 
               {/* Progress Bar */}
               <div className="space-y-1">
-                <div className="flex justify-between items-center font-pixel text-[10px] uppercase font-bold text-black">
+                <div className="flex justify-between items-center font-pixel text-[9px] sm:text-[10px] uppercase font-bold text-black">
                   <span>{completedCount}/{totalTasks} REQUIREMENTS COMPLETED</span>
                   <span>{progressPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-3.5 bg-black border-2 border-black p-0.5">
+                <div className="h-3 sm:h-3.5 bg-black border-2 border-black p-0.5">
                   <div
                     className="h-full bg-lime transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
@@ -347,43 +347,43 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
               {/* Error Notification */}
               {error && (
-                <div className="bg-red-500 text-white border-3 border-black p-2.5 font-mono text-xs flex items-center gap-2 shadow-pixel-sm font-bold">
-                  <ShieldAlert size={16} className="shrink-0" />
-                  <div className="flex-1 text-[11px]">
+                <div className="bg-red-500 text-white border-2 sm:border-3 border-black p-2 font-mono text-xs flex items-center gap-2 font-bold">
+                  <ShieldAlert size={15} className="shrink-0" />
+                  <div className="flex-1 text-[10px] sm:text-[11px]">
                     {error}
                   </div>
                 </div>
               )}
 
-              {/* CHECKLIST ITEMS */}
-              <div className="space-y-2.5 pt-1">
+              {/* CHECKLIST ITEMS (RESPONSIVE) */}
+              <div className="space-y-2 pt-0.5">
                 
                 {/* 1. SEPARATE DEDICATED BOX: YOUR X HANDLE */}
-                <div className={`border-3 border-black p-3 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 transition-colors ${
                   tasks.handleLinked ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <AtSign size={15} className="text-black" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <AtSign size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[10px] sm:text-[11px] font-bold text-black uppercase truncate">
                       YOUR X (TWITTER) HANDLE
                     </span>
                   </div>
 
-                  <form onSubmit={handleSaveHandle} className="flex gap-2">
+                  <form onSubmit={handleSaveHandle} className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
                     <input
                       type="text"
-                      placeholder="Enter your X handle (e.g. @yourhandle)"
+                      placeholder="Enter handle (e.g. @yourhandle)"
                       value={twitterHandle}
                       onChange={(e) => {
                         setTwitterHandle(e.target.value);
                         setHandleConfirmed(false);
                         setTasks(prev => ({ ...prev, handleLinked: false }));
                       }}
-                      className="flex-1 bg-lime/15 border-2 border-black p-2 text-xs font-mono font-bold outline-none"
+                      className="w-full sm:flex-1 bg-lime/15 border-2 border-black p-2 text-xs font-mono font-bold outline-none min-w-0"
                     />
                     <button
                       type="submit"
-                      className={`pixel-btn text-[10px] py-2 px-3 shrink-0 ${
+                      className={`pixel-btn text-[9px] sm:text-[10px] py-2 px-3 shrink-0 text-center ${
                         tasks.handleLinked ? 'bg-black text-lime' : ''
                       }`}
                     >
@@ -393,129 +393,131 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                 </div>
 
                 {/* 2. FOLLOW ( {PROJECT_NAME} ) - FIRST */}
-                <div className={`border-3 border-black p-3 flex items-center justify-between gap-2 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.followPartner ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <Twitter size={15} className="text-black shrink-0" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase">
-                      FOLLOW ( {projectName} )
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <Twitter size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                      FOLLOW ({projectName})
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleFollowPartner}
-                    className={`pixel-btn text-[10px] py-2 px-3.5 flex items-center gap-1.5 shrink-0 ${
+                    className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
                       tasks.followPartner ? 'bg-black text-lime' : ''
                     }`}
                   >
                     {tasks.followPartner ? (
                       <>
-                        <Check size={12} />
+                        <Check size={11} />
                         <span>[FOLLOWED]</span>
                       </>
                     ) : (
                       <>
-                        <span>[FOLLOW @{projectName.toUpperCase()}]</span>
-                        <ExternalLink size={11} />
+                        <span className="sm:hidden">[FOLLOW]</span>
+                        <span className="hidden sm:inline">[FOLLOW @{projectName.toUpperCase()}]</span>
+                        <ExternalLink size={10} />
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* 3. FOLLOW ( FLAMEBOUND ) - SECOND */}
-                <div className={`border-3 border-black p-3 flex items-center justify-between gap-2 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.followFlamebound ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <Twitter size={15} className="text-black shrink-0" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase">
-                      FOLLOW ( FLAMEBOUND )
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <Twitter size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                      FOLLOW (FLAMEBOUND)
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleFollowFlamebound}
-                    className={`pixel-btn text-[10px] py-2 px-3.5 flex items-center gap-1.5 shrink-0 ${
+                    className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
                       tasks.followFlamebound ? 'bg-black text-lime' : ''
                     }`}
                   >
                     {tasks.followFlamebound ? (
                       <>
-                        <Check size={12} />
+                        <Check size={11} />
                         <span>[FOLLOWED]</span>
                       </>
                     ) : (
                       <>
-                        <span>[FOLLOW @FLAMEBOUNDNFT]</span>
-                        <ExternalLink size={11} />
+                        <span className="sm:hidden">[FOLLOW]</span>
+                        <span className="hidden sm:inline">[FOLLOW @FLAMEBOUNDNFT]</span>
+                        <ExternalLink size={10} />
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* 4. ENGAGE WITH {PROJECT_NAME} */}
-                <div className={`border-3 border-black p-3 flex items-center justify-between gap-2 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.engage ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <MessageSquare size={15} className="text-black shrink-0" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase">
-                      ENGAGE WITH {projectName}
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <MessageSquare size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                      ENGAGE WITH POST
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleEngageTask}
-                    className={`pixel-btn text-[10px] py-2 px-3.5 flex items-center gap-1.5 shrink-0 ${
+                    className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
                       tasks.engage ? 'bg-black text-lime' : ''
                     }`}
                   >
                     {tasks.engage ? (
                       <>
-                        <Check size={12} />
+                        <Check size={11} />
                         <span>[DONE]</span>
                       </>
                     ) : (
                       <>
                         <span>[VIEW POST]</span>
-                        <ExternalLink size={11} />
+                        <ExternalLink size={10} />
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* 5. CONNECT EVM WALLET */}
-                <div className={`border-3 border-black p-3 flex items-center justify-between gap-2 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.wallet ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2 truncate">
-                    <Wallet size={15} className="text-black shrink-0" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase truncate">
-                      {isConnected && address ? `WALLET: ${formatAddress(address)}` : 'CONNECT EVM WALLET'}
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <Wallet size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                      {isConnected && address ? `WALLET: ${shortAddress}` : 'CONNECT WALLET'}
                     </span>
                   </div>
 
                   <div className="shrink-0">
                     <ConnectButton.Custom>
-                      {({ account, openConnectModal, openAccountModal, mounted }) => {
+                      {({ account, openConnectModal, mounted }) => {
                         if (!mounted) return null;
                         if (!account) {
                           return (
                             <button
                               type="button"
                               onClick={openConnectModal}
-                              className="pixel-btn text-[10px] py-2 px-3"
+                              className="pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3"
                             >
                               [CONNECT]
                             </button>
                           );
                         }
                         return (
-                          <span className="font-pixel text-[9px] bg-black text-lime px-2.5 py-1.5 border border-black font-bold inline-block">
+                          <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold inline-block">
                             ✓ LINKED
                           </span>
                         );
@@ -525,15 +527,15 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                 </div>
 
                 {/* 6. ON-CHAIN HOLDER STATUS */}
-                <div className={`border-3 border-black p-3 flex items-center justify-between gap-2 transition-colors ${
+                <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
                   tasks.holderCheck ? 'bg-lime/25' : 'bg-white'
                 }`}>
-                  <div className="flex items-center gap-2 truncate">
-                    <Flame size={15} className="text-black shrink-0" />
-                    <span className="font-pixel text-[11px] font-bold text-black uppercase truncate">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <Flame size={14} className="text-black shrink-0" />
+                    <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
                       {holderStatus && holderStatus.isHolder 
-                        ? `HOLDER VERIFIED (${holderStatus.tokenBalance} NFT)`
-                        : 'FLAMEBOUND HOLDER CHECK'}
+                        ? `VERIFIED (${holderStatus.tokenBalance} NFT)`
+                        : 'HOLDER CHECK'}
                     </span>
                   </div>
 
@@ -541,7 +543,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     type="button"
                     onClick={handleRunHolderCheck}
                     disabled={isVerifyingHolder || !isConnected}
-                    className={`pixel-btn text-[10px] py-2 px-3 flex items-center gap-1.5 shrink-0 ${
+                    className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1 shrink-0 ${
                       !isConnected ? 'opacity-50 cursor-not-allowed' : ''
                     } ${tasks.holderCheck ? 'bg-black text-lime' : ''}`}
                   >
@@ -558,22 +560,22 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
               </div>
 
               {/* Submit Whitelist Entry CTA */}
-              <div className="pt-2 border-t-3 border-black">
+              <div className="pt-2 border-t-2 sm:border-t-3 border-black">
                 <button
                   type="button"
                   onClick={handleSubmitEntry}
                   disabled={!allTasksCompleted || loading}
-                  className={`w-full py-4 font-pixel text-xs tracking-wider uppercase font-bold transition-all shadow-pixel ${
+                  className={`w-full py-3 sm:py-4 px-2 font-pixel text-[10px] sm:text-xs tracking-wider uppercase font-bold transition-all text-center ${
                     allTasksCompleted && !loading
-                      ? 'bg-black text-lime hover:bg-black/90 cursor-pointer'
-                      : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed opacity-75'
+                      ? 'bg-black text-lime hover:bg-black/90 cursor-pointer shadow-none sm:shadow-pixel'
+                      : 'bg-gray-300 text-gray-600 border-2 sm:border-3 border-black cursor-not-allowed opacity-75'
                   }`}
                 >
                   {loading 
-                    ? 'CONFIRMING ON-CHAIN ENTRY...' 
+                    ? 'CONFIRMING ENTRY...' 
                     : allTasksCompleted 
                     ? '[★ SUBMIT WHITELIST ENTRY ★]' 
-                    : `[COMPLETE ALL REQUIREMENTS TO ENTER (${completedCount}/${totalTasks})]`}
+                    : `[COMPLETE REQUIREMENTS (${completedCount}/${totalTasks})]`}
                 </button>
               </div>
             </>

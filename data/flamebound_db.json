@@ -1,37 +1,4 @@
 {
-  "raffles": [
-    {
-      "id": "raffle-fb-genesis-01",
-      "title": "FLAMEBOUND GENESIS WL",
-      "project": "FLAMEBOUND",
-      "type": "WL RAFFLE",
-      "subtitle": "Win a guaranteed Flamebound Genesis whitelist spot.",
-      "description": "The official whitelist raffle for the upcoming Flamebound Genesis collection. Verify your Flamebound NFT holdings on-chain to enter.",
-      "status": "live",
-      "supply": 50,
-      "nftTotalSupply": "1,000 NFTs",
-      "mintPrice": "0.0001 ETH",
-      "mintDate": "15 SEP 2026 — 18:00 UTC",
-      "maxMintPerWallet": "1 PER WL",
-      "totalEntries": 0,
-      "startDate": "2026-08-01T00:00:00.000Z",
-      "endDate": "2026-09-14T23:59:00.000Z",
-      "network": "ROBINHOOD NETWORK",
-      "contractAddress": "0xad11f08a3a1e15756abcf565269d3c32b6d464b9",
-      "requiredTokenCount": 1,
-      "artworkType": "genesis",
-      "logoUrl": "/images/flamebound-logo.png",
-      "bannerUrl": "/images/flamebound-logo.png",
-      "followUrl": "https://x.com/FlameboundNft",
-      "engageUrl": "https://x.com/FlameboundNft",
-      "twitterUrl": "https://x.com/FlameboundNft",
-      "discordUrl": "https://discord.com",
-      "mintUrl": "https://opensea.io/collection/flamebound-259045050",
-      "notes": "Guaranteed Phase 1 Mint for Whitelist Winners",
-      "tasks": [],
-      "winners": [],
-      "createdAt": "2026-08-01T00:00:00.000Z"
-    }
-  ],
+  "raffles": [],
   "entries": []
 }

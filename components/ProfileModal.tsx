@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/lib/wallet-context';
@@ -106,11 +106,11 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const tier = getTierInfo(balance);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 select-none overflow-y-auto">
-      <div className="bg-white border-4 border-black shadow-pixel-xl w-full max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 select-none overflow-y-auto w-full">
+      <div className="bg-white border-3 sm:border-4 border-black shadow-none sm:shadow-pixel-xl w-full max-w-[96vw] sm:max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         
         {/* Header */}
-        <div className="bg-lime border-b-4 border-black p-4 sm:p-5 flex items-center justify-between">
+        <div className="bg-lime border-b-3 sm:border-b-4 border-black p-3 sm:p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/images/flamebound-logo.png"
