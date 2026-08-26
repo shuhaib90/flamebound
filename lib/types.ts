@@ -26,6 +26,10 @@ export interface Raffle {
   mintDate?: string; // e.g. "15 SEP 2026 — 18:00 UTC"
   maxMintPerWallet?: string | number; // e.g. "1 PER WL"
   
+  // Rules & Allocation Mode
+  eligibility?: 'minters_only' | 'holders_only' | 'public'; // default 'minters_only'
+  entryMethod?: 'raffle' | 'fcfs'; // default 'raffle'
+  
   totalEntries: number;
   startDate: string; // ISO string
   endDate: string; // ISO string e.g. "2026-08-25T23:59:00Z"
@@ -79,6 +83,10 @@ export interface RaffleEntry {
     userAgent?: string;
     ipHash?: string;
     holderVerifiedVia?: string;
+    eligibility?: string;
+    entryMethod?: string;
+    isFcfsWinner?: boolean;
+    [key: string]: any;
   };
 }
 

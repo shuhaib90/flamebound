@@ -116,7 +116,12 @@ export default function SingleRafflePage() {
     if (isConnected && address) {
       setTasks(prev => ({ ...prev, wallet: true }));
       if (raffle) {
-        checkHolderEligibility(raffle.contractAddress, raffle.network);
+        if (raffle.eligibility === 'public') {
+          setTasks(prev => ({ ...prev, holderCheck: true }));
+          setError(null);
+        } else {
+          checkHolderEligibility(raffle.contractAddress, raffle.network);
+        }
       }
     } else {
       setTasks(prev => ({ ...prev, wallet: false, holderCheck: false }));
@@ -124,14 +129,21 @@ export default function SingleRafflePage() {
   }, [isConnected, address, raffle]);
 
   useEffect(() => {
+    if (raffle?.eligibility === 'public') {
+      setTasks(prev => ({ ...prev, holderCheck: true }));
+      setError(null);
+      return;
+    }
+
     if (holderStatus && holderStatus.isHolder) {
       setTasks(prev => ({ ...prev, holderCheck: true }));
       setError(null);
     } else if (holderStatus && !holderStatus.isHolder && isConnected) {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(holderStatus.message || 'Your wallet is not a verified minter for Flamebound.');
+      const role = raffle?.eligibility === 'holders_only' ? 'Flamebound NFT holder' : 'Flamebound minter';
+      setError(holderStatus.message || `Your wallet is not a verified ${role}.`);
     }
-  }, [holderStatus, isConnected]);
+  }, [holderStatus, isConnected, raffle]);
 
   useEffect(() => {
     if (!raffle?.endDate) return;
@@ -426,16 +438,22 @@ export default function SingleRafflePage() {
                         <span className="font-bold text-black">{raffle.maxMintPerWallet || '1 PER WL'}</span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">TARGET NETWORK:</span>
-                        <span className="font-bold text-black">[{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]</span>
+                        <span className="font-bold">ENTRY METHOD:</span>
+                        <span className="font-pixel text-[10px] font-bold text-black bg-lime px-1 border border-black">
+                          {raffle.entryMethod === 'fcfs' ? '⚡ FIRST-COME, FIRST-SERVED (FCFS)' : '🎲 RANDOM RAFFLE DRAW'}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
                         <span className="font-bold">ELIGIBILITY:</span>
-                        <span className="font-bold text-black">FLAMEBOUND MINTERS ONLY</span>
+                        <span className="font-bold text-black">
+                          {raffle.eligibility === 'public' ? 'OPEN TO ALL (PUBLIC)' : raffle.eligibility === 'holders_only' ? 'FLAMEBOUND HOLDERS ONLY' : 'FLAMEBOUND MINTERS ONLY'}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-black/10">
-                        <span className="font-bold">TOTAL ENTRIES:</span>
-                        <span className="font-pixel text-xs text-black font-bold">{raffle.totalEntries} PARTICIPANTS</span>
+                        <span className="font-bold">{raffle.entryMethod === 'fcfs' ? 'CLAIMED SPOTS:' : 'TOTAL ENTRIES:'}</span>
+                        <span className="font-pixel text-xs text-black font-bold">
+                          {raffle.totalEntries} / {raffle.supply} {raffle.entryMethod === 'fcfs' ? 'CLAIMED' : 'ENTRIES'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -490,11 +508,13 @@ export default function SingleRafflePage() {
                   <div className="flex items-center gap-2">
                     <Flame size={20} className="text-black" />
                     <h2 className="font-pixel text-base sm:text-lg text-black font-extrabold uppercase">
-                      ENTER WHITELIST
+                      {raffle.entryMethod === 'fcfs' ? 'CLAIM FCFS WHITELIST' : 'ENTER WHITELIST'}
                     </h2>
                   </div>
                   <p className="font-mono text-xs text-gray-700 font-bold mt-1">
-                    Complete all requirements below to submit your verified on-chain entry.
+                    {raffle.entryMethod === 'fcfs' 
+                      ? 'First-come, first-served! Complete requirements to instantly secure your whitelist spot.'
+                      : 'Complete all requirements below to submit your verified on-chain entry.'}
                   </p>
                 </div>
 
@@ -506,10 +526,12 @@ export default function SingleRafflePage() {
                         <CheckCircle size={30} />
                       </div>
                       <h3 className="font-pixel text-sm sm:text-base font-bold text-black uppercase">
-                        WHITELIST ENTRY CONFIRMED!
+                        {raffle.entryMethod === 'fcfs' ? 'FCFS SPOT CONFIRMED!' : 'WHITELIST ENTRY CONFIRMED!'}
                       </h3>
                       <p className="font-mono text-xs text-black font-bold">
-                        Your on-chain Flamebound minter status was verified. Your wallet is officially enrolled into this whitelist raffle!
+                        {raffle.entryMethod === 'fcfs' 
+                          ? '★ Guaranteed FCFS spot confirmed! Your wallet is officially whitelisted for this mint.'
+                          : 'Your on-chain verification was approved. Your wallet is officially enrolled into this whitelist raffle!'}
                       </p>
                     </div>
 
@@ -542,14 +564,23 @@ export default function SingleRafflePage() {
                             {entryReceipt.walletAddress}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
-                          <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
-                            {entryReceipt.tokenBalance} Flamebound NFT(s)
-                          </span>
-                        </div>
+                        {raffle.eligibility !== 'public' && (
+                          <div>
+                            <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
+                            <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
+                              {entryReceipt.tokenBalance} Flamebound NFT(s)
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
+
+                    {twitterHandle && (
+                      <div className="p-3 bg-lime/20 border-2 border-black flex justify-between text-xs">
+                        <span className="text-gray-700 font-bold">X / TWITTER HANDLE:</span>
+                        <span className="font-bold text-black font-mono">@{twitterHandle.replace('@', '')}</span>
+                      </div>
+                    )}
 
                     <Link
                       href="/#active-raffles"
@@ -559,40 +590,40 @@ export default function SingleRafflePage() {
                     </Link>
                   </div>
                 ) : (
-                  /* INTERACTIVE ENTRY CHECKLIST */
+                  /* SIMPLE CLEAN ENTRY FORM */
                   <>
                     {/* Progress Bar */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <div className="flex justify-between items-center font-pixel text-[9px] sm:text-[10px] uppercase font-bold text-black">
-                        <span>{completedCount}/{totalTasks} REQUIREMENTS</span>
+                        <span>{completedCount}/{totalTasks} REQUIREMENTS COMPLETED</span>
                         <span>{progressPercent.toFixed(0)}%</span>
                       </div>
-                      <div className="h-3.5 bg-black border-2 border-black p-0.5">
+                      <div className="h-3 sm:h-3.5 bg-black border-2 border-black p-0.5">
                         <div
                           className="h-full bg-lime transition-all duration-300"
-                          style={{ width: progressPercent + '%' }}
+                          style={{ width: `${progressPercent}%` }}
                         />
                       </div>
                     </div>
 
                     {/* Error Notification */}
                     {error && (
-                      <div className="bg-red-500 text-white border-2 sm:border-3 border-black p-2.5 font-mono text-xs flex items-center gap-2 font-bold">
+                      <div className="bg-red-500 text-white border-2 sm:border-3 border-black p-2 font-mono text-xs flex items-center gap-2 font-bold">
                         <ShieldAlert size={16} className="shrink-0" />
-                        <div className="flex-1 text-[11px]">
+                        <div className="flex-1 text-[10px] sm:text-[11px]">
                           {error}
                         </div>
                       </div>
                     )}
 
-                    {/* Checklist Rows */}
-                    <div className="space-y-2 pt-1">
+                    {/* CHECKLIST ITEMS (RESPONSIVE) */}
+                    <div className="space-y-2.5 pt-1">
                       
                       {/* 1. SEPARATE DEDICATED BOX: YOUR X HANDLE */}
                       <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 transition-colors ' + (tasks.handleLinked ? 'bg-lime/25' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <AtSign size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[10px] sm:text-[11px] font-bold text-black uppercase">
+                          <span className="font-pixel text-[10px] sm:text-[11px] font-bold text-black uppercase truncate">
                             YOUR X (TWITTER) HANDLE
                           </span>
                         </div>
@@ -600,7 +631,7 @@ export default function SingleRafflePage() {
                         <form onSubmit={handleSaveHandle} className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
                           <input
                             type="text"
-                            placeholder="Enter your handle (e.g. @yourhandle)"
+                            placeholder="Enter handle (e.g. @yourhandle)"
                             value={twitterHandle}
                             onChange={(e) => {
                               setTwitterHandle(e.target.value);
@@ -612,7 +643,7 @@ export default function SingleRafflePage() {
                             type="submit"
                             className={'pixel-btn text-[9px] sm:text-[10px] py-2 px-3 shrink-0 text-center ' + (tasks.handleLinked ? 'bg-black text-lime' : '')}
                           >
-                            {tasks.handleLinked ? '✓ LINKED' : '[CONFIRM]'}
+                            {tasks.handleLinked ? '✓ LINKED' : '[CONFIRM HANDLE]'}
                           </button>
                         </form>
                       </div>
@@ -629,17 +660,18 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleFollowPartner}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1.5 shrink-0 ' + (tasks.followPartner ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followPartner ? 'bg-black text-lime' : '')}
                         >
                           {tasks.followPartner ? (
                             <>
-                              <Check size={12} />
+                              <Check size={11} />
                               <span>[FOLLOWED]</span>
                             </>
                           ) : (
                             <>
-                              <span>[FOLLOW]</span>
-                              <ExternalLink size={11} />
+                              <span className="sm:hidden">[FOLLOW]</span>
+                              <span className="hidden sm:inline">[FOLLOW @{projectName.toUpperCase()}]</span>
+                              <ExternalLink size={10} />
                             </>
                           )}
                         </button>
@@ -657,24 +689,24 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleFollowFlamebound}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1.5 shrink-0 ' + (tasks.followFlamebound ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followFlamebound ? 'bg-black text-lime' : '')}
                         >
                           {tasks.followFlamebound ? (
                             <>
-                              <Check size={12} />
+                              <Check size={11} />
                               <span>[FOLLOWED]</span>
                             </>
                           ) : (
                             <>
                               <span className="sm:hidden">[FOLLOW]</span>
-                              <span className="hidden sm:inline">[FOLLOW @FLAMEBOUND]</span>
-                              <ExternalLink size={11} />
+                              <span className="hidden sm:inline">[FOLLOW @FLAMEBOUNDNFT]</span>
+                              <ExternalLink size={10} />
                             </>
                           )}
                         </button>
                       </div>
 
-                      {/* 4. ENGAGE WITH {PROJECT_NAME} */}
+                      {/* 4. ENGAGE WITH POST */}
                       <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.engage ? 'bg-lime/25' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <MessageSquare size={14} className="text-black shrink-0" />
@@ -686,17 +718,17 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleEngageTask}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1.5 shrink-0 ' + (tasks.engage ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.engage ? 'bg-black text-lime' : '')}
                         >
                           {tasks.engage ? (
                             <>
-                              <Check size={12} />
+                              <Check size={11} />
                               <span>[DONE]</span>
                             </>
                           ) : (
                             <>
                               <span>[VIEW POST]</span>
-                              <ExternalLink size={11} />
+                              <ExternalLink size={10} />
                             </>
                           )}
                         </button>
@@ -736,31 +768,39 @@ export default function SingleRafflePage() {
                         </div>
                       </div>
 
-                      {/* 6. ON-CHAIN MINTER STATUS */}
+                      {/* 6. ON-CHAIN ELIGIBILITY CHECK */}
                       <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-lime/25' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Flame size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
-                            {holderStatus && holderStatus.isHolder 
-                              ? ('VERIFIED MINTER (' + holderStatus.tokenBalance + ' NFT)')
-                              : 'MINTER CHECK'}
+                            {raffle.eligibility === 'public'
+                              ? '✓ OPEN TO ALL (NO NFT REQUIRED)'
+                              : holderStatus && holderStatus.isHolder 
+                              ? (`VERIFIED ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} (${holderStatus.tokenBalance} NFT)`)
+                              : (`${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} CHECK`)}
                           </span>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={handleRunHolderCheck}
-                          disabled={isVerifyingHolder || !isConnected}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-lime' : '')}
-                        >
-                          <span>
-                            {isVerifyingHolder 
-                              ? 'CHECKING...' 
-                              : tasks.holderCheck 
-                              ? '✓ VERIFIED' 
-                              : '[VERIFY MINTER]'}
+                        {raffle.eligibility === 'public' ? (
+                          <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold">
+                            ✓ ELIGIBLE
                           </span>
-                        </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleRunHolderCheck}
+                            disabled={isVerifyingHolder || !isConnected}
+                            className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-lime' : '')}
+                          >
+                            <span>
+                              {isVerifyingHolder 
+                                ? 'CHECKING...' 
+                                : tasks.holderCheck 
+                                ? '✓ VERIFIED' 
+                                : (`[VERIFY ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'}]`)}
+                            </span>
+                          </button>
+                        )}
                       </div>
 
                     </div>
@@ -770,13 +810,19 @@ export default function SingleRafflePage() {
                       <button
                         type="button"
                         onClick={handleSubmitEntry}
-                        disabled={!allTasksCompleted || submitting || !isLive}
-                        className={'w-full py-3.5 sm:py-4 font-pixel text-xs tracking-wider uppercase font-bold transition-all shadow-pixel text-center ' + (allTasksCompleted && !submitting && isLive ? 'bg-black text-lime hover:bg-black/90 cursor-pointer' : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed opacity-75')}
+                        disabled={!allTasksCompleted || submitting || !isLive || (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)}
+                        className={'w-full py-3.5 sm:py-4 font-pixel text-xs tracking-wider uppercase font-bold transition-all shadow-pixel text-center ' + (
+                          allTasksCompleted && !submitting && isLive && !(raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
+                            ? 'bg-black text-lime hover:bg-black/90 cursor-pointer' 
+                            : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed opacity-75'
+                        )}
                       >
                         {submitting 
                           ? 'CONFIRMING ENTRY ON-CHAIN...' 
+                          : (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
+                          ? '[ALL FCFS SPOTS CLAIMED / CLOSED]'
                           : allTasksCompleted 
-                          ? '[★ SUBMIT WHITELIST ENTRY ★]' 
+                          ? (raffle.entryMethod === 'fcfs' ? '[★ CLAIM FCFS GUARANTEED SPOT ★]' : '[★ SUBMIT WHITELIST ENTRY ★]')
                           : ('[COMPLETE ALL REQUIREMENTS (' + completedCount + '/' + totalTasks + ')]')}
                       </button>
                     </div>

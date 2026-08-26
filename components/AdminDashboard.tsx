@@ -54,6 +54,8 @@ interface NewRaffleForm {
   mintUrl: string;
   notes: string;
   endDate: string;
+  eligibility: 'minters_only' | 'holders_only' | 'public';
+  entryMethod: 'raffle' | 'fcfs';
 }
 
 export function AdminDashboard() {
@@ -96,6 +98,8 @@ export function AdminDashboard() {
     customNetwork: '',
     contractAddress: FLAMEBOUND_PRIMARY_CONTRACT,
     requiredTokenCount: 1,
+    eligibility: 'minters_only',
+    entryMethod: 'raffle',
     artworkType: 'genesis',
     logoUrl: '/images/flamebound-logo.png',
     bannerUrl: '/images/flamebound-logo.png',
@@ -283,6 +287,41 @@ export function AdminDashboard() {
       }
     } catch (err: any) {
       setActionMessage('✕ Failed to draw winners: ' + err.message);
+    }
+  };
+
+  const handleToggleMethod = async (raffle: Raffle) => {
+    const newMethod = raffle.entryMethod === 'fcfs' ? 'raffle' : 'fcfs';
+    try {
+      const res = await fetch(`/api/raffles/${raffle.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryMethod: newMethod }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMessage(`✓ Switched "${raffle.title}" entry method to ${newMethod === 'fcfs' ? '⚡ FCFS' : '🎲 RANDOM RAFFLE DRAW'}`);
+        fetchData();
+      }
+    } catch (err: any) {
+      setActionMessage('✕ Failed to toggle method: ' + err.message);
+    }
+  };
+
+  const handleToggleEligibility = async (raffle: Raffle, newEligibility: 'minters_only' | 'holders_only' | 'public') => {
+    try {
+      const res = await fetch(`/api/raffles/${raffle.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eligibility: newEligibility }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMessage(`✓ Switched "${raffle.title}" eligibility to ${newEligibility.toUpperCase()}`);
+        fetchData();
+      }
+    } catch (err: any) {
+      setActionMessage('✕ Failed to update eligibility: ' + err.message);
     }
   };
 
@@ -566,6 +605,20 @@ export function AdminDashboard() {
                         <strong>Project:</strong> 
                         <span className="font-bold">{raffle.project || 'FLAMEBOUND'}</span>
                       </div>
+                      <div className="flex justify-between items-center">
+                        <strong>Eligibility:</strong> 
+                        <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 border border-black font-bold">
+                          {raffle.eligibility === 'public' ? '🌐 OPEN TO ALL' : raffle.eligibility === 'holders_only' ? '🛡️ HOLDERS ONLY' : '🔥 MINTERS ONLY'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <strong>Method:</strong> 
+                        <span className={`font-pixel text-[9px] px-1.5 py-0.5 border border-black font-bold ${
+                          raffle.entryMethod === 'fcfs' ? 'bg-lime text-black animate-pulse' : 'bg-white text-black'
+                        }`}>
+                          {raffle.entryMethod === 'fcfs' ? '⚡ FCFS (FIRST COME)' : '🎲 RAFFLE DRAW'}
+                        </span>
+                      </div>
                       <div className="flex justify-between">
                         <strong>NFT Total Supply:</strong> 
                         <span className="font-bold">{raffle.nftTotalSupply || 'TBA'}</span>
@@ -587,12 +640,21 @@ export function AdminDashboard() {
                       </div>
                       <div className="flex justify-between">
                         <strong>Total Entries:</strong> 
-                        <span className="font-bold">{raffle.totalEntries}</span>
+                        <span className="font-bold">{raffle.totalEntries} / {raffle.supply} SPOTS</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2 pt-2 border-t-2 border-black">
+                    {/* Quick Mode Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleMethod(raffle)}
+                      className="w-full font-pixel text-[9px] py-1.5 bg-lime/30 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
+                    >
+                      <span>MODE: {raffle.entryMethod === 'fcfs' ? '⚡ FCFS (SWITCH TO RAFFLE)' : '🎲 RAFFLE (SWITCH TO FCFS)'}</span>
+                    </button>
+
                     {raffle.status === 'live' && (
                       <button
                         onClick={() => handleDrawWinners(raffle.id, raffle.supply)}
@@ -694,6 +756,88 @@ export function AdminDashboard() {
                   onChange={(e) => setEditingRaffle({ ...editingRaffle, subtitle: e.target.value })}
                   className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                 />
+              </div>
+
+              {/* Eligibility & Entry Method Rules */}
+              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+                <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
+                  <span>🎟️ RAFFLE ELIGIBILITY & ENTRY METHOD:</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Eligibility Selector */}
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                      ELIGIBILITY REQUIREMENT:
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'minters_only' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          (editingRaffle.eligibility || 'minters_only') === 'minters_only'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🔥 MINTERS ONLY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'holders_only' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          editingRaffle.eligibility === 'holders_only'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🛡️ HOLDERS ONLY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'public' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          editingRaffle.eligibility === 'public'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🌐 OPEN TO ALL
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Entry Method Selector */}
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                      ENTRY / ALLOCATION METHOD:
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'raffle' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          (editingRaffle.entryMethod || 'raffle') === 'raffle'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🎲 RANDOM DRAW
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'fcfs' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          editingRaffle.entryMethod === 'fcfs'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        ⚡ FCFS (FIRST COME)
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Task Custom URLs */}
@@ -1096,6 +1240,88 @@ export function AdminDashboard() {
                   onChange={(e) => setNewRaffle({ ...newRaffle, subtitle: e.target.value })}
                   className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                 />
+              </div>
+
+              {/* Eligibility & Entry Method Rules */}
+              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+                <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
+                  <span>🎟️ RAFFLE ELIGIBILITY & ENTRY METHOD:</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Eligibility Selector */}
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                      ELIGIBILITY REQUIREMENT:
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'minters_only' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.eligibility === 'minters_only'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🔥 MINTERS ONLY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'holders_only' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.eligibility === 'holders_only'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🛡️ HOLDERS ONLY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'public' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.eligibility === 'public'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🌐 OPEN TO ALL
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Entry Method Selector */}
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                      ENTRY / ALLOCATION METHOD:
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'raffle' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.entryMethod === 'raffle'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🎲 RANDOM DRAW
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'fcfs' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.entryMethod === 'fcfs'
+                            ? 'bg-lime text-black shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        ⚡ FCFS (FIRST COME)
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Task Custom URLs */}

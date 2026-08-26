@@ -41,43 +41,72 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 200 });
     }
 
-    // 3. SERVER-SIDE STRICT ON-CHAIN HOLDER VERIFICATION
-    const verification = await verifyFlameboundHolder(
-      walletAddress,
-      raffle.contractAddress,
-      raffle.network
-    );
-
-    if (!verification.isHolder) {
+    // 3. FCFS Spot Limit Enforcement
+    const isFcfs = raffle.entryMethod === 'fcfs';
+    if (isFcfs && (raffle.totalEntries || 0) >= raffle.supply) {
       return NextResponse.json({
         success: false,
-        error: 'HOLDER_CHECK_FAILED',
-        message: 'Your wallet does not currently hold a Flamebound NFT. You cannot complete this holder-only raffle.',
-        verification
-      }, { status: 403 });
+        error: 'FCFS_FILLED',
+        message: `All ${raffle.supply} FCFS whitelist spots have already been claimed!`
+      }, { status: 400 });
     }
 
-    // 4. Create and persist verified entry into Supabase + Local
+    // 4. DYNAMIC ELIGIBILITY CHECK (MINTERS ONLY / HOLDERS ONLY / PUBLIC)
+    const eligibility = raffle.eligibility || 'minters_only';
+    let verification: any = {
+      isHolder: true,
+      walletAddress,
+      contractAddress: raffle.contractAddress,
+      network: raffle.customNetwork || raffle.network,
+      tokenBalance: 0,
+      verifiedOnChain: false,
+      message: '✓ Public Whitelist Entry Approved'
+    };
+
+    if (eligibility !== 'public') {
+      verification = await verifyFlameboundHolder(
+        walletAddress,
+        raffle.contractAddress,
+        raffle.network
+      );
+
+      if (!verification.isHolder) {
+        const roleName = eligibility === 'minters_only' ? 'Flamebound minter' : 'Flamebound NFT holder';
+        return NextResponse.json({
+          success: false,
+          error: 'ELIGIBILITY_CHECK_FAILED',
+          message: `Your wallet is not a verified ${roleName}. You cannot enter this ${roleName}-only whitelist.`,
+          verification
+        }, { status: 403 });
+      }
+    }
+
+    // 5. Create and persist verified entry into Supabase + Local
     const entry = await createEntryAsync({
       raffleId: id,
       walletAddress: verification.walletAddress,
       twitterUsername: body.twitterUsername || '',
       taskStatus: taskStatus || {},
-      isHolder: true,
-      tokenBalance: verification.tokenBalance,
+      isHolder: verification.isHolder,
+      tokenBalance: verification.tokenBalance || 1,
       status: 'confirmed',
       contractAddress: raffle.contractAddress,
       network: raffle.customNetwork || raffle.network,
       metadata: {
-        holderVerifiedVia: 'on-chain-smart-contract',
+        eligibility,
+        entryMethod: raffle.entryMethod || 'raffle',
+        isFcfsWinner: isFcfs,
       }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Raffle entry successfully verified and confirmed.',
+      message: isFcfs 
+        ? '★ CONGRATULATIONS! Your FCFS Whitelist Spot has been instantly confirmed! ★' 
+        : 'Raffle entry successfully verified and confirmed.',
       entry,
       verification,
+      isFcfsWinner: isFcfs,
     }, { status: 201 });
   } catch (error: any) {
     console.error('Enter raffle error:', error);

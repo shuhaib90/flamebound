@@ -108,8 +108,13 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="font-pixel text-[8px] sm:text-[9px] bg-white text-black px-1.5 py-0.5 border border-black font-bold">
-              {raffle.type || 'WL RAFFLE'}
+            <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 py-0.5 border border-black font-bold ${
+              raffle.entryMethod === 'fcfs' ? 'bg-lime text-black' : 'bg-white text-black'
+            }`}>
+              {raffle.entryMethod === 'fcfs' ? '⚡ FCFS' : raffle.type || 'WL RAFFLE'}
+            </span>
+            <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-1.5 py-0.5 border border-white/40 font-bold">
+              {raffle.eligibility === 'public' ? '🌐 OPEN' : raffle.eligibility === 'holders_only' ? '🛡️ HOLDERS' : '🔥 MINTERS'}
             </span>
             <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 border border-black font-bold ${
               isLive ? 'bg-lime text-black animate-pulse' : 'bg-red-600 text-white'
@@ -132,6 +137,12 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
           </div>
 
+          {raffle.entryMethod === 'fcfs' && (
+            <div className="absolute top-2 left-2 bg-lime text-black border border-black px-2 py-0.5 font-pixel text-[8px] sm:text-[9px] font-bold shadow-pixel-xs">
+              ⚡ FCFS INSTANT WL
+            </div>
+          )}
+
           {raffle.notes && (
             <div className="absolute bottom-2 left-2 bg-black/90 text-lime font-mono text-[9px] sm:text-[10px] px-2 py-0.5 border border-lime truncate max-w-[90%] font-bold">
               ⚡ {raffle.notes}
@@ -152,7 +163,9 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           {/* Compact 2x2 Highlights Badge Grid */}
           <div className="grid grid-cols-2 gap-1.5 bg-lime/15 border-2 sm:border-3 border-black p-2.5 font-mono text-xs">
             <div>
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">WL SPOTS:</span>
+              <span className="text-[8px] font-pixel text-gray-700 block font-bold">
+                {raffle.entryMethod === 'fcfs' ? 'FCFS SPOTS:' : 'WL SPOTS:'}
+              </span>
               <span className="font-pixel text-[11px] text-black font-bold mt-0.5 block">{raffle.supply} SPOTS</span>
             </div>
 
@@ -164,16 +177,20 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             </div>
 
             <div className="pt-1 border-t border-black/15">
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">ENTRIES:</span>
+              <span className="text-[8px] font-pixel text-gray-700 block font-bold">
+                {raffle.entryMethod === 'fcfs' ? 'CLAIMED:' : 'ENTRIES:'}
+              </span>
               <span className="font-pixel text-[10px] text-black font-bold mt-0.5 block">
-                {raffle.totalEntries} ENTRIES
+                {raffle.entryMethod === 'fcfs' 
+                  ? `${raffle.totalEntries} / ${raffle.supply} CLAIMED` 
+                  : `${raffle.totalEntries} ENTRIES`}
               </span>
             </div>
 
             <div className="pt-1 border-t border-black/15">
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">MAX PER WL:</span>
-              <span className="font-mono text-xs font-bold text-black mt-0.5 block">
-                {raffle.maxMintPerWallet || '1 PER WL'}
+              <span className="text-[8px] font-pixel text-gray-700 block font-bold">ELIGIBILITY:</span>
+              <span className="font-mono text-[10px] font-bold text-black mt-0.5 block truncate">
+                {raffle.eligibility === 'public' ? 'OPEN TO ALL' : raffle.eligibility === 'holders_only' ? 'HOLDERS' : 'MINTERS'}
               </span>
             </div>
           </div>
@@ -203,11 +220,21 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             href={rafflePageUrl}
             className={`flex-1 text-[10px] sm:text-xs py-2.5 sm:py-3 flex items-center justify-center gap-1.5 ${
               isLive
-                ? 'pixel-btn shadow-pixel hover:bg-black/90'
+                ? (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
+                  ? 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed font-pixel text-[9px]'
+                  : 'pixel-btn shadow-pixel hover:bg-black/90'
                 : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed font-pixel text-[9px] sm:text-[10px]'
             }`}
           >
-            <span>{isLive ? '[ENTER RAFFLE]' : '[VIEW DETAILS]'}</span>
+            <span>
+              {isLive 
+                ? (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
+                  ? '[FCFS FILLED]'
+                  : raffle.entryMethod === 'fcfs' 
+                  ? '[CLAIM FCFS SPOT]' 
+                  : '[ENTER RAFFLE]'
+                : '[VIEW DETAILS]'}
+            </span>
             <ArrowRight size={13} />
           </Link>
 

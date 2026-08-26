@@ -31,6 +31,8 @@ const DEFAULT_RAFFLES: Raffle[] = [
     network: 'ROBINHOOD NETWORK',
     contractAddress: FLAMEBOUND_PRIMARY_CONTRACT,
     requiredTokenCount: 1,
+    eligibility: 'minters_only',
+    entryMethod: 'raffle',
     artworkType: 'genesis',
     logoUrl: '/images/flamebound-logo.png',
     bannerUrl: '/images/flamebound-logo.png',
@@ -39,7 +41,7 @@ const DEFAULT_RAFFLES: Raffle[] = [
     twitterUrl: 'https://x.com/FlameboundNft',
     discordUrl: 'https://discord.com',
     mintUrl: 'https://opensea.io/collection/flamebound-259045050',
-    notes: 'Guaranteed Phase 1 Mint for Whitelist Winners',
+    notes: 'Phase 1 Guaranteed Whitelist Mint',
     tasks: [],
     winners: [],
     createdAt: '2026-08-01T00:00:00.000Z',
@@ -70,6 +72,8 @@ function mapDbRowToRaffle(row: any): Raffle {
     customNetwork: row.custom_network,
     contractAddress: row.contract_address || FLAMEBOUND_PRIMARY_CONTRACT,
     requiredTokenCount: row.required_token_count || 1,
+    eligibility: row.eligibility || 'minters_only',
+    entryMethod: row.entry_method || 'raffle',
     artworkType: row.artwork_type || 'genesis',
     logoUrl: row.logo_url || '/images/flamebound-logo.png',
     bannerUrl: row.banner_url || '/images/flamebound-logo.png',
@@ -190,6 +194,8 @@ export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Ra
     custom_network: raffleData.customNetwork || null,
     contract_address: raffleData.contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
     required_token_count: raffleData.requiredTokenCount || 1,
+    eligibility: raffleData.eligibility || 'minters_only',
+    entry_method: raffleData.entryMethod || 'raffle',
     artwork_type: raffleData.artworkType || 'custom',
     banner_url: raffleData.bannerUrl || null,
     logo_url: raffleData.logoUrl || '/images/flamebound-logo.png',
@@ -235,6 +241,8 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
     customNetwork: raffleData.customNetwork,
     contractAddress: raffleData.contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
     requiredTokenCount: raffleData.requiredTokenCount || 1,
+    eligibility: raffleData.eligibility || 'minters_only',
+    entryMethod: raffleData.entryMethod || 'raffle',
     artworkType: raffleData.artworkType || 'custom',
     bannerUrl: raffleData.bannerUrl,
     logoUrl: raffleData.logoUrl || '/images/flamebound-logo.png',
@@ -270,6 +278,8 @@ export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): P
   if (updates.network) rowUpdates.network = updates.network;
   if (updates.customNetwork !== undefined) rowUpdates.custom_network = updates.customNetwork;
   if (updates.contractAddress) rowUpdates.contract_address = updates.contractAddress;
+  if (updates.eligibility !== undefined) rowUpdates.eligibility = updates.eligibility;
+  if (updates.entryMethod !== undefined) rowUpdates.entry_method = updates.entryMethod;
   if (updates.bannerUrl !== undefined) rowUpdates.banner_url = updates.bannerUrl;
   if (updates.logoUrl !== undefined) rowUpdates.logo_url = updates.logoUrl;
   if (updates.followUrl !== undefined) rowUpdates.follow_url = updates.followUrl;
