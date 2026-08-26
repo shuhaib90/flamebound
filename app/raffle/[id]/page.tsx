@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Raffle } from '@/lib/types';
+import { Raffle, CustomTask } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Header } from '@/components/Header';
@@ -23,7 +23,9 @@ import {
   MessageSquare, 
   Wallet,
   AtSign,
-  Sparkles
+  Sparkles,
+  Send,
+  Globe
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
@@ -47,6 +49,7 @@ export default function SingleRafflePage() {
     wallet: false,
     holderCheck: false,
   });
+  const [customTasksDone, setCustomTasksDone] = useState<Record<string, boolean>>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [entryReceipt, setEntryReceipt] = useState<{
@@ -216,10 +219,17 @@ export default function SingleRafflePage() {
     }
   };
 
-  const completedCount = Object.values(tasks).filter(Boolean).length;
-  const totalTasks = 6;
-  const progressPercent = (completedCount / totalTasks) * 100;
-  const allTasksCompleted = completedCount === totalTasks;
+  const baseTasksCompleted = Object.values(tasks).filter(Boolean).length;
+  const customTasksList = raffle?.customTasks || [];
+  const requiredCustomTasks = customTasksList.filter(t => t.required !== false);
+  const completedCustomTasksCount = customTasksList.filter(t => customTasksDone[t.id]).length;
+  
+  const completedCount = baseTasksCompleted + completedCustomTasksCount;
+  const totalTasks = 6 + customTasksList.length;
+  const progressPercent = Math.min(100, (completedCount / totalTasks) * 100);
+  
+  const allRequiredCustomDone = requiredCustomTasks.every(t => customTasksDone[t.id]);
+  const allTasksCompleted = (baseTasksCompleted === 6) && allRequiredCustomDone;
 
   const handleSubmitEntry = async () => {
     if (!allTasksCompleted || !address || !raffle) {
@@ -237,7 +247,7 @@ export default function SingleRafflePage() {
         body: JSON.stringify({
           walletAddress: address,
           twitterUsername: twitterHandle.trim().replace(/^@/, ''),
-          taskStatus: tasks,
+          taskStatus: { ...tasks, customTasks: customTasksDone },
           contractAddress: raffle.contractAddress,
           network: raffle.customNetwork || raffle.network,
         }),
@@ -802,6 +812,53 @@ export default function SingleRafflePage() {
                           </button>
                         )}
                       </div>
+
+                      {/* 7+. DYNAMIC CUSTOM TASKS (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
+                      {customTasksList.map((ct, idx) => {
+                        const isDone = Boolean(customTasksDone[ct.id]);
+                        return (
+                          <div
+                            key={ct.id || idx}
+                            className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (isDone ? 'bg-lime/25' : 'bg-white')}
+                          >
+                            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                              {ct.type === 'discord' ? (
+                                <MessageSquare size={14} className="text-black shrink-0" />
+                              ) : ct.type === 'telegram' ? (
+                                <Send size={14} className="text-black shrink-0" />
+                              ) : ct.type === 'twitter' ? (
+                                <Twitter size={14} className="text-black shrink-0" />
+                              ) : (
+                                <Globe size={14} className="text-black shrink-0" />
+                              )}
+                              <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                                {ct.title}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (ct.url) window.open(ct.url, '_blank');
+                                setCustomTasksDone(prev => ({ ...prev, [ct.id]: true }));
+                              }}
+                              className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (isDone ? 'bg-black text-lime' : '')}
+                            >
+                              {isDone ? (
+                                <>
+                                  <Check size={11} />
+                                  <span>[DONE]</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>{ct.actionLabel || '[VISIT]'}</span>
+                                  <ExternalLink size={10} />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
 
                     </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Raffle, RaffleEntry, AdminStats } from '@/lib/types';
+import { Raffle, RaffleEntry, AdminStats, CustomTask } from '@/lib/types';
 import { PixelFlame, PixelCheck, PixelCross } from '@/components/PixelFlame';
 import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from '@/lib/blockchain';
 import { useWallet } from '@/lib/wallet-context';
@@ -26,7 +26,10 @@ import {
   Wallet,
   Globe,
   Twitter,
-  MessageSquare
+  MessageSquare,
+  Send,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 
 interface NewRaffleForm {
@@ -56,6 +59,7 @@ interface NewRaffleForm {
   endDate: string;
   eligibility: 'minters_only' | 'holders_only' | 'public';
   entryMethod: 'raffle' | 'fcfs';
+  customTasks: CustomTask[];
 }
 
 export function AdminDashboard() {
@@ -100,6 +104,7 @@ export function AdminDashboard() {
     requiredTokenCount: 1,
     eligibility: 'minters_only',
     entryMethod: 'raffle',
+    customTasks: [],
     artworkType: 'genesis',
     logoUrl: '/images/flamebound-logo.png',
     bannerUrl: '/images/flamebound-logo.png',
@@ -195,6 +200,64 @@ export function AdminDashboard() {
     }
   };
 
+  const addCustomTask = (formType: 'create' | 'edit', preset?: Partial<CustomTask>) => {
+    const newTask: CustomTask = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      title: preset?.title || 'Join Community Discord',
+      url: preset?.url || 'https://',
+      actionLabel: preset?.actionLabel || '[VISIT LINK]',
+      type: preset?.type || 'link',
+      required: preset?.required ?? true,
+    };
+
+    if (formType === 'create') {
+      setNewRaffle(prev => ({
+        ...prev,
+        customTasks: [...(prev.customTasks || []), newTask],
+      }));
+    } else if (editingRaffle) {
+      setEditingRaffle(prev => prev ? ({
+        ...prev,
+        customTasks: [...(prev.customTasks || []), newTask],
+      }) : null);
+    }
+  };
+
+  const updateCustomTask = (formType: 'create' | 'edit', index: number, field: keyof CustomTask, value: any) => {
+    if (formType === 'create') {
+      setNewRaffle(prev => {
+        const updated = [...(prev.customTasks || [])];
+        if (updated[index]) {
+          updated[index] = { ...updated[index], [field]: value };
+        }
+        return { ...prev, customTasks: updated };
+      });
+    } else if (editingRaffle) {
+      setEditingRaffle(prev => {
+        if (!prev) return null;
+        const updated = [...(prev.customTasks || [])];
+        if (updated[index]) {
+          updated[index] = { ...updated[index], [field]: value };
+        }
+        return { ...prev, customTasks: updated };
+      });
+    }
+  };
+
+  const removeCustomTask = (formType: 'create' | 'edit', index: number) => {
+    if (formType === 'create') {
+      setNewRaffle(prev => ({
+        ...prev,
+        customTasks: (prev.customTasks || []).filter((_, i) => i !== index),
+      }));
+    } else if (editingRaffle) {
+      setEditingRaffle(prev => prev ? ({
+        ...prev,
+        customTasks: (prev.customTasks || []).filter((_, i) => i !== index),
+      }) : null);
+    }
+  };
+
   const handleCreateRaffle = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -204,6 +267,7 @@ export function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newRaffle,
+          customTasks: newRaffle.customTasks || [],
           endDate: new Date(newRaffle.endDate).toISOString(),
           status: 'live',
         }),
@@ -873,6 +937,158 @@ export function AdminDashboard() {
                 </div>
               </div>
 
+              {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
+              <div className="bg-lime/10 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
+                  <div>
+                    <span className="font-pixel text-[10px] uppercase font-bold text-black block">
+                      ⚡ CUSTOM ENTRY TASKS (OPTIONAL):
+                    </span>
+                    <span className="font-mono text-[11px] text-gray-700">
+                      Add extra community requirements (Discord, Telegram, Retweets, Links)
+                    </span>
+                  </div>
+
+                  {/* Preset Buttons */}
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('edit', { title: 'Join Official Discord Server', type: 'discord', actionLabel: '[JOIN DISCORD]', url: 'https://discord.gg/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Discord
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('edit', { title: 'Join Telegram Community', type: 'telegram', actionLabel: '[JOIN TELEGRAM]', url: 'https://t.me/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Telegram
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('edit', { title: 'Like & Retweet Announcement', type: 'twitter', actionLabel: '[RETWEET POST]', url: 'https://x.com/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Retweet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('edit')}
+                      className="font-pixel text-[8px] bg-white text-black px-2 py-1 border border-black hover:bg-lime font-bold uppercase transition-colors"
+                    >
+                      + Add Task
+                    </button>
+                  </div>
+                </div>
+
+                {/* Task List Rows */}
+                {(!editingRaffle.customTasks || editingRaffle.customTasks.length === 0) ? (
+                  <div className="p-3 bg-white/60 border-2 border-dashed border-black/40 text-center font-mono text-xs text-gray-600">
+                    No custom tasks added. Click any button above (+ Discord, + Telegram, + Retweet) to add custom tasks.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {editingRaffle.customTasks.map((task, idx) => (
+                      <div key={task.id || idx} className="bg-white border-2 border-black p-3 space-y-2 shadow-pixel-xs">
+                        <div className="flex items-center justify-between border-b border-black/20 pb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold">
+                              TASK #{idx + 1}
+                            </span>
+                            <span className="font-pixel text-[9px] uppercase font-bold text-black">
+                              {task.type?.toUpperCase() || 'CUSTOM'} TASK
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-1 font-mono text-[11px] font-bold cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={task.required ?? true}
+                                onChange={(e) => updateCustomTask('edit', idx, 'required', e.target.checked)}
+                                className="accent-black"
+                              />
+                              <span>Mandatory</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => removeCustomTask('edit', idx)}
+                              className="p-1 text-red-700 hover:bg-red-100 border border-red-400 font-pixel text-[8px] flex items-center gap-0.5"
+                            >
+                              <Trash2 size={11} />
+                              <span>REMOVE</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div>
+                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                              TASK TITLE:
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Join Official Discord"
+                              value={task.title}
+                              onChange={(e) => updateCustomTask('edit', idx, 'title', e.target.value)}
+                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                              ACTION URL / LINK:
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="https://..."
+                              value={task.url}
+                              onChange={(e) => updateCustomTask('edit', idx, 'url', e.target.value)}
+                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                                BUTTON LABEL:
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="[JOIN DISCORD]"
+                                value={task.actionLabel || ''}
+                                onChange={(e) => updateCustomTask('edit', idx, 'actionLabel', e.target.value)}
+                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                                TYPE:
+                              </label>
+                              <select
+                                value={task.type || 'link'}
+                                onChange={(e) => updateCustomTask('edit', idx, 'type', e.target.value as any)}
+                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              >
+                                <option value="discord">DISCORD</option>
+                                <option value="telegram">TELEGRAM</option>
+                                <option value="twitter">TWITTER / X</option>
+                                <option value="youtube">YOUTUBE</option>
+                                <option value="website">WEBSITE</option>
+                                <option value="link">CUSTOM LINK</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-lime/10 border-2 border-black p-3">
                 <div>
                   <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
@@ -1355,6 +1571,158 @@ export function AdminDashboard() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
+              <div className="bg-lime/10 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
+                  <div>
+                    <span className="font-pixel text-[10px] uppercase font-bold text-black block">
+                      ⚡ CUSTOM ENTRY TASKS (OPTIONAL):
+                    </span>
+                    <span className="font-mono text-[11px] text-gray-700">
+                      Add extra community requirements (Discord, Telegram, Retweets, Links)
+                    </span>
+                  </div>
+
+                  {/* Preset Buttons */}
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('create', { title: 'Join Official Discord Server', type: 'discord', actionLabel: '[JOIN DISCORD]', url: 'https://discord.gg/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Discord
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('create', { title: 'Join Telegram Community', type: 'telegram', actionLabel: '[JOIN TELEGRAM]', url: 'https://t.me/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Telegram
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('create', { title: 'Like & Retweet Announcement', type: 'twitter', actionLabel: '[RETWEET POST]', url: 'https://x.com/' })}
+                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
+                    >
+                      + Retweet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addCustomTask('create')}
+                      className="font-pixel text-[8px] bg-white text-black px-2 py-1 border border-black hover:bg-lime font-bold uppercase transition-colors"
+                    >
+                      + Add Task
+                    </button>
+                  </div>
+                </div>
+
+                {/* Task List Rows */}
+                {(!newRaffle.customTasks || newRaffle.customTasks.length === 0) ? (
+                  <div className="p-3 bg-white/60 border-2 border-dashed border-black/40 text-center font-mono text-xs text-gray-600">
+                    No custom tasks added. Click any button above (+ Discord, + Telegram, + Retweet) to add custom tasks.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {newRaffle.customTasks.map((task, idx) => (
+                      <div key={task.id || idx} className="bg-white border-2 border-black p-3 space-y-2 shadow-pixel-xs">
+                        <div className="flex items-center justify-between border-b border-black/20 pb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold">
+                              TASK #{idx + 1}
+                            </span>
+                            <span className="font-pixel text-[9px] uppercase font-bold text-black">
+                              {task.type?.toUpperCase() || 'CUSTOM'} TASK
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-1 font-mono text-[11px] font-bold cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={task.required ?? true}
+                                onChange={(e) => updateCustomTask('create', idx, 'required', e.target.checked)}
+                                className="accent-black"
+                              />
+                              <span>Mandatory</span>
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => removeCustomTask('create', idx)}
+                              className="p-1 text-red-700 hover:bg-red-100 border border-red-400 font-pixel text-[8px] flex items-center gap-0.5"
+                            >
+                              <Trash2 size={11} />
+                              <span>REMOVE</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div>
+                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                              TASK TITLE:
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Join Official Discord"
+                              value={task.title}
+                              onChange={(e) => updateCustomTask('create', idx, 'title', e.target.value)}
+                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                              ACTION URL / LINK:
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="https://..."
+                              value={task.url}
+                              onChange={(e) => updateCustomTask('create', idx, 'url', e.target.value)}
+                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                                BUTTON LABEL:
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="[JOIN DISCORD]"
+                                value={task.actionLabel || ''}
+                                onChange={(e) => updateCustomTask('create', idx, 'actionLabel', e.target.value)}
+                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
+                                TYPE:
+                              </label>
+                              <select
+                                value={task.type || 'link'}
+                                onChange={(e) => updateCustomTask('create', idx, 'type', e.target.value as any)}
+                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              >
+                                <option value="discord">DISCORD</option>
+                                <option value="telegram">TELEGRAM</option>
+                                <option value="twitter">TWITTER / X</option>
+                                <option value="youtube">YOUTUBE</option>
+                                <option value="website">WEBSITE</option>
+                                <option value="link">CUSTOM LINK</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* NFT Collection Specifications */}

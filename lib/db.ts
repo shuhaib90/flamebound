@@ -83,6 +83,9 @@ function mapDbRowToRaffle(row: any): Raffle {
     discordUrl: row.discord_url || 'https://discord.com',
     mintUrl: row.mint_url || 'https://opensea.io/collection/flamebound-259045050',
     notes: row.notes || '',
+    customTasks: Array.isArray(row.custom_tasks) 
+      ? row.custom_tasks 
+      : (typeof row.custom_tasks === 'string' ? (() => { try { return JSON.parse(row.custom_tasks); } catch { return []; } })() : []),
     winners: Array.isArray(row.winners) ? row.winners : [],
     createdAt: row.created_at || new Date().toISOString(),
   };
@@ -205,6 +208,7 @@ export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Ra
     discord_url: raffleData.discordUrl || 'https://discord.com',
     mint_url: raffleData.mintUrl || 'https://opensea.io/collection/flamebound-259045050',
     notes: raffleData.notes || '',
+    custom_tasks: raffleData.customTasks || [],
     winners: [],
   };
 
@@ -253,6 +257,7 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
     mintUrl: raffleData.mintUrl || 'https://opensea.io/collection/flamebound-259045050',
     notes: raffleData.notes || '',
     tasks: raffleData.tasks || [],
+    customTasks: raffleData.customTasks || [],
     winners: [],
     createdAt: new Date().toISOString(),
   };
@@ -286,6 +291,7 @@ export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): P
   if (updates.engageUrl !== undefined) rowUpdates.engage_url = updates.engageUrl;
   if (updates.endDate) rowUpdates.end_date = updates.endDate;
   if (updates.notes !== undefined) rowUpdates.notes = updates.notes;
+  if (updates.customTasks !== undefined) rowUpdates.custom_tasks = updates.customTasks;
   if (updates.winners !== undefined) rowUpdates.winners = updates.winners;
 
   try {

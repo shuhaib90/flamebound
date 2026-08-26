@@ -1,10 +1,19 @@
 export type RaffleStatus = 'live' | 'ending_soon' | 'closed' | 'drawing' | 'winners_drawn';
 
+export interface CustomTask {
+  id: string;
+  title: string;
+  url: string;
+  actionLabel?: string;
+  type?: 'link' | 'discord' | 'telegram' | 'twitter' | 'youtube' | 'website' | 'custom';
+  required?: boolean;
+}
+
 export interface EntryTask {
   id: string;
   title: string;
   description: string;
-  type: 'follow' | 'engage' | 'wallet' | 'holder_check';
+  type: 'follow' | 'engage' | 'wallet' | 'holder_check' | 'custom';
   buttonLabel: string;
   targetUrl?: string;
   required: boolean;
@@ -52,6 +61,7 @@ export interface Raffle {
   notes?: string;
 
   tasks?: EntryTask[];
+  customTasks?: CustomTask[];
   winners?: Winner[];
   winnerTxHash?: string;
   createdAt: string;
