@@ -54,6 +54,7 @@ const DEFAULT_ENTRIES: RaffleEntry[] = [];
 function mapDbRowToRaffle(row: any): Raffle {
   return {
     id: row.id,
+    slug: row.slug || row.id,
     title: row.title,
     project: row.project || 'FLAMEBOUND',
     type: row.type || 'WL RAFFLE',
@@ -153,32 +154,40 @@ export function getRaffles(): Raffle[] {
   return db.raffles;
 }
 
-export async function getRaffleByIdAsync(id: string): Promise<Raffle | null> {
+export async function getRaffleByIdAsync(idOrSlug: string): Promise<Raffle | null> {
   try {
     const { data, error } = await supabase
       .from('flamebound_raffles')
       .select('*')
-      .eq('id', id)
-      .single();
+      .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
+      .limit(1)
+      .maybeSingle();
 
     if (error || !data) {
-      return getRaffleById(id) || null;
+      return getRaffleById(idOrSlug) || null;
     }
     return mapDbRowToRaffle(data);
   } catch (err) {
-    return getRaffleById(id) || null;
+    return getRaffleById(idOrSlug) || null;
   }
 }
 
-export function getRaffleById(id: string): Raffle | undefined {
+export function getRaffleById(idOrSlug: string): Raffle | undefined {
   const db = ensureDb();
-  return db.raffles.find(r => r.id === id);
+  return db.raffles.find(r => r.id === idOrSlug || r.slug === idOrSlug);
 }
 
 export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Raffle> {
   const id = `raffle-${Date.now()}`;
+  const cleanSlug = (raffleData.slug || raffleData.project || raffleData.title || 'drop')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
   const row = {
     id,
+    slug: cleanSlug || id,
     title: raffleData.title || 'Untitled Whitelist Raffle',
     project: raffleData.project || 'FLAMEBOUND',
     type: raffleData.type || 'WL RAFFLE',
@@ -219,14 +228,21 @@ export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Ra
   }
 
   // Also sync local
-  return createRaffle(raffleData);
+  return createRaffle({ ...raffleData, slug: cleanSlug || id });
 }
 
 export function createRaffle(raffleData: Partial<Raffle>): Raffle {
   const db = ensureDb();
   const id = `raffle-${Date.now()}`;
+  const cleanSlug = (raffleData.slug || raffleData.project || raffleData.title || 'drop')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
   const newRaffle: Raffle = {
     id,
+    slug: cleanSlug || id,
     title: raffleData.title || 'Untitled Whitelist Raffle',
     project: raffleData.project || 'FLAMEBOUND',
     type: raffleData.type || 'WL RAFFLE',
@@ -269,6 +285,7 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
 
 export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): Promise<Raffle | null> {
   const rowUpdates: any = { updated_at: new Date().toISOString() };
+  if (updates.slug !== undefined) rowUpdates.slug = updates.slug;
   if (updates.title) rowUpdates.title = updates.title;
   if (updates.project) rowUpdates.project = updates.project;
   if (updates.type) rowUpdates.type = updates.type;

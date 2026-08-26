@@ -35,6 +35,7 @@ import {
 interface NewRaffleForm {
   title: string;
   project: string;
+  slug: string;
   type: string;
   subtitle: string;
   description: string;
@@ -90,6 +91,7 @@ export function AdminDashboard() {
   const [newRaffle, setNewRaffle] = useState<NewRaffleForm>({
     title: 'FLAMEBOUND PARTNER WL',
     project: 'FLAMEBOUND',
+    slug: 'partner-wl',
     type: 'WL RAFFLE',
     subtitle: 'Exclusive whitelist raffle for verified Flamebound minters.',
     description: 'Whitelist allocation for verified Flamebound minters with priority access.',
@@ -822,6 +824,25 @@ export function AdminDashboard() {
                 />
               </div>
 
+              {/* Short URL / Slug for X Sharing */}
+              <div>
+                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
+                  SHORT URL SLUG (FOR CLEAN TWITTER / X SHARING):
+                </label>
+                <div className="flex items-center">
+                  <span className="bg-black text-lime font-mono text-xs px-3 py-2.5 border-2 border-r-0 border-black font-bold shrink-0">
+                    flamebound.site/r/
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="e.g. cult, genesis, banners"
+                    value={editingRaffle.slug || ''}
+                    onChange={(e) => setEditingRaffle({ ...editingRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                    className="flex-1 min-w-0 bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                  />
+                </div>
+              </div>
+
               {/* Eligibility & Entry Method Rules */}
               <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
@@ -1456,6 +1477,25 @@ export function AdminDashboard() {
                   onChange={(e) => setNewRaffle({ ...newRaffle, subtitle: e.target.value })}
                   className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                 />
+              </div>
+
+              {/* Short URL / Slug for X Sharing */}
+              <div>
+                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
+                  CUSTOM SHORT URL SLUG (FOR CLEAN TWITTER / X SHARING):
+                </label>
+                <div className="flex items-center">
+                  <span className="bg-black text-lime font-mono text-xs px-3 py-2.5 border-2 border-r-0 border-black font-bold shrink-0">
+                    flamebound.site/r/
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="e.g. cult, genesis, phase1 (optional)"
+                    value={newRaffle.slug}
+                    onChange={(e) => setNewRaffle({ ...newRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                    className="flex-1 min-w-0 bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                  />
+                </div>
               </div>
 
               {/* Eligibility & Entry Method Rules */}

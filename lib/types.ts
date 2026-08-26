@@ -21,6 +21,7 @@ export interface EntryTask {
 
 export interface Raffle {
   id: string;
+  slug?: string; // Short clean URL slug e.g. "cult", "justbanners"
   title: string;
   project: string;
   type: string; // e.g. "WL RAFFLE"

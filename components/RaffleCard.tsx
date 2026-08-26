@@ -57,14 +57,20 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
   }, [raffle.endDate]);
 
   const isLive = raffle.status === 'live' && !timeLeft.isEnded;
-  const rafflePageUrl = `/raffle/${raffle.id}`;
+  const raffleSlug = raffle.slug || raffle.id;
+  const rafflePageUrl = `/raffle/${raffleSlug}`;
+
+  const getShortUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/r/${raffleSlug}`;
+    }
+    return `https://flamebound.site/r/${raffleSlug}`;
+  };
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = typeof window !== 'undefined' 
-      ? `${window.location.origin}/raffle/${raffle.id}` 
-      : `https://flamebound.site/raffle/${raffle.id}`;
+    const url = getShortUrl();
     
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
@@ -76,11 +82,11 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
   const handleTwitterShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = typeof window !== 'undefined' 
-      ? `${window.location.origin}/raffle/${raffle.id}` 
-      : `https://flamebound.site/raffle/${raffle.id}`;
-    const text = `Check out the @FlameboundNft whitelist raffle for ${raffle.title}! Enter here:`;
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    const shortUrl = getShortUrl();
+    const roleType = raffle.eligibility === 'public' ? 'Public' : raffle.eligibility === 'holders_only' ? 'Holders' : 'Minters';
+    const methodType = raffle.entryMethod === 'fcfs' ? '⚡ FCFS Instant Claim' : '🎲 Verified Draw';
+    const text = `🔥 ${raffle.title} Whitelist Drop\n🎟️ ${raffle.supply} Spots • ${methodType} (${roleType})\n\nEnter now:`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shortUrl)}`;
     window.open(tweetUrl, '_blank');
   };
 

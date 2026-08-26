@@ -281,17 +281,27 @@ export default function SingleRafflePage() {
     }
   };
 
+  const getShortUrl = () => {
+    if (typeof window === 'undefined') return 'https://flamebound.site';
+    const slug = raffle?.slug || raffle?.id || '';
+    return `${window.location.origin}/r/${slug}`;
+  };
+
   const handleShare = () => {
-    if (typeof window === 'undefined') return;
-    navigator.clipboard.writeText(window.location.href);
+    if (typeof window === 'undefined' || !raffle) return;
+    const shortUrl = getShortUrl();
+    navigator.clipboard.writeText(shortUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2200);
   };
 
   const handleTwitterShare = () => {
     if (typeof window === 'undefined' || !raffle) return;
-    const text = 'Entering the @FlameboundNft whitelist raffle for ' + raffle.title + '! Check your holder eligibility & enter here:';
-    const tweetUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(window.location.href);
+    const shortUrl = getShortUrl();
+    const roleType = raffle.eligibility === 'public' ? 'Public' : raffle.eligibility === 'holders_only' ? 'Holders' : 'Minters';
+    const methodType = raffle.entryMethod === 'fcfs' ? '⚡ FCFS Instant Claim' : '🎲 Verified Draw';
+    const text = `🔥 ${raffle.title} Whitelist Drop\n🎟️ ${raffle.supply} Spots • ${methodType} (${roleType})\n\nEnter now:`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shortUrl)}`;
     window.open(tweetUrl, '_blank');
   };
 
@@ -744,76 +754,7 @@ export default function SingleRafflePage() {
                         </button>
                       </div>
 
-                      {/* 5. CONNECT EVM WALLET */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.wallet ? 'bg-lime/25' : 'bg-white')}>
-                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                          <Wallet size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
-                            {isConnected && address ? ('WALLET: ' + shortAddress) : 'CONNECT WALLET'}
-                          </span>
-                        </div>
-
-                        <div className="shrink-0">
-                          <ConnectButton.Custom>
-                            {({ account, openConnectModal, mounted }) => {
-                              if (!mounted) return null;
-                              if (!account) {
-                                return (
-                                  <button
-                                    type="button"
-                                    onClick={openConnectModal}
-                                    className="pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3"
-                                  >
-                                    [CONNECT]
-                                  </button>
-                                );
-                              }
-                              return (
-                                <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold inline-block">
-                                  ✓ LINKED
-                                </span>
-                              );
-                            }}
-                          </ConnectButton.Custom>
-                        </div>
-                      </div>
-
-                      {/* 6. ON-CHAIN ELIGIBILITY CHECK */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-lime/25' : 'bg-white')}>
-                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                          <Flame size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
-                            {raffle.eligibility === 'public'
-                              ? '✓ OPEN TO ALL (NO NFT REQUIRED)'
-                              : holderStatus && holderStatus.isHolder 
-                              ? (`VERIFIED ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} (${holderStatus.tokenBalance} NFT)`)
-                              : (`${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} CHECK`)}
-                          </span>
-                        </div>
-
-                        {raffle.eligibility === 'public' ? (
-                          <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold">
-                            ✓ ELIGIBLE
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleRunHolderCheck}
-                            disabled={isVerifyingHolder || !isConnected}
-                            className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-lime' : '')}
-                          >
-                            <span>
-                              {isVerifyingHolder 
-                                ? 'CHECKING...' 
-                                : tasks.holderCheck 
-                                ? '✓ VERIFIED' 
-                                : (`[VERIFY ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'}]`)}
-                            </span>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* 7+. DYNAMIC CUSTOM TASKS (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
+                      {/* 5+. DYNAMIC CUSTOM TASKS (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
                       {customTasksList.map((ct, idx) => {
                         const isDone = Boolean(customTasksDone[ct.id]);
                         return (
@@ -859,6 +800,75 @@ export default function SingleRafflePage() {
                           </div>
                         );
                       })}
+
+                      {/* 6. CONNECT EVM WALLET */}
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.wallet ? 'bg-lime/25' : 'bg-white')}>
+                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                          <Wallet size={14} className="text-black shrink-0" />
+                          <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                            {isConnected && address ? ('WALLET: ' + shortAddress) : 'CONNECT WALLET'}
+                          </span>
+                        </div>
+
+                        <div className="shrink-0">
+                          <ConnectButton.Custom>
+                            {({ account, openConnectModal, mounted }) => {
+                              if (!mounted) return null;
+                              if (!account) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={openConnectModal}
+                                    className="pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3"
+                                  >
+                                    [CONNECT]
+                                  </button>
+                                );
+                              }
+                              return (
+                                <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold inline-block">
+                                  ✓ LINKED
+                                </span>
+                              );
+                            }}
+                          </ConnectButton.Custom>
+                        </div>
+                      </div>
+
+                      {/* 7. ON-CHAIN ELIGIBILITY CHECK */}
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-lime/25' : 'bg-white')}>
+                        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                          <Flame size={14} className="text-black shrink-0" />
+                          <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
+                            {raffle.eligibility === 'public'
+                              ? '✓ OPEN TO ALL (NO NFT REQUIRED)'
+                              : holderStatus && holderStatus.isHolder 
+                              ? (`VERIFIED ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} (${holderStatus.tokenBalance} NFT)`)
+                              : (`${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'} CHECK`)}
+                          </span>
+                        </div>
+
+                        {raffle.eligibility === 'public' ? (
+                          <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold">
+                            ✓ ELIGIBLE
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleRunHolderCheck}
+                            disabled={isVerifyingHolder || !isConnected}
+                            className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-lime' : '')}
+                          >
+                            <span>
+                              {isVerifyingHolder 
+                                ? 'CHECKING...' 
+                                : tasks.holderCheck 
+                                ? '✓ VERIFIED' 
+                                : (`[VERIFY ${raffle.eligibility === 'holders_only' ? 'HOLDER' : 'MINTER'}]`)}
+                            </span>
+                          </button>
+                        )}
+                      </div>
 
                     </div>
 
