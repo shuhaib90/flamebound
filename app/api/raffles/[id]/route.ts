@@ -1,5 +1,5 @@
-﻿import { NextResponse } from 'next/server';
-import { getRaffleByIdAsync, updateRaffleAsync, deleteRaffleAsync, getEntryByWallet } from '@/lib/db';
+import { NextResponse } from 'next/server';
+import { getRaffleByIdAsync, updateRaffleAsync, deleteRaffleAsync, getEntryByWalletAsync } from '@/lib/db';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -10,10 +10,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const { searchParams } = new URL(req.url);
-    const wallet = searchParams.get('wallet');
+    const wallet = searchParams.get('wallet') || searchParams.get('walletAddress');
     let userEntry = null;
     if (wallet) {
-      userEntry = getEntryByWallet(id, wallet) || null;
+      userEntry = await getEntryByWalletAsync(id, wallet);
     }
 
     return NextResponse.json({ success: true, raffle, userEntry });

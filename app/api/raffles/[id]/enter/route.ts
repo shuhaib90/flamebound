@@ -1,5 +1,5 @@
-﻿import { NextResponse } from 'next/server';
-import { getRaffleByIdAsync, createEntryAsync, getEntryByWallet } from '@/lib/db';
+import { NextResponse } from 'next/server';
+import { getRaffleByIdAsync, createEntryAsync, getEntryByWalletAsync } from '@/lib/db';
 import { verifyFlameboundHolder } from '@/lib/blockchain';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -30,15 +30,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 400 });
     }
 
-    // 2. Prevent duplicate entries
-    const existing = getEntryByWallet(id, walletAddress);
+    // 2. Prevent duplicate entries on database
+    const existing = await getEntryByWalletAsync(id, walletAddress);
     if (existing) {
       return NextResponse.json({
-        success: false,
-        error: 'DUPLICATE_ENTRY',
+        success: true,
+        isExisting: true,
         message: 'Your wallet has already entered this raffle.',
         entry: existing
-      }, { status: 409 });
+      }, { status: 200 });
     }
 
     // 3. SERVER-SIDE STRICT ON-CHAIN HOLDER VERIFICATION

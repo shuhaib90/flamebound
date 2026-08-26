@@ -78,13 +78,41 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
     }
   }, [holderStatus, isConnected]);
 
-  // Reset state when modal opens
+  // Check and restore existing entry from database & local cache
   useEffect(() => {
-    if (isOpen) {
-      setEntryReceipt(null);
-      setError(null);
-    }
-  }, [isOpen, raffle]);
+    if (!isOpen || !raffle) return;
+
+    const checkExistingEntry = async () => {
+      if (address) {
+        // 1. Instant local cache restore
+        const cached = localStorage.getItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.id) {
+              setEntryReceipt(parsed);
+              if (parsed.twitterUsername) setTwitterHandle(parsed.twitterUsername);
+              setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+            }
+          } catch (e) {}
+        }
+
+        // 2. Fetch from DB
+        try {
+          const res = await fetch(`/api/raffles/${raffle.id}?wallet=${encodeURIComponent(address)}`);
+          const data = await res.json();
+          if (data.success && data.userEntry) {
+            setEntryReceipt(data.userEntry);
+            if (data.userEntry.twitterUsername) setTwitterHandle(data.userEntry.twitterUsername);
+            setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+            localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.userEntry));
+          }
+        } catch (e) {}
+      }
+    };
+
+    checkExistingEntry();
+  }, [isOpen, raffle, address]);
 
   if (!isOpen || !raffle) return null;
 
@@ -173,13 +201,21 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
         throw new Error(data.message || 'Failed to submit raffle entry.');
       }
 
-      setEntryReceipt(data.entry);
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#A6FF00', '#000000', '#FFFFFF'],
-      });
+      if (data.entry) {
+        setEntryReceipt(data.entry);
+        if (address) {
+          localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.entry));
+        }
+      }
+
+      if (!data.isExisting) {
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#A6FF00', '#000000', '#FFFFFF'],
+        });
+      }
 
       onSuccess();
     } catch (err: any) {

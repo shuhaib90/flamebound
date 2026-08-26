@@ -352,6 +352,39 @@ export function getEntries(raffleId?: string): RaffleEntry[] {
   return db.entries;
 }
 
+export async function getEntryByWalletAsync(raffleId: string, walletAddress: string): Promise<RaffleEntry | null> {
+  const normalized = walletAddress.toLowerCase();
+  try {
+    const { data, error } = await supabase
+      .from('flamebound_entries')
+      .select('*')
+      .eq('raffle_id', raffleId)
+      .ilike('wallet_address', normalized)
+      .maybeSingle();
+
+    if (data) {
+      return {
+        id: data.id,
+        raffleId: data.raffle_id,
+        walletAddress: data.wallet_address,
+        shortAddress: formatAddress(data.wallet_address),
+        twitterUsername: data.twitter_username || '',
+        taskStatus: data.task_status || {},
+        isHolder: data.is_verified_holder,
+        tokenBalance: data.token_balance || 1,
+        contractAddress: data.contract_address,
+        network: data.network,
+        verifiedAt: data.verified_at,
+        status: 'confirmed' as const,
+      };
+    }
+  } catch (err) {
+    console.error('Error fetching entry from Supabase:', err);
+  }
+
+  return getEntryByWallet(raffleId, walletAddress) || null;
+}
+
 export function getEntryByWallet(raffleId: string, walletAddress: string): RaffleEntry | undefined {
   const db = ensureDb();
   const normalized = walletAddress.toLowerCase();

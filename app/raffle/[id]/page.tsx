@@ -64,36 +64,53 @@ export default function SingleRafflePage() {
     isEnded: boolean;
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isEnded: false });
 
-  useEffect(() => {
+  const fetchRaffle = async (walletAddr?: string | null) => {
     if (!raffleId) return;
+    setLoading(true);
+    try {
+      const targetWallet = walletAddr || address;
 
-    const fetchRaffle = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/raffles/' + raffleId);
-        const data = await res.json();
-        if (data.success && data.raffle) {
-          setRaffle(data.raffle);
-          if (data.userEntry) {
-            setEntryReceipt({
-              id: data.userEntry.id,
-              walletAddress: data.userEntry.walletAddress,
-              tokenBalance: data.userEntry.tokenBalance,
-              verifiedAt: data.userEntry.verifiedAt,
-            });
-          }
-        } else {
-          setError('Raffle not found or has concluded.');
+      // Instant local cache restore on browser refresh
+      if (targetWallet && typeof window !== 'undefined') {
+        const cached = localStorage.getItem(`flamebound_entry_${raffleId}_${targetWallet.toLowerCase()}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.id) {
+              setEntryReceipt(parsed);
+              if (parsed.twitterUsername) setTwitterHandle(parsed.twitterUsername);
+              setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+            }
+          } catch (e) {}
         }
-      } catch (err: any) {
-        setError(err.message || 'Failed to load raffle specifications.');
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchRaffle();
-  }, [raffleId]);
+      const query = targetWallet ? `?wallet=${encodeURIComponent(targetWallet)}` : '';
+      const res = await fetch(`/api/raffles/${raffleId}${query}`);
+      const data = await res.json();
+      if (data.success && data.raffle) {
+        setRaffle(data.raffle);
+        if (data.userEntry) {
+          setEntryReceipt(data.userEntry);
+          if (data.userEntry.twitterUsername) setTwitterHandle(data.userEntry.twitterUsername);
+          setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+          if (typeof window !== 'undefined' && targetWallet) {
+            localStorage.setItem(`flamebound_entry_${raffleId}_${targetWallet.toLowerCase()}`, JSON.stringify(data.userEntry));
+          }
+        }
+      } else {
+        setError('Raffle not found or has concluded.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load raffle specifications.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRaffle(address);
+  }, [raffleId, address]);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -220,13 +237,21 @@ export default function SingleRafflePage() {
         throw new Error(data.message || 'Failed to submit raffle entry.');
       }
 
-      setEntryReceipt(data.entry);
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#A6FF00', '#000000', '#FFFFFF'],
-      });
+      if (data.entry) {
+        setEntryReceipt(data.entry);
+        if (typeof window !== 'undefined' && address) {
+          localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.entry));
+        }
+      }
+
+      if (!data.isExisting) {
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#A6FF00', '#000000', '#FFFFFF'],
+        });
+      }
     } catch (err: any) {
       setError(err.message || 'Submission error occurred.');
     } finally {
