@@ -393,32 +393,52 @@ export function AdminDashboard() {
     }
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = (specificRaffleId?: string) => {
+    const targetRaffleId = specificRaffleId || (selectedRaffleFilter !== 'all' ? selectedRaffleFilter : undefined);
+
     const filtered = entries.filter(e => {
-      if (selectedRaffleFilter !== 'all' && e.raffleId !== selectedRaffleFilter) return false;
+      if (targetRaffleId && e.raffleId !== targetRaffleId) return false;
       if (holderOnlyFilter && !e.isHolder) return false;
       return true;
     });
 
-    const csvContent = [
-      ['Entry ID', 'Wallet Address', 'Twitter / X', 'Raffle ID', 'Is Holder', 'Token Balance', 'Verified At', 'Network'].join(','),
-      ...filtered.map(e => [
-        e.id,
-        e.walletAddress,
-        `"${e.twitterUsername || ''}"`,
-        e.raffleId,
-        e.isHolder,
-        e.tokenBalance,
-        `"${e.verifiedAt}"`,
-        e.network
-      ].join(','))
-    ].join('\n');
+    // Determine project name for file/sheet name
+    let projectName = 'flamebound';
+    if (targetRaffleId) {
+      const matchedRaffle = raffles.find(r => r.id === targetRaffleId);
+      if (matchedRaffle) {
+        projectName = (matchedRaffle.project || matchedRaffle.title || 'raffle')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+      }
+    } else if (selectedRaffleFilter !== 'all') {
+      const matchedRaffle = raffles.find(r => r.id === selectedRaffleFilter);
+      if (matchedRaffle) {
+        projectName = (matchedRaffle.project || matchedRaffle.title || 'raffle')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+      }
+    }
 
+    // Only Wallet Address and X (Twitter) Username
+    const csvRows = [
+      ['Wallet Address', 'Twitter Username'].join(','),
+      ...filtered.map(e => [
+        e.walletAddress,
+        `"${(e.twitterUsername || '').replace(/^@/, '').trim()}"`
+      ].join(','))
+    ];
+
+    const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `flamebound_whitelist_export_${Date.now()}.csv`);
+    link.setAttribute('download', `${projectName}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -764,6 +784,15 @@ export function AdminDashboard() {
                         className="flex-1 pixel-btn text-[10px] py-2"
                       >
                         ENTRIES ({entries.filter(e => e.raffleId === raffle.id).length})
+                      </button>
+
+                      <button
+                        onClick={() => handleExportCSV(raffle.id)}
+                        className="pixel-btn-lime text-[10px] py-2 px-2.5 flex items-center justify-center gap-1"
+                        title={`Export CSV for ${raffle.project || raffle.title}`}
+                      >
+                        <Download size={12} />
+                        <span>CSV</span>
                       </button>
 
                       <button
@@ -1421,7 +1450,7 @@ export function AdminDashboard() {
                 </button>
 
                 <button
-                  onClick={handleExportCSV}
+                  onClick={() => handleExportCSV()}
                   className="pixel-btn-lime text-[10px] py-2 px-3 flex items-center gap-1.5"
                 >
                   <Download size={14} />
