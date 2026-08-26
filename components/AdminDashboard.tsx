@@ -37,6 +37,7 @@ interface NewRaffleForm {
   project: string;
   slug: string;
   type: string;
+  mintStage: 'GTD' | 'FCFS' | 'WL' | 'CUSTOM';
   subtitle: string;
   description: string;
   supply: number;
@@ -93,6 +94,7 @@ export function AdminDashboard() {
     project: 'FLAMEBOUND',
     slug: 'partner-wl',
     type: 'WL RAFFLE',
+    mintStage: 'GTD',
     subtitle: 'Exclusive whitelist raffle for verified Flamebound minters.',
     description: 'Whitelist allocation for verified Flamebound minters with priority access.',
     supply: 50,
@@ -672,9 +674,23 @@ export function AdminDashboard() {
                         <span className="font-bold">{raffle.project || 'FLAMEBOUND'}</span>
                       </div>
                       <div className="flex justify-between items-center">
+                        <strong>Mint Stage:</strong> 
+                        <span className={`font-pixel text-[9px] px-1.5 py-0.5 border border-black font-bold ${
+                          (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'GTD'
+                            ? 'bg-lime text-black'
+                            : (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'FCFS'
+                            ? 'bg-amber-400 text-black'
+                            : (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'CUSTOM'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white text-black'
+                        }`}>
+                          [{raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}]
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
                         <strong>Eligibility:</strong> 
                         <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 border border-black font-bold">
-                          {raffle.eligibility === 'public' ? '🌐 OPEN TO ALL' : raffle.eligibility === 'holders_only' ? '🛡️ HOLDERS ONLY' : '🔥 MINTERS ONLY'}
+                          {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS ONLY]' : '[MINTERS ONLY]'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -682,7 +698,7 @@ export function AdminDashboard() {
                         <span className={`font-pixel text-[9px] px-1.5 py-0.5 border border-black font-bold ${
                           raffle.entryMethod === 'fcfs' ? 'bg-lime text-black animate-pulse' : 'bg-white text-black'
                         }`}>
-                          {raffle.entryMethod === 'fcfs' ? '⚡ FCFS (FIRST COME)' : '🎲 RAFFLE DRAW'}
+                          {raffle.entryMethod === 'fcfs' ? 'FCFS (FIRST COME)' : 'RAFFLE DRAW'}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -718,7 +734,7 @@ export function AdminDashboard() {
                       onClick={() => handleToggleMethod(raffle)}
                       className="w-full font-pixel text-[9px] py-1.5 bg-lime/30 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
                     >
-                      <span>MODE: {raffle.entryMethod === 'fcfs' ? '⚡ FCFS (SWITCH TO RAFFLE)' : '🎲 RAFFLE (SWITCH TO FCFS)'}</span>
+                      <span>MODE: {raffle.entryMethod === 'fcfs' ? 'FCFS (SWITCH TO RAFFLE)' : 'RAFFLE (SWITCH TO FCFS)'}</span>
                     </button>
 
                     {raffle.status === 'live' && (
@@ -843,83 +859,138 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Eligibility & Entry Method Rules */}
+              {/* Eligibility & Mint Stage Rules */}
               <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
-                  <span>🎟️ RAFFLE ELIGIBILITY & ENTRY METHOD:</span>
+                  <span>[MINT STAGE & ELIGIBILITY RULES]</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Eligibility Selector */}
+                <div className="space-y-3">
+                  {/* Mint Stage Selector */}
                   <div>
                     <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      ELIGIBILITY REQUIREMENT:
+                      MINT STAGE TYPE (GTD / FCFS / WL / CUSTOM):
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'minters_only' })}
+                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'GTD' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          (editingRaffle.eligibility || 'minters_only') === 'minters_only'
+                          (editingRaffle.mintStage || (editingRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'GTD'
                             ? 'bg-lime text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🔥 MINTERS ONLY
+                        [GTD] GUARANTEED
                       </button>
                       <button
                         type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'holders_only' })}
+                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'FCFS', entryMethod: 'fcfs' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          editingRaffle.eligibility === 'holders_only'
-                            ? 'bg-lime text-black shadow-pixel-xs'
+                          (editingRaffle.mintStage || (editingRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'FCFS'
+                            ? 'bg-amber-400 text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🛡️ HOLDERS ONLY
+                        [FCFS] FIRST-COME
                       </button>
                       <button
                         type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'public' })}
+                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'WL' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          editingRaffle.eligibility === 'public'
-                            ? 'bg-lime text-black shadow-pixel-xs'
+                          editingRaffle.mintStage === 'WL'
+                            ? 'bg-white text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🌐 OPEN TO ALL
+                        [WL] WHITELIST
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'CUSTOM' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          editingRaffle.mintStage === 'CUSTOM'
+                            ? 'bg-purple-600 text-white shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        [CUSTOM] SPECIAL
                       </button>
                     </div>
                   </div>
 
-                  {/* Entry Method Selector */}
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      ENTRY / ALLOCATION METHOD:
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'raffle' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          (editingRaffle.entryMethod || 'raffle') === 'raffle'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        🎲 RANDOM DRAW
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'fcfs' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          editingRaffle.entryMethod === 'fcfs'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        ⚡ FCFS (FIRST COME)
-                      </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/20">
+                    {/* Eligibility Selector */}
+                    <div>
+                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                        ELIGIBILITY REQUIREMENT:
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'minters_only' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            (editingRaffle.eligibility || 'minters_only') === 'minters_only'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          MINTERS ONLY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'holders_only' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            editingRaffle.eligibility === 'holders_only'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          HOLDERS ONLY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'public' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            editingRaffle.eligibility === 'public'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          OPEN TO ALL
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Entry Method Selector */}
+                    <div>
+                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                        ENTRY / DRAW METHOD:
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'raffle' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            (editingRaffle.entryMethod || 'raffle') === 'raffle'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          RANDOM DRAW
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'fcfs', mintStage: 'FCFS' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            editingRaffle.entryMethod === 'fcfs'
+                              ? 'bg-amber-400 text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          FCFS (INSTANT)
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -928,7 +999,7 @@ export function AdminDashboard() {
               {/* Task Custom URLs */}
               <div className="bg-lime/10 border-2 border-black p-3 space-y-3">
                 <div className="font-pixel text-[9px] uppercase font-bold text-black border-b border-black/30 pb-1">
-                  ⚡ CUSTOM TASK URLS:
+                  [CUSTOM TASK URLS & SOCIAL LINKS]
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1498,83 +1569,138 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Eligibility & Entry Method Rules */}
+              {/* Eligibility & Mint Stage Rules */}
               <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
-                  <span>🎟️ RAFFLE ELIGIBILITY & ENTRY METHOD:</span>
+                  <span>[MINT STAGE & ELIGIBILITY RULES]</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Eligibility Selector */}
+                <div className="space-y-3">
+                  {/* Mint Stage Selector */}
                   <div>
                     <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      ELIGIBILITY REQUIREMENT:
+                      MINT STAGE TYPE (GTD / FCFS / WL / CUSTOM):
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'minters_only' })}
+                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'GTD' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.eligibility === 'minters_only'
+                          newRaffle.mintStage === 'GTD'
                             ? 'bg-lime text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🔥 MINTERS ONLY
+                        [GTD] GUARANTEED
                       </button>
                       <button
                         type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'holders_only' })}
+                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'FCFS', entryMethod: 'fcfs' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.eligibility === 'holders_only'
-                            ? 'bg-lime text-black shadow-pixel-xs'
+                          newRaffle.mintStage === 'FCFS'
+                            ? 'bg-amber-400 text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🛡️ HOLDERS ONLY
+                        [FCFS] FIRST-COME
                       </button>
                       <button
                         type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'public' })}
+                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'WL' })}
                         className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.eligibility === 'public'
-                            ? 'bg-lime text-black shadow-pixel-xs'
+                          newRaffle.mintStage === 'WL'
+                            ? 'bg-white text-black shadow-pixel-xs'
                             : 'bg-white/10 text-white hover:bg-white/20'
                         }`}
                       >
-                        🌐 OPEN TO ALL
+                        [WL] WHITELIST
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'CUSTOM' })}
+                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                          newRaffle.mintStage === 'CUSTOM'
+                            ? 'bg-purple-600 text-white shadow-pixel-xs'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        [CUSTOM] SPECIAL
                       </button>
                     </div>
                   </div>
 
-                  {/* Entry Method Selector */}
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      ENTRY / ALLOCATION METHOD:
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'raffle' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.entryMethod === 'raffle'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        🎲 RANDOM DRAW
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'fcfs' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.entryMethod === 'fcfs'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        ⚡ FCFS (FIRST COME)
-                      </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/20">
+                    {/* Eligibility Selector */}
+                    <div>
+                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                        ELIGIBILITY REQUIREMENT:
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'minters_only' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            newRaffle.eligibility === 'minters_only'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          MINTERS ONLY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'holders_only' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            newRaffle.eligibility === 'holders_only'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          HOLDERS ONLY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'public' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            newRaffle.eligibility === 'public'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          OPEN TO ALL
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Entry Method Selector */}
+                    <div>
+                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
+                        ENTRY / ALLOCATION METHOD:
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'raffle' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            newRaffle.entryMethod === 'raffle'
+                              ? 'bg-lime text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          RANDOM DRAW
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'fcfs', mintStage: 'FCFS' })}
+                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
+                            newRaffle.entryMethod === 'fcfs'
+                              ? 'bg-amber-400 text-black shadow-pixel-xs'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          FCFS (INSTANT)
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1583,7 +1709,7 @@ export function AdminDashboard() {
               {/* Task Custom URLs */}
               <div className="bg-lime/10 border-3 border-black p-4 space-y-3">
                 <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1">
-                  ⚡ CUSTOM TASK URLS & SOCIAL LINKS:
+                  [CUSTOM TASK URLS & SOCIAL LINKS]
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>

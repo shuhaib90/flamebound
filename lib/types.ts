@@ -1,4 +1,5 @@
 export type RaffleStatus = 'live' | 'ending_soon' | 'closed' | 'drawing' | 'winners_drawn';
+export type MintStage = 'GTD' | 'FCFS' | 'WL' | 'CUSTOM';
 
 export interface CustomTask {
   id: string;
@@ -25,6 +26,7 @@ export interface Raffle {
   title: string;
   project: string;
   type: string; // e.g. "WL RAFFLE"
+  mintStage?: MintStage; // 'GTD' | 'FCFS' | 'WL' | 'CUSTOM'
   description: string;
   subtitle: string;
   status: RaffleStatus;

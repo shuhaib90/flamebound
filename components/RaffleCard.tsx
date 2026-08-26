@@ -59,6 +59,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
   const isLive = raffle.status === 'live' && !timeLeft.isEnded;
   const raffleSlug = raffle.slug || raffle.id;
   const rafflePageUrl = `/raffle/${raffleSlug}`;
+  const mintStage = raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
 
   const getShortUrl = () => {
     if (typeof window !== 'undefined') {
@@ -84,8 +85,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
     e.stopPropagation();
     const shortUrl = getShortUrl();
     const roleType = raffle.eligibility === 'public' ? 'Public' : raffle.eligibility === 'holders_only' ? 'Holders' : 'Minters';
-    const methodType = raffle.entryMethod === 'fcfs' ? '⚡ FCFS Instant Claim' : '🎲 Verified Draw';
-    const text = `🔥 ${raffle.title} Whitelist Drop\n🎟️ ${raffle.supply} Spots • ${methodType} (${roleType})\n\nEnter now:`;
+    const text = `${raffle.title}\n[STAGE: ${mintStage}] • ${raffle.supply} SPOTS (${roleType})\n\nEnter now:`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shortUrl)}`;
     window.open(tweetUrl, '_blank');
   };
@@ -114,18 +114,29 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 py-0.5 border border-black font-bold ${
-              raffle.entryMethod === 'fcfs' ? 'bg-lime text-black' : 'bg-white text-black'
+            {/* Mint Stage Badge: GTD / FCFS / WL / CUSTOM */}
+            <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 border border-black font-bold tracking-wider ${
+              mintStage === 'GTD'
+                ? 'bg-lime text-black shadow-pixel-xs'
+                : mintStage === 'FCFS'
+                ? 'bg-amber-400 text-black shadow-pixel-xs'
+                : mintStage === 'CUSTOM'
+                ? 'bg-purple-600 text-white shadow-pixel-xs'
+                : 'bg-white text-black'
             }`}>
-              {raffle.entryMethod === 'fcfs' ? '⚡ FCFS' : raffle.type || 'WL RAFFLE'}
+              [{mintStage}]
             </span>
+
+            {/* Eligibility Badge */}
             <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-1.5 py-0.5 border border-white/40 font-bold">
-              {raffle.eligibility === 'public' ? '🌐 OPEN' : raffle.eligibility === 'holders_only' ? '🛡️ HOLDERS' : '🔥 MINTERS'}
+              {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS]' : '[MINTERS]'}
             </span>
+
+            {/* Live Indicator */}
             <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 border border-black font-bold ${
               isLive ? 'bg-lime text-black animate-pulse' : 'bg-red-600 text-white'
             }`}>
-              {isLive ? '■ LIVE' : 'CLOSED'}
+              {isLive ? '● LIVE' : 'CLOSED'}
             </span>
           </div>
         </div>
@@ -143,15 +154,21 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
           </div>
 
-          {raffle.entryMethod === 'fcfs' && (
-            <div className="absolute top-2 left-2 bg-lime text-black border border-black px-2 py-0.5 font-pixel text-[8px] sm:text-[9px] font-bold shadow-pixel-xs">
-              ⚡ FCFS INSTANT WL
-            </div>
-          )}
+          <div className={`absolute top-2 left-2 px-2 py-0.5 font-pixel text-[8px] sm:text-[9px] font-bold shadow-pixel-xs border border-black ${
+            mintStage === 'GTD' 
+              ? 'bg-lime text-black' 
+              : mintStage === 'FCFS' 
+              ? 'bg-amber-400 text-black' 
+              : mintStage === 'CUSTOM'
+              ? 'bg-purple-600 text-white'
+              : 'bg-white text-black'
+          }`}>
+            STAGE: {mintStage}
+          </div>
 
           {raffle.notes && (
             <div className="absolute bottom-2 left-2 bg-black/90 text-lime font-mono text-[9px] sm:text-[10px] px-2 py-0.5 border border-lime truncate max-w-[90%] font-bold">
-              ⚡ {raffle.notes}
+              {raffle.notes}
             </div>
           )}
         </Link>
@@ -170,7 +187,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           <div className="grid grid-cols-2 gap-1.5 bg-lime/15 border-2 sm:border-3 border-black p-2.5 font-mono text-xs">
             <div>
               <span className="text-[8px] font-pixel text-gray-700 block font-bold">
-                {raffle.entryMethod === 'fcfs' ? 'FCFS SPOTS:' : 'WL SPOTS:'}
+                {mintStage === 'FCFS' ? 'FCFS SPOTS:' : 'WL SPOTS:'}
               </span>
               <span className="font-pixel text-[11px] text-black font-bold mt-0.5 block">{raffle.supply} SPOTS</span>
             </div>
@@ -184,7 +201,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
 
             <div className="pt-1 border-t border-black/15">
               <span className="text-[8px] font-pixel text-gray-700 block font-bold">
-                {raffle.entryMethod === 'fcfs' ? 'CLAIMED:' : 'ENTRIES:'}
+                {mintStage === 'FCFS' ? 'CLAIMED:' : 'ENTRIES:'}
               </span>
               <span className="font-pixel text-[10px] text-black font-bold mt-0.5 block">
                 {raffle.entryMethod === 'fcfs' 
@@ -194,9 +211,9 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             </div>
 
             <div className="pt-1 border-t border-black/15">
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">ELIGIBILITY:</span>
+              <span className="text-[8px] font-pixel text-gray-700 block font-bold">MINT STAGE:</span>
               <span className="font-mono text-[10px] font-bold text-black mt-0.5 block truncate">
-                {raffle.eligibility === 'public' ? 'OPEN TO ALL' : raffle.eligibility === 'holders_only' ? 'HOLDERS' : 'MINTERS'}
+                [{mintStage}] • {raffle.eligibility === 'public' ? 'OPEN' : raffle.eligibility === 'holders_only' ? 'HOLDERS' : 'MINTERS'}
               </span>
             </div>
           </div>

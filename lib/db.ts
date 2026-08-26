@@ -58,6 +58,7 @@ function mapDbRowToRaffle(row: any): Raffle {
     title: row.title,
     project: row.project || 'FLAMEBOUND',
     type: row.type || 'WL RAFFLE',
+    mintStage: (row.mint_stage as any) || (row.entry_method === 'fcfs' ? 'FCFS' : 'GTD'),
     subtitle: row.subtitle || '',
     description: row.description || '',
     status: row.status || 'live',
@@ -185,12 +186,15 @@ export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Ra
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+  const mintStage = raffleData.mintStage || (raffleData.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
+
   const row = {
     id,
     slug: cleanSlug || id,
     title: raffleData.title || 'Untitled Whitelist Raffle',
     project: raffleData.project || 'FLAMEBOUND',
     type: raffleData.type || 'WL RAFFLE',
+    mint_stage: mintStage,
     subtitle: raffleData.subtitle || '',
     description: raffleData.description || '',
     status: raffleData.status || 'live',
@@ -228,7 +232,7 @@ export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Ra
   }
 
   // Also sync local
-  return createRaffle({ ...raffleData, slug: cleanSlug || id });
+  return createRaffle({ ...raffleData, slug: cleanSlug || id, mintStage });
 }
 
 export function createRaffle(raffleData: Partial<Raffle>): Raffle {
@@ -240,12 +244,15 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+  const mintStage = raffleData.mintStage || (raffleData.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
+
   const newRaffle: Raffle = {
     id,
     slug: cleanSlug || id,
     title: raffleData.title || 'Untitled Whitelist Raffle',
     project: raffleData.project || 'FLAMEBOUND',
     type: raffleData.type || 'WL RAFFLE',
+    mintStage,
     subtitle: raffleData.subtitle || '',
     description: raffleData.description || '',
     status: raffleData.status || 'live',
@@ -286,6 +293,7 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
 export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): Promise<Raffle | null> {
   const rowUpdates: any = { updated_at: new Date().toISOString() };
   if (updates.slug !== undefined) rowUpdates.slug = updates.slug;
+  if (updates.mintStage !== undefined) rowUpdates.mint_stage = updates.mintStage;
   if (updates.title) rowUpdates.title = updates.title;
   if (updates.project) rowUpdates.project = updates.project;
   if (updates.type) rowUpdates.type = updates.type;

@@ -295,12 +295,13 @@ export default function SingleRafflePage() {
     setTimeout(() => setCopiedLink(false), 2200);
   };
 
+  const mintStage = raffle?.mintStage || (raffle?.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
+
   const handleTwitterShare = () => {
     if (typeof window === 'undefined' || !raffle) return;
     const shortUrl = getShortUrl();
     const roleType = raffle.eligibility === 'public' ? 'Public' : raffle.eligibility === 'holders_only' ? 'Holders' : 'Minters';
-    const methodType = raffle.entryMethod === 'fcfs' ? '⚡ FCFS Instant Claim' : '🎲 Verified Draw';
-    const text = `🔥 ${raffle.title} Whitelist Drop\n🎟️ ${raffle.supply} Spots • ${methodType} (${roleType})\n\nEnter now:`;
+    const text = `${raffle.title}\n[STAGE: ${mintStage}] • ${raffle.supply} SPOTS (${roleType})\n\nEnter now:`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shortUrl)}`;
     window.open(tweetUrl, '_blank');
   };
@@ -386,11 +387,22 @@ export default function SingleRafflePage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-pixel text-[8px] sm:text-[9px] bg-white text-black px-1.5 sm:px-2 py-0.5 border border-black font-bold">
-                      {raffle.type || 'WL RAFFLE'}
+                    <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold tracking-wider ${
+                      mintStage === 'GTD'
+                        ? 'bg-lime text-black shadow-pixel-xs'
+                        : mintStage === 'FCFS'
+                        ? 'bg-amber-400 text-black shadow-pixel-xs'
+                        : mintStage === 'CUSTOM'
+                        ? 'bg-purple-600 text-white shadow-pixel-xs'
+                        : 'bg-white text-black'
+                    }`}>
+                      [STAGE: {mintStage}]
+                    </span>
+                    <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-2 py-0.5 border border-white/40 font-bold">
+                      {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS]' : '[MINTERS]'}
                     </span>
                     <span className={'font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ' + (isLive ? 'bg-lime text-black animate-pulse' : 'bg-red-600 text-white')}>
-                      {isLive ? '■ LIVE' : 'CLOSED'}
+                      {isLive ? '● LIVE' : 'CLOSED'}
                     </span>
                   </div>
                 </div>
@@ -405,6 +417,17 @@ export default function SingleRafflePage() {
                   />
                   <div className="absolute top-3 right-3 bg-black/90 border-2 border-lime px-2 py-1 text-lime font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-sm">
                     [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
+                  </div>
+                  <div className={`absolute top-3 left-3 px-2.5 py-1 font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-sm border border-black ${
+                    mintStage === 'GTD'
+                      ? 'bg-lime text-black'
+                      : mintStage === 'FCFS'
+                      ? 'bg-amber-400 text-black'
+                      : mintStage === 'CUSTOM'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white text-black'
+                  }`}>
+                    MINT STAGE: {mintStage}
                   </div>
                 </div>
 
@@ -454,14 +477,22 @@ export default function SingleRafflePage() {
 
                     <div className="p-3 sm:p-4 space-y-2 font-mono text-xs">
                       <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">MAX PER WHITELIST:</span>
-                        <span className="font-bold text-black">{raffle.maxMintPerWallet || '1 PER WL'}</span>
+                        <span className="font-bold">MINT STAGE:</span>
+                        <span className={`font-pixel text-[10px] font-bold px-2 py-0.5 border border-black ${
+                          mintStage === 'GTD' 
+                            ? 'bg-lime text-black' 
+                            : mintStage === 'FCFS' 
+                            ? 'bg-amber-400 text-black' 
+                            : mintStage === 'CUSTOM'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white text-black'
+                        }`}>
+                          [{mintStage}] {mintStage === 'GTD' ? 'GUARANTEED' : mintStage === 'FCFS' ? 'FIRST-COME FIRST-SERVED' : mintStage === 'CUSTOM' ? 'CUSTOM STAGE' : 'WHITELIST'}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">ENTRY METHOD:</span>
-                        <span className="font-pixel text-[10px] font-bold text-black bg-lime px-1 border border-black">
-                          {raffle.entryMethod === 'fcfs' ? '⚡ FIRST-COME, FIRST-SERVED (FCFS)' : '🎲 RANDOM RAFFLE DRAW'}
-                        </span>
+                        <span className="font-bold">MAX PER WHITELIST:</span>
+                        <span className="font-bold text-black">{raffle.maxMintPerWallet || '1 PER WL'}</span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
                         <span className="font-bold">ELIGIBILITY:</span>
@@ -470,9 +501,9 @@ export default function SingleRafflePage() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-black/10">
-                        <span className="font-bold">{raffle.entryMethod === 'fcfs' ? 'CLAIMED SPOTS:' : 'TOTAL ENTRIES:'}</span>
+                        <span className="font-bold">{mintStage === 'FCFS' ? 'CLAIMED SPOTS:' : 'TOTAL ENTRIES:'}</span>
                         <span className="font-pixel text-xs text-black font-bold">
-                          {raffle.totalEntries} / {raffle.supply} {raffle.entryMethod === 'fcfs' ? 'CLAIMED' : 'ENTRIES'}
+                          {raffle.totalEntries} / {raffle.supply} {mintStage === 'FCFS' ? 'CLAIMED' : 'ENTRIES'}
                         </span>
                       </div>
                     </div>
@@ -508,7 +539,7 @@ export default function SingleRafflePage() {
                       </div>
                     ) : (
                       <div className="font-pixel text-xs text-center text-red-400 py-2 bg-red-950/40 border border-red-800 uppercase font-bold">
-                        ★ RAFFLE CONCLUDED ★
+                        [RAFFLE CONCLUDED]
                       </div>
                     )}
                   </div>
@@ -889,7 +920,7 @@ export default function SingleRafflePage() {
                           : (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
                           ? '[ALL FCFS SPOTS CLAIMED / CLOSED]'
                           : allTasksCompleted 
-                          ? (raffle.entryMethod === 'fcfs' ? '[★ CLAIM FCFS GUARANTEED SPOT ★]' : '[★ SUBMIT WHITELIST ENTRY ★]')
+                          ? (mintStage === 'FCFS' ? '[CLAIM FCFS GUARANTEED SPOT]' : '[SUBMIT WHITELIST ENTRY]')
                           : ('[COMPLETE ALL REQUIREMENTS (' + completedCount + '/' + totalTasks + ')]')}
                       </button>
                     </div>
