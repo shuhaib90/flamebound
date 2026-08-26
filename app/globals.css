@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-lime: #A6FF00;
+  --pixel-black: #000000;
+  --pixel-white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #A6FF00 !important;
+  color: #000000 !important;
+  font-family: 'Space Mono', monospace;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #A6FF00;
+  border-left: 3px solid #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #A6FF00;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #222222;
+}
+
+/* Highlight / Selection */
+::selection {
+  background: #000000;
+  color: #A6FF00;
+}
+
+/* Pixel Box Utilities */
+.pixel-border {
+  border: 4px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+}
+
+.pixel-border-sm {
+  border: 3px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+.pixel-border-lg {
+  border: 4px solid #000000;
+  box-shadow: 6px 6px 0px #000000;
+}
+
+.pixel-btn {
+  background-color: #000000;
+  color: #A6FF00;
+  border: 3px solid #000000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 12px 18px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.pixel-btn:hover {
+  background-color: #111111;
+  color: #FFFFFF;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.pixel-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+.pixel-btn-lime {
+  background-color: #A6FF00;
+  color: #000000;
+  border: 3px solid #000000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 12px 18px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pixel-btn-lime:hover {
+  background-color: #BAFF33;
+  color: #000000;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.pixel-btn-lime:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+.pixel-btn-white {
+  background-color: #FFFFFF;
+  color: #000000;
+  border: 3px solid #000000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 12px 18px;
+  box-shadow: 4px 4px 0px #000000;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pixel-btn-white:hover {
+  background-color: #EEEEEE;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.pixel-btn-white:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px #000000;
+}
+
+.pixel-btn:disabled,
+.pixel-btn-lime:disabled,
+.pixel-btn-white:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+/* Retro blinking cursor */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.pixel-blink {
+  animation: blink 0.9s infinite;
+}
+
+/* Pixel marquee animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Subtle CRT scanline overlay toggle */
+.pixel-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+}
