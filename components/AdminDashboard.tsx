@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -82,12 +82,12 @@ export function AdminDashboard() {
   const [editingRaffle, setEditingRaffle] = useState<Raffle | null>(null);
 
   const [newRaffle, setNewRaffle] = useState<NewRaffleForm>({
-    title: 'FLAMEBOUND RELIC WL #3',
+    title: 'FLAMEBOUND PARTNER WL',
     project: 'FLAMEBOUND',
     type: 'WL RAFFLE',
-    subtitle: 'Exclusive Relic mint whitelist for loyal holders.',
-    description: 'Exclusive whitelist raffle for Flamebound holders with priority access.',
-    supply: 30,
+    subtitle: 'Exclusive whitelist raffle for verified Flamebound holders.',
+    description: 'Whitelist allocation for verified Flamebound holders with priority access.',
+    supply: 50,
     nftTotalSupply: '1,000 NFTs',
     mintPrice: '0.0001 ETH',
     mintDate: '15 SEP 2026 — 18:00 UTC',
@@ -97,13 +97,13 @@ export function AdminDashboard() {
     contractAddress: FLAMEBOUND_PRIMARY_CONTRACT,
     requiredTokenCount: 1,
     artworkType: 'genesis',
-    logoUrl: '',
-    bannerUrl: '',
-    followUrl: 'https://twitter.com/FlameboundNFT',
-    engageUrl: 'https://twitter.com/FlameboundNFT',
-    twitterUrl: 'https://twitter.com/FlameboundNFT',
-    discordUrl: 'https://discord.com',
-    mintUrl: 'https://opensea.io',
+    logoUrl: '/images/flamebound-logo.png',
+    bannerUrl: '/images/flamebound-logo.png',
+    followUrl: 'https://x.com/FlameboundNft',
+    engageUrl: 'https://x.com/FlameboundNft',
+    twitterUrl: 'https://x.com/FlameboundNft',
+    discordUrl: '',
+    mintUrl: 'https://opensea.io/collection/flamebound-259045050',
     notes: 'Phase 1 Guaranteed Whitelist Mint',
     endDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16),
   });

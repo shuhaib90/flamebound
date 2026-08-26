@@ -6,17 +6,17 @@
       "project": "FLAMEBOUND",
       "type": "WL RAFFLE",
       "subtitle": "Win a guaranteed Flamebound Genesis whitelist spot.",
-      "description": "The premier whitelist raffle for the inaugural Flamebound Genesis NFT collection. Verified Flamebound holders get guaranteed Phase 1 mint allocation.",
+      "description": "The official whitelist raffle for the upcoming Flamebound Genesis collection. Verify your Flamebound NFT holdings on-chain to enter.",
       "status": "live",
       "supply": 50,
       "nftTotalSupply": "1,000 NFTs",
       "mintPrice": "0.0001 ETH",
       "mintDate": "15 SEP 2026 — 18:00 UTC",
       "maxMintPerWallet": "1 PER WL",
-      "totalEntries": 142,
+      "totalEntries": 0,
       "startDate": "2026-08-01T00:00:00.000Z",
-      "endDate": "2026-08-28T23:59:00.000Z",
-      "network": "ETHEREUM",
+      "endDate": "2026-09-14T23:59:00.000Z",
+      "network": "ROBINHOOD NETWORK",
       "contractAddress": "0xad11f08a3a1e15756abcf565269d3c32b6d464b9",
       "requiredTokenCount": 1,
       "artworkType": "genesis",
@@ -28,233 +28,10 @@
       "discordUrl": "https://discord.com",
       "mintUrl": "https://opensea.io/collection/flamebound-259045050",
       "notes": "Guaranteed Phase 1 Mint for Whitelist Winners",
-      "tasks": [
-        {
-          "id": "task-follow",
-          "title": "FOLLOW FLAMEBOUND",
-          "description": "Follow @FlameboundNFT on X to stay updated on mint dates and announcements.",
-          "type": "follow",
-          "buttonLabel": "FOLLOW",
-          "targetUrl": "https://twitter.com/intent/follow?screen_name=FlameboundNFT",
-          "required": true
-        },
-        {
-          "id": "task-engage",
-          "title": "COMMENT / ENGAGE",
-          "description": "Like, retweet and comment on the official Whitelist Raffle announcement post.",
-          "type": "engage",
-          "buttonLabel": "COMPLETE TASK",
-          "targetUrl": "https://twitter.com/intent/tweet?text=Entering%20the%20%40FlameboundNFT%20Genesis%20WL%20Raffle!%20%23FlameboundWL",
-          "required": true
-        },
-        {
-          "id": "task-wallet",
-          "title": "ENTER WALLET ADDRESS",
-          "description": "Provide your verified EVM wallet address for the whitelist allocation.",
-          "type": "wallet",
-          "buttonLabel": "SAVE WALLET",
-          "required": true
-        },
-        {
-          "id": "task-holder",
-          "title": "FLAMEBOUND HOLDER CHECK",
-          "description": "Verify active holding on Flamebound Contract (0xad11...64b9)",
-          "type": "holder_check",
-          "buttonLabel": "CHECK HOLDER",
-          "required": true
-        }
-      ],
-      "createdAt": "2026-08-01T00:00:00.000Z"
-    },
-    {
-      "id": "raffle-fb-beasts-02",
-      "title": "CYBER-BEASTS PASS WL",
-      "project": "FLAMEBOUND",
-      "type": "WL RAFFLE",
-      "subtitle": "Exclusive companion mint whitelist for loyal holders.",
-      "description": "Flamebound Cyber-Beasts mint pass whitelist. Only active holders with at least 1 Genesis or Relic are eligible.",
-      "status": "live",
-      "supply": 25,
-      "nftTotalSupply": "2,500 NFTs",
-      "mintPrice": "FREE MINT",
-      "mintDate": "22 SEP 2026 — 20:00 UTC",
-      "maxMintPerWallet": "2 PER WL",
-      "totalEntries": 68,
-      "startDate": "2026-08-10T00:00:00.000Z",
-      "endDate": "2026-08-30T18:00:00.000Z",
-      "network": "BASE",
-      "contractAddress": "0xad11f08a3a1e15756abcf565269d3c32b6d464b9",
-      "requiredTokenCount": 1,
-      "artworkType": "cyber_beast",
-      "logoUrl": "/images/flamebound-logo.png",
-      "followUrl": "https://x.com/FlameboundNft",
-      "engageUrl": "https://x.com/FlameboundNft",
-      "twitterUrl": "https://x.com/FlameboundNft",
-      "discordUrl": "https://discord.com",
-      "mintUrl": "https://opensea.io/collection/flamebound-259045050",
-      "notes": "Free companion mint for Genesis holders on Base L2 network.",
-      "tasks": [
-        {
-          "id": "task-follow",
-          "title": "FOLLOW FLAMEBOUND",
-          "description": "Follow @FlameboundNFT on X",
-          "type": "follow",
-          "buttonLabel": "FOLLOW",
-          "targetUrl": "https://twitter.com/FlameboundNFT",
-          "required": true
-        },
-        {
-          "id": "task-engage",
-          "title": "COMMENT / ENGAGE",
-          "description": "Engage with Cyber-Beasts announcement tweet",
-          "type": "engage",
-          "buttonLabel": "COMPLETE TASK",
-          "required": true
-        },
-        {
-          "id": "task-wallet",
-          "title": "ENTER WALLET ADDRESS",
-          "description": "Enter your verified EVM wallet address",
-          "type": "wallet",
-          "buttonLabel": "SAVE WALLET",
-          "required": true
-        },
-        {
-          "id": "task-holder",
-          "title": "FLAMEBOUND HOLDER CHECK",
-          "description": "Real-time on-chain verification of Flamebound tokens",
-          "type": "holder_check",
-          "buttonLabel": "CHECK HOLDER",
-          "required": true
-        }
-      ],
-      "createdAt": "2026-08-10T00:00:00.000Z"
-    },
-    {
-      "id": "raffle-fb-founders-00",
-      "title": "FOUNDERS PASS WL #0",
-      "project": "FLAMEBOUND",
-      "type": "WL RAFFLE",
-      "subtitle": "The inaugural early-access founders pass raffle.",
-      "description": "Concluded raffle for the VIP Founders Pass. 10 spots distributed to verified holders.",
-      "status": "winners_drawn",
-      "supply": 10,
-      "nftTotalSupply": "100 PASSES",
-      "mintPrice": "0.05 ETH",
-      "mintDate": "20 JUL 2026",
-      "maxMintPerWallet": "1 PER WL",
-      "totalEntries": 215,
-      "startDate": "2026-07-01T00:00:00.000Z",
-      "endDate": "2026-07-20T23:59:00.000Z",
-      "network": "ETHEREUM",
-      "contractAddress": "0xad11f08a3a1e15756abcf565269d3c32b6d464b9",
-      "requiredTokenCount": 1,
-      "artworkType": "founders_pass",
       "tasks": [],
-      "winners": [
-        {
-          "rank": 1,
-          "wallet": "0x72a4b693240212351239012390123901239091f2",
-          "shortWallet": "0x72A4...91F2",
-          "entryNumber": "FB-104921",
-          "drawnAt": "2026-07-21T00:01:22Z",
-          "txUrl": "https://etherscan.io/tx/0x9182371982739182371982371982371982371982371982371982371982371982"
-        },
-        {
-          "rank": 2,
-          "wallet": "0xa81c4345689012345678901234567890123433d9",
-          "shortWallet": "0xA81C...33D9",
-          "entryNumber": "FB-104955",
-          "drawnAt": "2026-07-21T00:01:22Z",
-          "txUrl": "https://etherscan.io/tx/0x8273918237198237198237198237198237198237198237198237198237198237"
-        },
-        {
-          "rank": 3,
-          "wallet": "0x19fd72aa123456789012345678901234567872aa",
-          "shortWallet": "0x19FD...72AA",
-          "entryNumber": "FB-105012",
-          "drawnAt": "2026-07-21T00:01:22Z",
-          "txUrl": "https://etherscan.io/tx/0x7391823719823719823719823719823719823719823719823719823719823719"
-        },
-        {
-          "rank": 4,
-          "wallet": "0x5b38da6a701c568545dcfcb03fcb875f56beddc4",
-          "shortWallet": "0x5B38...ddC4",
-          "entryNumber": "FB-105190",
-          "drawnAt": "2026-07-21T00:01:22Z"
-        },
-        {
-          "rank": 5,
-          "wallet": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
-          "shortWallet": "0x3C44...93BC",
-          "entryNumber": "FB-105244",
-          "drawnAt": "2026-07-21T00:01:22Z"
-        }
-      ],
-      "winnerTxHash": "0x9182371982739182371982371982371982371982371982371982371982371982",
-      "createdAt": "2026-07-01T00:00:00.000Z"
+      "winners": [],
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   ],
-  "entries": [
-    {
-      "id": "FB-918201",
-      "raffleId": "raffle-fb-genesis-01",
-      "walletAddress": "0x72a4b693240212351239012390123901239091f2",
-      "shortAddress": "0x72A4...91F2",
-      "taskStatus": {
-        "follow": true,
-        "engage": true,
-        "wallet": true,
-        "holderCheck": true
-      },
-      "isHolder": true,
-      "tokenBalance": 4,
-      "verifiedAt": "2026-08-20T14:22:10.000Z",
-      "status": "confirmed",
-      "network": "ETHEREUM",
-      "metadata": {
-        "holderVerifiedVia": "on-chain-rpc"
-      }
-    },
-    {
-      "id": "FB-918202",
-      "raffleId": "raffle-fb-genesis-01",
-      "walletAddress": "0xa81c4345689012345678901234567890123433d9",
-      "shortAddress": "0xA81C...33D9",
-      "taskStatus": {
-        "follow": true,
-        "engage": true,
-        "wallet": true,
-        "holderCheck": true
-      },
-      "isHolder": true,
-      "tokenBalance": 2,
-      "verifiedAt": "2026-08-21T09:15:33.000Z",
-      "status": "confirmed",
-      "network": "ETHEREUM",
-      "metadata": {
-        "holderVerifiedVia": "on-chain-rpc"
-      }
-    },
-    {
-      "id": "FB-918203",
-      "raffleId": "raffle-fb-genesis-01",
-      "walletAddress": "0x19fd72aa123456789012345678901234567872aa",
-      "shortAddress": "0x19FD...72AA",
-      "taskStatus": {
-        "follow": true,
-        "engage": true,
-        "wallet": true,
-        "holderCheck": true
-      },
-      "isHolder": true,
-      "tokenBalance": 1,
-      "verifiedAt": "2026-08-22T18:40:02.000Z",
-      "status": "confirmed",
-      "network": "ETHEREUM",
-      "metadata": {
-        "holderVerifiedVia": "on-chain-rpc"
-      }
-    }
-  ]
+  "entries": []
 }
