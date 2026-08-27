@@ -513,16 +513,124 @@ export function deleteEntry(id: string): boolean {
 }
 
 export async function drawRaffleWinnersAsync(raffleId: string, customCount?: number): Promise<{ raffle: Raffle; winners: Winner[] }> {
-  const result = drawRaffleWinners(raffleId, customCount);
+  // 1. Fetch live raffle from Supabase or fallback
+  const raffle = await getRaffleByIdAsync(raffleId);
+  if (!raffle) {
+    throw new Error('Raffle not found');
+  }
+
+  // 2. Fetch live entries from Supabase or fallback
+  const allEntries = await getEntriesAsync(raffleId);
+  if (!allEntries || allEntries.length === 0) {
+    throw new Error(`No entries have been submitted for "${raffle.title}" yet. Entrants must enter before winners can be drawn.`);
+  }
+
+  // 3. Filter eligible entries based on raffle eligibility type
+  const eligibleEntries = allEntries.filter(e => {
+    if (e.status !== 'confirmed') return false;
+    if (raffle.eligibility === 'holders_only') {
+      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
+    }
+    if (raffle.eligibility === 'minters_only') {
+      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
+    }
+    return true; // public: open to all
+  });
+
+  if (eligibleEntries.length === 0) {
+    const requirement = raffle.eligibility === 'holders_only' 
+      ? 'Flamebound NFT Holders' 
+      : raffle.eligibility === 'minters_only' 
+      ? 'Flamebound NFT Minters' 
+      : 'Valid Public Entrants';
+    throw new Error(`No eligible entries found matching ${requirement}.`);
+  }
+
+  const totalSlots = customCount || raffle.supply || 10;
+  const availableSlots = Math.min(totalSlots, eligibleEntries.length);
+
+  // 4. Separate Guaranteed Winners (Holders of 100+ Flamebound NFTs)
+  const guaranteedPool = eligibleEntries.filter(e => (e.tokenBalance || 0) >= 100);
+  const remainingPool = eligibleEntries.filter(e => (e.tokenBalance || 0) < 100);
+
+  const selectedWinners: { entry: RaffleEntry; isGuaranteed: boolean; multiplierText: string }[] = [];
+
+  // Add guaranteed winners first (up to availableSlots)
+  for (const gEntry of guaranteedPool) {
+    if (selectedWinners.length >= availableSlots) break;
+    selectedWinners.push({
+      entry: gEntry,
+      isGuaranteed: true,
+      multiplierText: '100% GUARANTEED WIN',
+    });
+  }
+
+  // 5. Weighted Draw for remaining slots using tokenBalance as tickets (weight = max(1, tokenBalance))
+  const pool = [...remainingPool];
+  while (selectedWinners.length < availableSlots && pool.length > 0) {
+    const totalWeight = pool.reduce((sum, item) => sum + Math.max(1, item.tokenBalance || 1), 0);
+    
+    let randomPoint = Math.random() * totalWeight;
+    let selectedIndex = 0;
+
+    for (let i = 0; i < pool.length; i++) {
+      const itemWeight = Math.max(1, pool[i].tokenBalance || 1);
+      if (randomPoint < itemWeight) {
+        selectedIndex = i;
+        break;
+      }
+      randomPoint -= itemWeight;
+    }
+
+    const winnerEntry = pool[selectedIndex];
+    const weight = Math.max(1, winnerEntry.tokenBalance || 1);
+    selectedWinners.push({
+      entry: winnerEntry,
+      isGuaranteed: false,
+      multiplierText: `${weight}x BOOST`,
+    });
+
+    // Remove from pool to prevent duplicate winner selection
+    pool.splice(selectedIndex, 1);
+  }
+
+  const mockTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+
+  const winners: Winner[] = selectedWinners.map((w, index) => ({
+    rank: index + 1,
+    wallet: w.entry.walletAddress,
+    shortWallet: w.entry.shortAddress,
+    entryNumber: w.entry.id,
+    multiplier: w.multiplierText,
+    tokenBalance: w.entry.tokenBalance || 0,
+    isGuaranteed: w.isGuaranteed,
+    drawnAt: new Date().toISOString(),
+    txUrl: `https://etherscan.io/tx/${mockTxHash}`,
+  }));
+
+  // Update Supabase
   try {
     await supabase.from('flamebound_raffles').update({
       status: 'winners_drawn',
-      winners: result.winners,
+      winners: winners,
+      winner_tx_hash: mockTxHash,
+      updated_at: new Date().toISOString(),
     }).eq('id', raffleId);
   } catch (err) {
     console.error('Supabase draw update error:', err);
   }
-  return result;
+
+  // Also sync local
+  raffle.status = 'winners_drawn';
+  raffle.winners = winners;
+  raffle.winnerTxHash = mockTxHash;
+  updateRaffle(raffleId, {
+    status: 'winners_drawn',
+    winners: winners,
+    winnerTxHash: mockTxHash,
+  });
+
+  return { raffle, winners };
 }
 
 export function drawRaffleWinners(raffleId: string, customCount?: number): { raffle: Raffle; winners: Winner[] } {
@@ -543,6 +651,10 @@ export function drawRaffleWinners(raffleId: string, customCount?: number): { raf
     }
     return true; // public: open to all
   });
+
+  if (eligibleEntries.length === 0) {
+    throw new Error(`No eligible entries found for this raffle.`);
+  }
 
   const totalSlots = customCount || raffle.supply || 10;
   const availableSlots = Math.min(totalSlots, eligibleEntries.length);

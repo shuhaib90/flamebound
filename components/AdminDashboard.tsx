@@ -340,9 +340,57 @@ export function AdminDashboard() {
     }
   };
 
-  const handleDrawWinners = async (raffleId: string, count: number) => {
-    if (!confirm(`Run fair winner draw for ${count} spots?`)) return;
+function formatDateTimeLocal(dateStr?: string) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+}
+
+  const handleToggleStatus = async (raffle: Raffle, explicitStatus?: 'live' | 'closed' | 'ending_soon' | 'winners_drawn') => {
+    const targetStatus = explicitStatus || (raffle.status === 'live' ? 'closed' : 'live');
     try {
+      setActionMessage(`⏳ Updating status to ${targetStatus.toUpperCase()}...`);
+      const res = await fetch(`/api/raffles/${raffle.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: targetStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActionMessage(`✓ Switched "${raffle.title}" status to [${targetStatus.toUpperCase()}]`);
+        fetchData();
+      } else {
+        setActionMessage(`✕ Failed to update status: ${data.error || 'Error'}`);
+      }
+    } catch (err: any) {
+      setActionMessage('✕ Failed to update status: ' + err.message);
+    }
+  };
+
+  const handleDrawWinners = async (raffleId: string, count: number) => {
+    const r = raffles.find(item => item.id === raffleId);
+    const raffleTitle = r ? r.title : 'this raffle';
+    const entryCount = entries.filter(e => e.raffleId === raffleId).length;
+
+    if (entryCount === 0) {
+      alert(`Cannot draw winners for "${raffleTitle}": 0 entries have been submitted yet. Entrants must enter before winners can be selected.`);
+      return;
+    }
+
+    if (!confirm(`Run fair winner draw for "${raffleTitle}" (${count} spots from ${entryCount} total entries)?`)) return;
+    try {
+      setActionMessage(`⏳ Drawing ${count} winners for "${raffleTitle}"...`);
       const res = await fetch(`/api/raffles/${raffleId}/draw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -350,11 +398,16 @@ export function AdminDashboard() {
       });
       const data = await res.json();
       if (data.success) {
-        setActionMessage(`✓ Successfully drawn ${data.winners.length} winners!`);
+        setActionMessage(`✓ Successfully drawn ${data.winners?.length || count} winners for "${raffleTitle}"!`);
         fetchData();
+      } else {
+        const errorMsg = data.error || data.message || 'Failed to draw winners';
+        setActionMessage(`✕ Draw Error: ${errorMsg}`);
+        alert(`Draw Error: ${errorMsg}`);
       }
     } catch (err: any) {
       setActionMessage('✕ Failed to draw winners: ' + err.message);
+      alert('Draw Exception: ' + err.message);
     }
   };
 
@@ -748,24 +801,43 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="space-y-2 pt-2 border-t-2 border-black">
-                    {/* Quick Mode Toggle Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleMethod(raffle)}
-                      className="w-full font-pixel text-[9px] py-1.5 bg-lime/30 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
-                    >
-                      <span>MODE: {raffle.entryMethod === 'fcfs' ? 'FCFS (SWITCH TO RAFFLE)' : 'RAFFLE (SWITCH TO FCFS)'}</span>
-                    </button>
-
-                    {raffle.status === 'live' && (
+                    {/* Quick Mode & Status Controls */}
+                    <div className="grid grid-cols-2 gap-1.5">
                       <button
-                        onClick={() => handleDrawWinners(raffle.id, raffle.supply)}
-                        className="w-full pixel-btn text-[10px] py-2.5 bg-black text-lime flex items-center justify-center gap-1.5"
+                        type="button"
+                        onClick={() => handleToggleStatus(raffle)}
+                        className={`font-pixel text-[9px] py-1.5 border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors ${
+                          raffle.status === 'live' 
+                            ? 'bg-red-500 text-white hover:bg-red-600' 
+                            : 'bg-lime text-black hover:bg-black hover:text-lime'
+                        }`}
                       >
-                        <Trophy size={14} />
-                        <span>RUN WINNER DRAW ({raffle.supply} SPOTS)</span>
+                        {raffle.status === 'live' ? '🔒 [CLOSE RAFFLE]' : '🔓 [RE-OPEN RAFFLE]'}
                       </button>
-                    )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMethod(raffle)}
+                        className="font-pixel text-[9px] py-1.5 bg-lime/30 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
+                      >
+                        <span>{raffle.entryMethod === 'fcfs' ? 'MODE: FCFS ⚡' : 'MODE: RAFFLE 🎲'}</span>
+                      </button>
+                    </div>
+
+                    {/* Winner Draw Button for all raffles (Live, Closed, Winners Drawn) */}
+                    <button
+                      onClick={() => handleDrawWinners(raffle.id, raffle.supply)}
+                      className={`w-full pixel-btn text-[10px] py-2.5 flex items-center justify-center gap-1.5 font-bold shadow-pixel-xs ${
+                        raffle.status === 'winners_drawn' ? 'bg-purple-700 text-white' : 'bg-black text-lime'
+                      }`}
+                    >
+                      <Trophy size={14} />
+                      <span>
+                        {raffle.status === 'winners_drawn'
+                          ? `RE-DRAW WINNERS (${raffle.supply} SPOTS)`
+                          : `RUN FAIR DRAW (${raffle.supply} SPOTS)`}
+                      </span>
+                    </button>
 
                     <div className="flex gap-2">
                       <button
@@ -1384,6 +1456,144 @@ export function AdminDashboard() {
                   onChange={(e) => setEditingRaffle({ ...editingRaffle, notes: e.target.value })}
                   className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
                 />
+              </div>
+
+              {/* RAFFLE STATUS & LIFECYCLE CONTROLLER */}
+              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-2 shadow-pixel-sm">
+                <label className="block font-pixel text-[10px] uppercase text-white font-bold">
+                  RAFFLE STATUS & LIFECYCLE:
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-pixel text-[9px] font-bold uppercase">
+                  <button
+                    type="button"
+                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'live' })}
+                    className={`p-2 border-2 border-black transition-all ${
+                      editingRaffle.status === 'live' 
+                        ? 'bg-lime text-black shadow-pixel-xs' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    ● LIVE (OPEN)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'closed' })}
+                    className={`p-2 border-2 border-black transition-all ${
+                      editingRaffle.status === 'closed' 
+                        ? 'bg-red-500 text-white shadow-pixel-xs' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    🔒 CLOSED
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'ending_soon' })}
+                    className={`p-2 border-2 border-black transition-all ${
+                      editingRaffle.status === 'ending_soon' 
+                        ? 'bg-amber-400 text-black shadow-pixel-xs' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    ⏳ ENDING SOON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'winners_drawn' })}
+                    className={`p-2 border-2 border-black transition-all ${
+                      editingRaffle.status === 'winners_drawn' 
+                        ? 'bg-purple-600 text-white shadow-pixel-xs' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    🏆 WINNERS DRAWN
+                  </button>
+                </div>
+              </div>
+
+              {/* RAFFLE SCHEDULE & DEADLINE (TIME PICKER & PRESETS) */}
+              <div className="bg-lime/20 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+                <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1 flex justify-between items-center">
+                  <span>[RAFFLE SCHEDULE & DEADLINE TIME]</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
+                      RAFFLE END TIME (DEADLINE):
+                    </label>
+                    <input
+                      type="datetime-local"
+                      required
+                      value={formatDateTimeLocal(editingRaffle.endDate)}
+                      onChange={(e) => {
+                        const val = e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString();
+                        setEditingRaffle({ ...editingRaffle, endDate: val });
+                      }}
+                      className="w-full bg-white border-2 border-black p-2.5 font-mono text-xs text-black font-bold outline-none"
+                    />
+
+                    {/* Quick Preset Helpers */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      <span className="font-pixel text-[8px] text-gray-700 font-bold self-center mr-1">QUICK SET:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
+                        }}
+                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                      >
+                        +1 Day
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
+                        }}
+                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                      >
+                        +3 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
+                        }}
+                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                      >
+                        +7 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() - 60 * 1000);
+                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'closed' });
+                        }}
+                        className="pixel-btn text-[8px] py-1 px-1.5 bg-red-600 text-white font-bold"
+                      >
+                        [EXPIRE NOW]
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
+                      START TIME (OPTIONAL):
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formatDateTimeLocal(editingRaffle.startDate)}
+                      onChange={(e) => {
+                        const val = e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString();
+                        setEditingRaffle({ ...editingRaffle, startDate: val });
+                      }}
+                      className="w-full bg-white border-2 border-black p-2.5 font-mono text-xs text-black font-bold outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4 border-t-3 border-black flex gap-3">
@@ -2143,7 +2353,7 @@ export function AdminDashboard() {
 
                 <div>
                   <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    RAFFLE END TIME:
+                    RAFFLE END TIME (DEADLINE):
                   </label>
                   <input
                     type="datetime-local"
@@ -2152,6 +2362,39 @@ export function AdminDashboard() {
                     onChange={(e) => setNewRaffle({ ...newRaffle, endDate: e.target.value })}
                     className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    <span className="font-pixel text-[8px] text-gray-700 font-bold self-center mr-1">QUICK SET:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
+                      }}
+                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                    >
+                      +1 Day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
+                      }}
+                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                    >
+                      +3 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
+                      }}
+                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
+                    >
+                      +7 Days
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -1013,6 +1013,8 @@ export default function SingleRafflePage() {
                       >
                         {submitting 
                           ? 'CONFIRMING ENTRY ON-CHAIN...' 
+                          : !isLive
+                          ? '[RAFFLE CLOSED / CONCLUDED]'
                           : (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
                           ? '[ALL FCFS SPOTS CLAIMED / CLOSED]'
                           : allTasksCompleted 
