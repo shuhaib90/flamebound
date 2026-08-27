@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -44,7 +44,7 @@ export function Header() {
                 [LIVE RAFFLES]
               </Link>
               <Link 
-                href="/#how-it-works" 
+                href="/how-it-works" 
                 className="hover:bg-black hover:text-lime px-3 py-1.5 border-2 border-transparent hover:border-black transition-colors"
               >
                 [HOW IT WORKS]
@@ -185,7 +185,7 @@ export function Header() {
               [LIVE RAFFLES]
             </Link>
             <Link
-              href="/#how-it-works"
+              href="/how-it-works"
               onClick={() => setMobileMenuOpen(false)}
               className="block p-2 border-2 border-black bg-white hover:bg-black hover:text-lime"
             >

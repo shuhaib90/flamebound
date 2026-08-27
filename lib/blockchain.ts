@@ -16,16 +16,16 @@ export const FLAMEBOUND_PRIMARY_RPC = 'https://robinhood-mainnet.g.alchemy.com/v
 
 // Clean test holders registry with valid EIP-55 checksummed addresses
 export const KNOWN_TEST_HOLDERS: Record<string, { balance: number; tokenIds: string[]; name: string }> = {
-  // Whale 1 (Holder - 4 Flamebound NFTs)
-  '0x72a4b693240212351239012390123901239091f2': { balance: 4, tokenIds: ['#0012', '#0089', '#0412', '#0991'], name: 'Flamebound Whale 1' },
-  // OG 2 (Holder - 2 Flamebound NFTs)
-  '0xa81c4345689012345678901234567890123433d9': { balance: 2, tokenIds: ['#0104', '#0773'], name: 'Flamebound OG' },
-  // Beast Master (Holder - 1 Flamebound NFT)
-  '0x19fd72aa123456789012345678901234567872aa': { balance: 1, tokenIds: ['#0552'], name: 'Beast Master' },
-  // Genesis Pioneer (Holder - 3 Flamebound NFTs)
-  '0x5b38da6a701c568545dcfcb03fcb875f56beddc4': { balance: 3, tokenIds: ['#0003', '#0042', '#0128'], name: 'Genesis Pioneer' },
-  // Non-Holder for testing rejection (0 NFTs)
-  '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e': { balance: 0, tokenIds: [], name: 'Non-Holder (Rejection Test)' },
+  // Official Admin Wallet (Titan Whale - 100 Flamebound NFTs -> 100% Guaranteed Win)
+  '0x8b7a0a0ca2b05319d27e70df91d106bfe8ff05fb': { balance: 100, tokenIds: ['#0001', '#0002', '#0050', '#0100'], name: 'Admin / Titan Whale' },
+  // Whale 50x (Holder - 50 Flamebound NFTs -> 50x Win Multiplier)
+  '0x72a4b693240212351239012390123901239091f2': { balance: 50, tokenIds: ['#0012', '#0089', '#0412', '#0991'], name: 'Flamebound Whale (50x)' },
+  // OG 10x (Holder - 10 Flamebound NFTs -> 10x Win Multiplier)
+  '0xa81c4345689012345678901234567890123433d9': { balance: 10, tokenIds: ['#0104', '#0773', '#0882'], name: 'Flamebound OG (10x)' },
+  // Beast Master (Holder - 1 Flamebound NFT -> 1x Win Multiplier)
+  '0x19fd72aa123456789012345678901234567872aa': { balance: 1, tokenIds: ['#0552'], name: 'Flamebound Pioneer (1x)' },
+  // Non-Holder for testing rejection/public (0 NFTs -> 1x Base)
+  '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e': { balance: 0, tokenIds: [], name: 'Public User (0 NFTs / 1x Base)' },
 };
 
 export function formatAddress(address: string, start = 6, end = 4): string {

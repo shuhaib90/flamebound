@@ -76,6 +76,9 @@ export interface Winner {
   shortWallet: string;
   entryNumber: string;
   drawnAt: string;
+  multiplier?: string;
+  tokenBalance?: number;
+  isGuaranteed?: boolean;
   txUrl?: string;
 }
 

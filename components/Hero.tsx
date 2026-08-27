@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { PixelFlame } from './PixelFlame';
 import { Flame, ShieldCheck, ExternalLink, ArrowDown } from 'lucide-react';
 
@@ -59,12 +60,12 @@ export function Hero() {
             <ExternalLink size={16} />
           </a>
 
-          <a
-            href="#how-it-works"
+          <Link
+            href="/how-it-works"
             className="pixel-btn-white text-xs sm:text-sm py-4 px-6 w-full sm:w-auto shadow-pixel-lg flex items-center justify-center gap-2"
           >
             <span>[HOW IT WORKS]</span>
-          </a>
+          </Link>
         </div>
 
         {/* 8-Bit Marquee Ticker */}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Raffle, CustomTask } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
+import { getHolderMultiplier } from '@/lib/multiplier';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -25,7 +26,11 @@ import {
   AtSign,
   Sparkles,
   Send,
-  Globe
+  Globe,
+  Crown,
+  Zap,
+  ShieldCheck,
+  HelpCircle
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
@@ -296,6 +301,8 @@ export default function SingleRafflePage() {
   };
 
   const mintStage = raffle?.mintStage || (raffle?.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
+  const currentBalance = holderStatus?.tokenBalance || (entryReceipt?.tokenBalance || 0);
+  const userTier = getHolderMultiplier(currentBalance);
 
   const handleTwitterShare = () => {
     if (typeof window === 'undefined' || !raffle) return;
@@ -500,6 +507,16 @@ export default function SingleRafflePage() {
                           {raffle.eligibility === 'public' ? 'OPEN TO ALL (PUBLIC)' : raffle.eligibility === 'holders_only' ? 'FLAMEBOUND HOLDERS ONLY' : 'FLAMEBOUND MINTERS ONLY'}
                         </span>
                       </div>
+                      <div className="flex justify-between items-center text-gray-800">
+                        <span className="font-bold">HOLDER BOOST:</span>
+                        <Link 
+                          href="/how-it-works"
+                          className="font-pixel text-[9px] font-bold px-2 py-0.5 border border-black bg-lime text-black hover:bg-black hover:text-lime transition-colors"
+                          title="View Flamebound Multiplier Rules"
+                        >
+                          [1x - 50x • 100% GTD ↗]
+                        </Link>
+                      </div>
                       <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-black/10">
                         <span className="font-bold">{mintStage === 'FCFS' ? 'CLAIMED SPOTS:' : 'TOTAL ENTRIES:'}</span>
                         <span className="font-pixel text-xs text-black font-bold">
@@ -623,6 +640,12 @@ export default function SingleRafflePage() {
                             </span>
                           </div>
                         )}
+                        <div>
+                          <span className="text-gray-300 block text-[9px] sm:text-[10px]">DRAW WIN CHANCE:</span>
+                          <span className="font-pixel text-[11px] text-lime font-bold">
+                            {userTier.multiplierLabel}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -643,6 +666,79 @@ export default function SingleRafflePage() {
                 ) : (
                   /* SIMPLE CLEAN ENTRY FORM */
                   <>
+                    {/* Dynamic Holder Multiplier Benefit Card */}
+                    {isConnected && address && (
+                      <div className={`p-3.5 border-3 border-black shadow-pixel-sm space-y-2 ${
+                        userTier.tierRank === 'TITAN_WHALE'
+                          ? 'bg-black text-lime border-lime'
+                          : userTier.tierRank === 'WHALE'
+                          ? 'bg-black text-amber-400 border-amber-400'
+                          : userTier.tierRank === 'HOLDER'
+                          ? 'bg-black text-white border-white'
+                          : 'bg-lime/20 text-black'
+                      }`}>
+                        <div className="flex items-center justify-between border-b border-current/20 pb-1.5">
+                          <div className="flex items-center gap-1.5 font-pixel text-[10px] font-bold">
+                            {userTier.tierRank === 'TITAN_WHALE' ? (
+                              <Crown size={15} className="text-lime fill-lime" />
+                            ) : userTier.tierRank === 'WHALE' ? (
+                              <Zap size={15} className="text-amber-400 fill-amber-400" />
+                            ) : userTier.tierRank === 'HOLDER' ? (
+                              <ShieldCheck size={15} className="text-white" />
+                            ) : (
+                              <Flame size={15} className="text-black" />
+                            )}
+                            <span className="uppercase tracking-wider">
+                              {userTier.tierName}
+                            </span>
+                          </div>
+
+                          <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ${
+                            userTier.tierRank === 'TITAN_WHALE'
+                              ? 'bg-lime text-black'
+                              : userTier.tierRank === 'WHALE'
+                              ? 'bg-amber-400 text-black'
+                              : userTier.tierRank === 'HOLDER'
+                              ? 'bg-white text-black'
+                              : 'bg-black text-lime'
+                          }`}>
+                            [{userTier.multiplierLabel}]
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
+                          <p className="font-bold leading-relaxed">
+                            {userTier.tierRank === 'TITAN_WHALE'
+                              ? `You hold ${currentBalance} Flamebound NFTs. You receive 100% Guaranteed Winner allocation!`
+                              : userTier.tierRank === 'WHALE'
+                              ? `You hold ${currentBalance} Flamebound NFTs. Your win chance is boosted ${currentBalance}x (${currentBalance} draw tickets)!`
+                              : userTier.tierRank === 'HOLDER'
+                              ? `You hold ${currentBalance} Flamebound NFT${currentBalance > 1 ? 's' : ''}. Your entry has a ${currentBalance}x win chance.`
+                              : `You hold 0 Flamebound NFTs (1x standard base chance). Hold Flamebound NFTs to boost odds up to 50x or 100% Guaranteed Win!`}
+                          </p>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {currentBalance < 100 && (
+                              <a
+                                href="https://opensea.io/collection/flamebound-259045050"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="pixel-btn text-[8px] py-1 px-2 text-center font-bold"
+                              >
+                                [BUY NFTS]
+                              </a>
+                            )}
+                            <Link
+                              href="/how-it-works"
+                              className="font-pixel text-[8px] underline text-current"
+                            >
+                              [GUIDE ↗]
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Progress Bar */}
                     <div className="space-y-1">
                       <div className="flex justify-between items-center font-pixel text-[9px] sm:text-[10px] uppercase font-bold text-black">

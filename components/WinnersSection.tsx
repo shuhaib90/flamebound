@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Raffle } from '@/lib/types';
@@ -95,9 +95,20 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
                               {winner.shortWallet}
                             </span>
                           </div>
-                          <span className="font-pixel text-[9px] text-lime font-bold">
-                            {winner.entryNumber}
-                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {winner.multiplier && (
+                              <span className={`font-pixel text-[8px] px-1 py-0.5 border font-bold ${
+                                winner.isGuaranteed 
+                                  ? 'bg-lime text-black border-lime' 
+                                  : 'bg-white/10 text-lime border-lime/40'
+                              }`}>
+                                [{winner.multiplier}]
+                              </span>
+                            )}
+                            <span className="font-pixel text-[9px] text-lime font-bold">
+                              {winner.entryNumber}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>

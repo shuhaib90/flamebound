@@ -51,35 +51,29 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 400 });
     }
 
-    // 4. DYNAMIC ELIGIBILITY CHECK (MINTERS ONLY / HOLDERS ONLY / PUBLIC)
+    // 4. DYNAMIC ELIGIBILITY & MULTIPLIER CHECK (MINTERS ONLY / HOLDERS ONLY / PUBLIC)
     const eligibility = raffle.eligibility || 'minters_only';
-    let verification: any = {
-      isHolder: true,
+    
+    // Always check on-chain Flamebound NFT holdings to determine holder balance & multiplier
+    const verification = await verifyFlameboundHolder(
       walletAddress,
-      contractAddress: raffle.contractAddress,
-      network: raffle.customNetwork || raffle.network,
-      tokenBalance: 0,
-      verifiedOnChain: false,
-      message: '✓ Public Whitelist Entry Approved'
-    };
+      raffle.contractAddress,
+      raffle.network
+    );
 
-    if (eligibility !== 'public') {
-      verification = await verifyFlameboundHolder(
-        walletAddress,
-        raffle.contractAddress,
-        raffle.network
-      );
-
-      if (!verification.isHolder) {
-        const roleName = eligibility === 'minters_only' ? 'Flamebound minter' : 'Flamebound NFT holder';
-        return NextResponse.json({
-          success: false,
-          error: 'ELIGIBILITY_CHECK_FAILED',
-          message: `Your wallet is not a verified ${roleName}. You cannot enter this ${roleName}-only whitelist.`,
-          verification
-        }, { status: 403 });
-      }
+    if (eligibility !== 'public' && !verification.isHolder) {
+      const roleName = eligibility === 'minters_only' ? 'Flamebound minter' : 'Flamebound NFT holder';
+      return NextResponse.json({
+        success: false,
+        error: 'ELIGIBILITY_CHECK_FAILED',
+        message: `Your wallet is not a verified ${roleName}. You cannot enter this ${roleName}-only whitelist.`,
+        verification
+      }, { status: 403 });
     }
+
+    // Determine multiplier weight
+    const tokenBalance = verification.tokenBalance || 0;
+    const isHolder = verification.isHolder || tokenBalance > 0;
 
     // 5. Create and persist verified entry into Supabase + Local
     const entry = await createEntryAsync({
@@ -87,8 +81,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       walletAddress: verification.walletAddress,
       twitterUsername: body.twitterUsername || '',
       taskStatus: taskStatus || {},
-      isHolder: verification.isHolder,
-      tokenBalance: verification.tokenBalance || 1,
+      isHolder: isHolder,
+      tokenBalance: tokenBalance,
       status: 'confirmed',
       contractAddress: raffle.contractAddress,
       network: raffle.customNetwork || raffle.network,

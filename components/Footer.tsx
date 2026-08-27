@@ -48,9 +48,9 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#how-it-works" className="hover:text-white transition-colors">
+                <Link href="/how-it-works" className="hover:text-white transition-colors">
                   [HOW IT WORKS]
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#winners" className="hover:text-white transition-colors">

@@ -532,23 +532,76 @@ export function drawRaffleWinners(raffleId: string, customCount?: number): { raf
     throw new Error('Raffle not found');
   }
 
-  const eligibleEntries = db.entries.filter(
-    e => e.raffleId === raffleId && e.status === 'confirmed' && e.isHolder
-  );
+  // Filter eligible entries based on raffle eligibility type
+  const eligibleEntries = db.entries.filter(e => {
+    if (e.raffleId !== raffleId || e.status !== 'confirmed') return false;
+    if (raffle.eligibility === 'holders_only') {
+      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
+    }
+    if (raffle.eligibility === 'minters_only') {
+      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
+    }
+    return true; // public: open to all
+  });
 
-  const count = customCount || raffle.supply || 10;
-  const winnerCount = Math.min(count, eligibleEntries.length);
+  const totalSlots = customCount || raffle.supply || 10;
+  const availableSlots = Math.min(totalSlots, eligibleEntries.length);
 
-  const shuffled = [...eligibleEntries].sort(() => Math.random() - 0.5);
-  const selectedEntries = shuffled.slice(0, winnerCount);
+  // 1. Separate Guaranteed Winners (Holders of 100+ Flamebound NFTs)
+  const guaranteedPool = eligibleEntries.filter(e => (e.tokenBalance || 0) >= 100);
+  const remainingPool = eligibleEntries.filter(e => (e.tokenBalance || 0) < 100);
+
+  const selectedWinners: { entry: RaffleEntry; isGuaranteed: boolean; multiplierText: string }[] = [];
+
+  // Add guaranteed winners first (up to availableSlots)
+  for (const gEntry of guaranteedPool) {
+    if (selectedWinners.length >= availableSlots) break;
+    selectedWinners.push({
+      entry: gEntry,
+      isGuaranteed: true,
+      multiplierText: '100% GUARANTEED WIN',
+    });
+  }
+
+  // 2. Weighted Draw for remaining slots using tokenBalance as tickets (weight = max(1, tokenBalance))
+  const pool = [...remainingPool];
+  while (selectedWinners.length < availableSlots && pool.length > 0) {
+    const totalWeight = pool.reduce((sum, item) => sum + Math.max(1, item.tokenBalance || 1), 0);
+    
+    let randomPoint = Math.random() * totalWeight;
+    let selectedIndex = 0;
+
+    for (let i = 0; i < pool.length; i++) {
+      const itemWeight = Math.max(1, pool[i].tokenBalance || 1);
+      if (randomPoint < itemWeight) {
+        selectedIndex = i;
+        break;
+      }
+      randomPoint -= itemWeight;
+    }
+
+    const winnerEntry = pool[selectedIndex];
+    const weight = Math.max(1, winnerEntry.tokenBalance || 1);
+    selectedWinners.push({
+      entry: winnerEntry,
+      isGuaranteed: false,
+      multiplierText: `${weight}x BOOST`,
+    });
+
+    // Remove from pool to prevent duplicate winner selection
+    pool.splice(selectedIndex, 1);
+  }
 
   const mockTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
-  const winners: Winner[] = selectedEntries.map((entry, index) => ({
+  const winners: Winner[] = selectedWinners.map((w, index) => ({
     rank: index + 1,
-    wallet: entry.walletAddress,
-    shortWallet: entry.shortAddress,
-    entryNumber: entry.id,
+    wallet: w.entry.walletAddress,
+    shortWallet: w.entry.shortAddress,
+    entryNumber: w.entry.id,
+    multiplier: w.multiplierText,
+    tokenBalance: w.entry.tokenBalance || 0,
+    isGuaranteed: w.isGuaranteed,
     drawnAt: new Date().toISOString(),
     txUrl: `https://etherscan.io/tx/${mockTxHash}`,
   }));
