@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
-import { Hero } from '@/components/Hero';
+import { DotsetHero } from '@/components/DotsetHero';
 import { RaffleCard } from '@/components/RaffleCard';
 import { HowItWorks } from '@/components/HowItWorks';
 import { WinnersSection } from '@/components/WinnersSection';
@@ -68,7 +68,7 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <Hero />
+      <DotsetHero />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-16">
