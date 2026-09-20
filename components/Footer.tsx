@@ -16,18 +16,13 @@ export function Footer() {
           
           {/* Brand */}
           <div className="md:col-span-2 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center bg-white/5 border border-white/10 p-0.5">
-                <img
-                  src="/images/dotset-logo.png"
-                  alt="DOTSET"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="font-dotlirium text-lg text-white tracking-wider lowercase">
-                dotset
-              </span>
-            </div>
+            <Link href="/" className="inline-block py-1">
+              <img
+                src="/images/dotset-logo.png"
+                alt="dotset"
+                className="h-6 sm:h-7 w-auto brightness-0 invert opacity-95 object-contain"
+              />
+            </Link>
             <p className="font-dm text-xs text-[#8a8a9a] max-w-sm leading-relaxed">
               Open Web3 quest and whitelist raffle directory connecting crypto communities with verified early project allocations.
             </p>

@@ -416,9 +416,11 @@ export function AdminDashboard() {
           </Link>
           <div className="h-4 w-px bg-white/15" />
           <div className="flex items-center gap-2">
-            <span className="font-syne text-lg font-bold text-white tracking-tight">
-              DOTSET
-            </span>
+            <img
+              src="/images/dotset-logo.png"
+              alt="dotset"
+              className="h-5 sm:h-6 w-auto brightness-0 invert opacity-95 object-contain"
+            />
             <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-mono-dm uppercase font-semibold">
               Admin Controller
             </span>

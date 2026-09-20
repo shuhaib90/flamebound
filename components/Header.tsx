@@ -15,17 +15,12 @@ export function Header() {
         <div className="flex items-center justify-between">
           
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-white/5 border border-white/10 p-0.5 group-hover:border-white/25 transition-colors">
-              <img
-                src="/images/dotset-logo.png"
-                alt="DOTSET"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="font-dotlirium text-xl text-white tracking-wider lowercase group-hover:text-gray-200 transition-colors">
-              dotset
-            </span>
+          <Link href="/" className="flex items-center group py-1">
+            <img
+              src="/images/dotset-logo.png"
+              alt="dotset"
+              className="h-6 sm:h-7 w-auto brightness-0 invert opacity-95 group-hover:opacity-100 transition-opacity object-contain"
+            />
           </Link>
 
           {/* Desktop Nav Links */}
