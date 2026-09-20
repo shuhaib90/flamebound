@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Raffle } from '@/lib/types';
-import { Trophy, Sparkles } from 'lucide-react';
+import { Trophy, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
   const closedOrDrawnRaffles = raffles.filter(
@@ -10,121 +10,99 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
   );
 
   return (
-    <section id="winners" className="py-14 md:py-20 border-b-3 border-black bg-white select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-3 border-black pb-4 mb-8 gap-4">
+    <section id="winners" className="py-12 select-none space-y-8 scroll-mt-24">
+      {/* Section Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-6 rounded bg-[#fb923c]" />
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Trophy size={18} className="text-black" />
-              <span className="font-pixel text-[9px] bg-black text-white px-2 py-0.5 uppercase font-bold">
-                PROVABLE RESULTS
-              </span>
-            </div>
-            <h2 className="font-pixel text-xl sm:text-3xl md:text-4xl text-black font-extrabold uppercase tracking-tight">
-              PAST RAFFLES & WINNERS
+            <h2 className="font-syne text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Winners & Completed Allocations
             </h2>
-          </div>
-          <p className="font-mono text-xs text-gray-700 font-bold max-w-md">
-            All winners are drawn on-chain with verified DOTSET holder weighting and guaranteed passes.
-          </p>
-        </div>
-
-        {/* Closed / Winner Raffles List */}
-        {closedOrDrawnRaffles.length === 0 ? (
-          <div className="bg-gray-50 border-2 sm:border-3 border-black p-8 text-center shadow-pixel">
-            <p className="font-pixel text-xs text-black font-bold uppercase">
-              NO CONCLUDED RAFFLES YET. ACTIVE RAFFLES IN PROGRESS.
+            <p className="font-dm text-xs text-[#8a8a9a]">
+              Transparent records of past campaigns and selected whitelist wallets
             </p>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {closedOrDrawnRaffles.map((raffle) => (
-              <div key={raffle.id} className="bg-white border-2 sm:border-3 border-black shadow-pixel p-5 md:p-7">
-                
-                {/* Raffle Info Bar */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-b-2 border-black pb-3 mb-5 gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-pixel text-[9px] bg-black text-white px-2 py-0.5 font-bold">
-                        {raffle.status === 'winners_drawn' ? 'RAFFLE CONCLUDED' : 'RAFFLE CLOSED'}
-                      </span>
-                      <span className="font-pixel text-[9px] bg-white text-black border border-black px-2 py-0.5 font-bold">
-                        {raffle.customNetwork || raffle.network}
-                      </span>
-                    </div>
-                    <h3 className="font-pixel text-base sm:text-lg text-black font-bold uppercase">
-                      {raffle.title}
-                    </h3>
-                  </div>
+        </div>
+      </div>
 
-                  <div className="flex flex-wrap gap-3 text-xs font-mono">
-                    <div className="bg-gray-100 border-2 border-black px-3 py-1 font-bold">
-                      <span className="text-gray-600 block text-[8px] uppercase font-pixel">TOTAL SPOTS:</span>
-                      <span className="font-pixel text-xs text-black">{raffle.supply} SPOTS</span>
-                    </div>
-                    <div className="bg-gray-100 border-2 border-black px-3 py-1 font-bold">
-                      <span className="text-gray-600 block text-[8px] uppercase font-pixel">TOTAL ENTRIES:</span>
-                      <span className="font-pixel text-xs text-black">{raffle.totalEntries}</span>
-                    </div>
+      {/* Closed / Winner Raffles List */}
+      {closedOrDrawnRaffles.length === 0 ? (
+        <div className="cq-card p-10 text-center">
+          <p className="font-dm text-xs text-[#8a8a9a]">
+            No concluded campaigns yet. Live allocations currently underway.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {closedOrDrawnRaffles.map((raffle) => (
+            <div key={raffle.id} className="cq-card p-6 space-y-5">
+              
+              {/* Raffle Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/[0.08] gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono-dm text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-medium">
+                      {raffle.status === 'winners_drawn' ? 'Winners Selected' : 'Concluded'}
+                    </span>
+                    <span className="font-mono-dm text-[10px] px-2 py-0.5 rounded bg-white/[0.04] text-[#8a8a9a] border border-white/[0.06]">
+                      {raffle.customNetwork || raffle.network}
+                    </span>
                   </div>
+                  <h3 className="font-syne text-base font-bold text-white">
+                    {raffle.title}
+                  </h3>
                 </div>
 
-                {/* Winners Table */}
-                {raffle.winners && raffle.winners.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles size={16} className="text-black" />
-                      <span className="font-pixel text-xs uppercase font-bold text-black">
-                        SELECTED WHITELIST WINNERS ({raffle.winners.length})
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                      {raffle.winners.map((winner) => (
-                        <div
-                          key={winner.rank}
-                          className="bg-black text-white border-2 border-black p-2.5 flex items-center justify-between font-mono text-xs shadow-pixel-xs"
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span className="font-pixel text-[9px] bg-white text-black px-1.5 py-0.5 font-bold">
-                              #{winner.rank}
-                            </span>
-                            <span className="font-bold text-white truncate select-all text-xs">
-                              {winner.shortWallet}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {winner.multiplier && (
-                              <span className={`font-pixel text-[8px] px-1 py-0.5 border font-bold ${
-                                winner.isGuaranteed 
-                                  ? 'bg-white text-black border-white' 
-                                  : 'bg-white/10 text-white border-white/40'
-                              }`}>
-                                [{winner.multiplier}]
-                              </span>
-                            )}
-                            <span className="font-pixel text-[9px] text-gray-300 font-bold">
-                              {winner.entryNumber}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                <div className="flex items-center gap-3 font-mono-dm text-xs">
+                  <div className="px-3 py-1 rounded bg-[#111111] border border-white/[0.06]">
+                    <span className="text-[#555566] text-[10px] block">SPOTS</span>
+                    <span className="text-[#a5b4fc] font-bold">{raffle.supply} WL</span>
                   </div>
-                ) : (
-                  <div className="p-3 bg-gray-50 border-2 border-black font-mono text-xs text-black font-bold">
-                    Winner drawing will be published here upon raffle conclusion.
+                  <div className="px-3 py-1 rounded bg-[#111111] border border-white/[0.06]">
+                    <span className="text-[#555566] text-[10px] block">TOTAL REGISTRATIONS</span>
+                    <span className="text-white font-bold">{raffle.totalEntries || 0}</span>
                   </div>
-                )}
-
+                </div>
               </div>
-            ))}
-          </div>
-        )}
 
-      </div>
+              {/* Winners Grid */}
+              {raffle.winners && raffle.winners.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-dm text-[#4ade80]">
+                    <Sparkles size={14} />
+                    <span className="font-medium">Selected Whitelist Wallets ({raffle.winners.length})</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                    {raffle.winners.map((winner) => (
+                      <div
+                        key={winner.rank}
+                        className="p-2.5 rounded-lg bg-[#111111] border border-white/[0.06] flex items-center justify-between font-mono-dm text-xs"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-semibold">
+                            #{winner.rank}
+                          </span>
+                          <span className="text-[#f0f0f0] truncate select-all">
+                            {winner.shortWallet}
+                          </span>
+                        </div>
+                        <CheckCircle2 size={13} className="text-[#4ade80] shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-[#111111] font-dm text-xs text-[#8a8a9a]">
+                  Winner drawing will be published here upon raffle conclusion.
+                </div>
+              )}
+
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

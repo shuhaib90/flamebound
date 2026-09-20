@@ -1,72 +1,100 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowDown, Sparkles, ExternalLink } from 'lucide-react';
+import { ArrowRight, Sparkles, Send, Flame, Trophy, Users, ShieldCheck } from 'lucide-react';
 
 export function Hero() {
   return (
-    <section className="relative pt-10 pb-12 sm:pt-16 sm:pb-18 border-b-3 border-black bg-white select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative pt-16 pb-12 sm:pt-24 sm:pb-16 select-none overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
-        {/* Status Indicator & Official Logo */}
-        <div className="flex flex-col items-center justify-center mb-6 gap-3">
-          <img
-            src="/images/dotset-logo.png"
-            alt="DOTSET Official Logo"
-            className="w-24 h-24 sm:w-28 sm:h-28 object-contain hover:scale-105 transition-transform"
-          />
-          <div className="inline-flex items-center gap-2 bg-black text-white px-3.5 py-1.5 border-2 border-black shadow-pixel-xs">
-            <span className="w-2 h-2 bg-white inline-block animate-pulse" />
-            <span className="font-pixel text-[10px] tracking-wider uppercase font-bold">
-              OFFICIAL RAFFLE & WHITELIST HUB
-            </span>
-          </div>
+        {/* Top Minimalist Pill matching CloudQuest */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.12] text-[#8a8a9a] font-mono-dm text-xs tracking-wider uppercase mb-6">
+          <span className="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse" />
+          <span>Web3 Raffle & Quest Platform</span>
         </div>
 
-        {/* Large Pixel Heading */}
-        <div className="text-center space-y-3 mb-6 max-w-4xl mx-auto">
-          <h1 className="font-pixel text-3xl sm:text-5xl md:text-6xl text-black tracking-tight leading-tight uppercase font-extrabold">
-            DOTSET<br />
-            <span className="inline-block mt-2 text-white bg-black px-4 py-1 border-3 border-black shadow-pixel">
-              RAFFLES & DROPS
-            </span>
-          </h1>
+        {/* Hero Headline */}
+        <h1 className="font-syne text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#f0f0f0] tracking-tight leading-[1.1] mb-5">
+          Discover & Enter Early Web3{' '}
+          <span className="text-[#a5b4fc] italic font-normal">Allocations</span>
+        </h1>
 
-          <p className="font-mono text-xs sm:text-sm md:text-base text-gray-700 max-w-2xl mx-auto pt-3 leading-relaxed font-bold">
-            Verify on-chain eligibility. Multiplied win tickets for community holders. Enter exclusive guaranteed & FCFS whitelist allocations.
-          </p>
-        </div>
+        {/* Subtitle */}
+        <p className="font-dm text-sm sm:text-base md:text-lg text-[#8a8a9a] max-w-xl mx-auto mb-8 leading-relaxed">
+          Complete verified social quests, explore exclusive partner whitelist drops, and earn confirmed spots from emerging crypto projects.
+        </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+        {/* CTA Buttons matching CloudQuest */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <a
             href="#active-raffles"
-            className="pixel-btn text-xs sm:text-sm py-3.5 px-6 w-full sm:w-auto shadow-pixel flex items-center justify-center gap-2"
+            className="btn-primary-cq shadow-lg"
           >
-            <span>[BROWSE ACTIVE RAFFLES]</span>
-            <ArrowDown size={14} className="animate-bounce" />
+            <span>Explore Raffles</span>
+            <ArrowRight size={15} />
           </a>
 
           <Link
-            href="/how-it-works"
-            className="pixel-btn-white text-xs sm:text-sm py-3.5 px-6 w-full sm:w-auto shadow-pixel flex items-center justify-center gap-2"
+            href="/request-collab"
+            className="btn-outline-cq"
           >
-            <span>[HOW IT WORKS]</span>
+            <span>Request Collab</span>
           </Link>
         </div>
 
-        {/* 8-Bit Marquee Ticker */}
-        <div className="mt-10 border-2 border-black bg-black text-white py-2 overflow-hidden shadow-pixel-xs">
-          <div className="animate-marquee font-pixel text-[9px] sm:text-[10px] flex gap-8 whitespace-nowrap uppercase font-bold tracking-wider">
-            <span>● DOTSET WHITELIST DROPS LIVE</span>
-            <span>■ 100% PROVABLE ON-CHAIN VERIFICATION</span>
-            <span>● 50X MULTIPLIERS & TITAN GUARANTEES</span>
-            <span>■ FIRST-COME FIRST-SERVED & LOTTERY RAFFLES</span>
-            <span>● DOTSET WHITELIST DROPS LIVE</span>
-            <span>■ 100% PROVABLE ON-CHAIN VERIFICATION</span>
-            <span>● 50X MULTIPLIERS & TITAN GUARANTEES</span>
+        {/* Floating Stats Bar matching CloudQuest */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-14 sm:mt-18 max-w-4xl mx-auto">
+          
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-xl animate-float-1 transition-all hover:border-white/20">
+            <div className="flex justify-center text-[#a5b4fc] mb-1.5">
+              <Flame size={18} />
+            </div>
+            <div className="font-grotesk text-xl sm:text-2xl font-bold text-white">
+              LIVE
+            </div>
+            <div className="font-mono-dm text-[11px] text-[#555566] uppercase mt-1">
+              Active Raffles
+            </div>
           </div>
+
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-xl animate-float-2 transition-all hover:border-white/20">
+            <div className="flex justify-center text-[#38bdf8] mb-1.5">
+              <Users size={18} />
+            </div>
+            <div className="font-grotesk text-xl sm:text-2xl font-bold text-white">
+              100%
+            </div>
+            <div className="font-mono-dm text-[11px] text-[#555566] uppercase mt-1">
+              Open to All
+            </div>
+          </div>
+
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-xl animate-float-3 transition-all hover:border-white/20">
+            <div className="flex justify-center text-[#4ade80] mb-1.5">
+              <ShieldCheck size={18} />
+            </div>
+            <div className="font-grotesk text-xl sm:text-2xl font-bold text-white">
+              GTD / FCFS
+            </div>
+            <div className="font-mono-dm text-[11px] text-[#555566] uppercase mt-1">
+              Guaranteed Spots
+            </div>
+          </div>
+
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-xl animate-float-4 transition-all hover:border-white/20">
+            <div className="flex justify-center text-[#fb923c] mb-1.5">
+              <Trophy size={18} />
+            </div>
+            <div className="font-grotesk text-xl sm:text-2xl font-bold text-white">
+              PROVABLE
+            </div>
+            <div className="font-mono-dm text-[11px] text-[#555566] uppercase mt-1">
+              Fair Drawings
+            </div>
+          </div>
+
         </div>
 
       </div>

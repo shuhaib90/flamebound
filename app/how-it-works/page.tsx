@@ -1,359 +1,192 @@
-﻿'use client';
+'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { useWallet } from '@/lib/wallet-context';
-import { getHolderMultiplier } from '@/lib/multiplier';
 import { 
   ArrowLeft, 
-  Crown, 
-  Zap, 
   ShieldCheck, 
   ExternalLink, 
   Trophy, 
-  Calculator, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Send,
+  Zap,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function HowItWorksPage() {
-  const { isConnected, address, holderStatus } = useWallet();
-  const [testBalance, setTestBalance] = useState<number>(holderStatus?.tokenBalance || 1);
-
-  const balance = Math.max(0, Number(testBalance) || 0);
-  const currentTier = getHolderMultiplier(balance);
-
-  const userBalance = holderStatus?.tokenBalance || 0;
-  const liveUserTier = getHolderMultiplier(userBalance);
-
   return (
-    <div className="min-h-screen flex flex-col bg-white selection:bg-black selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#080808] text-[#f0f0f0] selection:bg-[#4f52c8] selection:text-white">
       <Header />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
         
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between border-b-3 border-black pb-4">
+        <div className="flex items-center justify-between pb-6 border-b border-white/[0.08]">
           <Link
             href="/#active-raffles"
-            className="pixel-btn text-[10px] sm:text-xs py-2 px-3 sm:px-4 flex items-center gap-1.5 shadow-pixel"
+            className="btn-outline-cq text-xs py-2 px-3.5 flex items-center gap-2"
           >
             <ArrowLeft size={14} />
-            <span>[← ALL RAFFLES]</span>
+            <span>All Raffles</span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <a
-              href="https://opensea.io/collection/flamebound-259045050"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-black text-white hover:bg-white hover:text-black py-2 px-3 sm:px-4 border-2 border-black font-pixel text-[10px] sm:text-xs font-bold transition-colors flex items-center gap-1.5 shadow-pixel-xs"
-            >
-              <span>[BUY ON OPENSEA]</span>
-              <ExternalLink size={12} />
-            </a>
-          </div>
+          <Link
+            href="/request-collab"
+            className="btn-primary-cq text-xs py-2 px-3.5 flex items-center gap-1.5"
+          >
+            <Send size={12} />
+            <span>Request Collab</span>
+          </Link>
         </div>
 
         {/* Hero Section */}
-        <div className="bg-white border-3 sm:border-4 border-black p-6 sm:p-10 shadow-pixel space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-black pb-4">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-black text-white px-3 py-1 font-pixel text-[9px] uppercase font-bold mb-2">
-                <Sparkles size={12} />
-                <span>DOTSET PROVABLE MULTIPLIER ENGINE</span>
-              </div>
-              <h1 className="font-pixel text-xl sm:text-3xl md:text-4xl text-black font-extrabold uppercase tracking-tight">
-                HOW HOLDER MULTIPLIERS WORK
-              </h1>
-            </div>
-
-            {/* Quick Live Wallet Status */}
-            {isConnected && (
-              <div className="bg-gray-50 border-2 border-black p-3 font-mono text-xs shrink-0 space-y-1">
-                <span className="text-[8px] font-pixel text-gray-600 block font-bold">YOUR WALLET STATUS:</span>
-                <span className="font-bold text-black block">{userBalance} DOTSET NFT(s) Held</span>
-                <span className={`font-pixel text-[9px] px-2 py-0.5 border border-black font-bold inline-block ${
-                  liveUserTier.tierRank === 'TITAN_WHALE' 
-                    ? 'bg-black text-white' 
-                    : liveUserTier.tierRank === 'WHALE'
-                    ? 'bg-black text-white'
-                    : 'bg-black text-white'
-                }`}>
-                  [{liveUserTier.multiplierLabel}]
-                </span>
-              </div>
-            )}
+        <div className="cq-card p-6 sm:p-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4f52c8]/20 border border-[#a5b4fc]/30 text-[#a5b4fc] font-mono-dm text-xs">
+            <Sparkles size={12} />
+            <span>Fair Allocation Protocol</span>
           </div>
-
-          <p className="font-mono text-xs sm:text-sm text-gray-700 font-bold leading-relaxed max-w-4xl">
-            DOTSET rewards long-term believers and community holders. Every single DOTSET NFT you hold in your Web3 wallet directly multiplies your winning probability across all whitelist raffles, first-come first-served drops, and partner allocations.
+          <h1 className="font-syne text-2xl sm:text-4xl font-bold text-white tracking-tight">
+            How DOTSET Raffles & Quests Work
+          </h1>
+          <p className="font-dm text-sm sm:text-base text-[#8a8a9a] leading-relaxed max-w-3xl">
+            DOTSET connects Web3 enthusiasts with emerging crypto collections and ecosystems. We host provably fair whitelist raffles, first-come first-served drops, and exclusive community allocations without complicated roadblocks.
           </p>
         </div>
 
-        {/* 3 Main Holding Tiers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 3 Main Drop Types */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          {/* TIER 1: 1 - 49 NFTS */}
-          <div className="bg-white border-2 sm:border-3 border-black p-6 shadow-pixel flex flex-col justify-between space-y-4">
+          {/* GTD Drops */}
+          <div className="cq-card p-6 flex flex-col justify-between space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2">
-                <span className="font-pixel text-xs bg-black text-white px-2 py-1 font-bold">
-                  TIER 01: PIONEER
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <span className="font-mono-dm text-xs px-2.5 py-0.5 rounded bg-[#a5b4fc]/20 text-[#a5b4fc] font-semibold border border-[#a5b4fc]/30">
+                  GTD Spots
                 </span>
-                <ShieldCheck size={20} className="text-black" />
+                <ShieldCheck size={18} className="text-[#a5b4fc]" />
               </div>
               
-              <div className="space-y-1">
-                <span className="font-pixel text-2xl text-black font-bold block">1x - 49x</span>
-                <span className="font-pixel text-[9px] text-gray-600 block font-bold">WIN CHANCE MULTIPLIER</span>
-              </div>
+              <h3 className="font-syne text-base font-bold text-white">
+                Guaranteed Whitelist
+              </h3>
 
-              <div className="bg-gray-50 border-2 border-black p-3 font-mono text-xs space-y-1 font-bold">
-                <div>• <strong>Hold Requirement:</strong> 1 to 49 NFTs</div>
-                <div>• <strong>Draw Weight:</strong> 1 ticket per NFT held</div>
-                <div>• <strong>Example:</strong> Hold 10 NFTs = 10x Draw Chance</div>
-              </div>
-
-              <p className="font-mono text-xs text-gray-700 leading-relaxed">
-                Entry tickets are linearly multiplied for every DOTSET NFT in your wallet, giving you stronger odds against standard public entrants.
+              <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
+                Winning tickets in GTD campaigns secure 100% guaranteed mint spots during phase 1, ensuring you can mint before public access.
               </p>
             </div>
 
-            <div className="pt-3 border-t-2 border-black/20 font-pixel text-[8px] text-black font-bold">
-              [STANDARD HOLDER PRIORITY]
+            <div className="pt-3 border-t border-white/[0.06] font-mono-dm text-[10px] text-[#555566]">
+              Phase 1 Priority
             </div>
           </div>
 
-          {/* TIER 2: 50 - 99 NFTS */}
-          <div className="bg-white border-2 sm:border-3 border-black p-6 shadow-pixel flex flex-col justify-between space-y-4">
+          {/* FCFS Drops */}
+          <div className="cq-card p-6 flex flex-col justify-between space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2">
-                <span className="font-pixel text-xs bg-black text-white px-2 py-1 font-bold border border-black">
-                  TIER 02: WHALE
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <span className="font-mono-dm text-xs px-2.5 py-0.5 rounded bg-[#fb923c]/20 text-[#fb923c] font-semibold border border-[#fb923c]/30">
+                  FCFS Drops
                 </span>
-                <Zap size={20} className="text-black" />
+                <Zap size={18} className="text-[#fb923c]" />
               </div>
               
-              <div className="space-y-1">
-                <span className="font-pixel text-2xl text-black font-bold block">50x - 99x</span>
-                <span className="font-pixel text-[9px] text-gray-600 block font-bold">HIGH-WEIGHT MULTIPLIER</span>
-              </div>
+              <h3 className="font-syne text-base font-bold text-white">
+                First-Come First-Served
+              </h3>
 
-              <div className="bg-gray-50 border-2 border-black p-3 font-mono text-xs space-y-1 font-bold">
-                <div>• <strong>Hold Requirement:</strong> 50 to 99 NFTs</div>
-                <div>• <strong>Draw Weight:</strong> 50 - 99 tickets</div>
-                <div>• <strong>Example:</strong> Hold 50 NFTs = 50x Win Boost</div>
-              </div>
-
-              <p className="font-mono text-xs text-gray-700 leading-relaxed">
-                Whales holding 50+ NFTs receive massive statistical priority in every provably fair raffle draw with 50x to 99x weighted tickets.
+              <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
+                Speed matters! The first entrants to complete social verification instantly secure the allocated whitelist spots until the supply cap is filled.
               </p>
             </div>
 
-            <div className="pt-3 border-t-2 border-black/20 font-pixel text-[8px] text-black font-bold">
-              [WHALE TIER BOOST ACTIVATED]
+            <div className="pt-3 border-t border-white/[0.06] font-mono-dm text-[10px] text-[#555566]">
+              Instant Confirmation
             </div>
           </div>
 
-          {/* TIER 3: 100+ NFTS (100% GUARANTEED WIN) */}
-          <div className="bg-black text-white border-2 sm:border-3 border-black p-6 shadow-pixel flex flex-col justify-between space-y-4">
+          {/* Lottery Drops */}
+          <div className="cq-card p-6 flex flex-col justify-between space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b-2 border-white/30 pb-2">
-                <span className="font-pixel text-xs bg-white text-black px-2 py-1 font-bold">
-                  TIER 03: TITAN
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <span className="font-mono-dm text-xs px-2.5 py-0.5 rounded bg-[#4ade80]/20 text-[#4ade80] font-semibold border border-[#4ade80]/30">
+                  Lottery WL
                 </span>
-                <Crown size={22} className="text-white fill-white" />
+                <Trophy size={18} className="text-[#4ade80]" />
               </div>
               
-              <div className="space-y-1">
-                <span className="font-pixel text-2xl text-white font-bold block">100% AUTO-WIN</span>
-                <span className="font-pixel text-[9px] text-gray-300 block font-bold">GUARANTEED SPOT ALLOCATION</span>
-              </div>
+              <h3 className="font-syne text-base font-bold text-white">
+                Provable Random Draw
+              </h3>
 
-              <div className="bg-white/10 border-2 border-white p-3 font-mono text-xs space-y-1 font-bold text-white">
-                <div>• <strong>Hold Requirement:</strong> 100+ NFTs</div>
-                <div>• <strong>Draw Privilege:</strong> Automatic Winner Pass</div>
-                <div>• <strong>Guarantee:</strong> 100% Spot in Every Draw</div>
-              </div>
-
-              <p className="font-mono text-xs text-gray-300 leading-relaxed">
-                Holding 100 or more DOTSET NFTs bypasses the random draw completely — your wallet automatically secures a guaranteed winning whitelist spot on every drop.
+              <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
+                Open lottery draws distribute available whitelist spots across all verified registered entrants using provably fair on-chain random selection.
               </p>
             </div>
 
-            <div className="pt-3 border-t-2 border-white/30 font-pixel text-[8px] text-white font-bold">
-              [👑 100% GUARANTEED ALLOCATION]
+            <div className="pt-3 border-t border-white/[0.06] font-mono-dm text-[10px] text-[#555566]">
+              Provably Fair Drawing
             </div>
           </div>
 
         </div>
 
-        {/* Interactive Multiplier Calculator */}
-        <div className="bg-white border-2 sm:border-3 border-black p-6 sm:p-8 shadow-pixel space-y-6">
-          <div className="flex items-center gap-2 border-b-2 border-black pb-3">
-            <Calculator size={20} className="text-black" />
-            <h2 className="font-pixel text-base sm:text-lg text-black font-extrabold uppercase">
-              INTERACTIVE WIN CHANCE CALCULATOR
+        {/* 4-Step Walkthrough */}
+        <div className="cq-card p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-3 border-b border-white/[0.08]">
+            <CheckCircle2 size={20} className="text-[#38bdf8]" />
+            <h2 className="font-syne text-lg sm:text-xl font-bold text-white">
+              Participation Process
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            
-            {/* Input Controls (6 cols) */}
-            <div className="lg:col-span-6 space-y-4">
-              <label className="block font-pixel text-[10px] text-black font-bold uppercase">
-                ENTER YOUR DOTSET NFT COUNT:
-              </label>
-
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min="0"
-                  max="500"
-                  value={testBalance}
-                  onChange={(e) => setTestBalance(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="bg-gray-100 border-2 border-black p-2.5 font-mono text-xl font-bold text-black outline-none w-32 text-center"
-                />
-                <span className="font-pixel text-xs text-black font-bold">NFTS HELD</span>
-              </div>
-
-              {/* Quick Preset Buttons */}
-              <div className="space-y-1.5">
-                <span className="font-pixel text-[8px] text-gray-600 uppercase font-bold block">
-                  QUICK PRESETS:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTestBalance(1)}
-                    className="pixel-btn text-[8px] py-1.5 px-2.5 font-bold"
-                  >
-                    [1 NFT (1x)]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTestBalance(10)}
-                    className="pixel-btn text-[8px] py-1.5 px-2.5 font-bold"
-                  >
-                    [10 NFTS (10x)]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTestBalance(50)}
-                    className="pixel-btn text-[8px] py-1.5 px-2.5 font-bold"
-                  >
-                    [50 NFTS (50x WHALE)]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTestBalance(100)}
-                    className="pixel-btn text-[8px] py-1.5 px-2.5 font-bold"
-                  >
-                    [100 NFTS (👑 100% GTD)]
-                  </button>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-dm text-xs">
+            <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">01. Connect & Set X Handle</span>
+              <p className="text-[#8a8a9a] leading-relaxed">
+                Enter your X (Twitter) username and receiving EVM wallet address to establish your verifiable ticket receipt.
+              </p>
             </div>
 
-            {/* Simulated Tier Output Card (6 cols) */}
-            <div className="lg:col-span-6">
-              <div className="border-2 sm:border-3 border-black p-5 sm:p-6 shadow-pixel space-y-3 bg-black text-white">
-                <div className="flex justify-between items-center border-b-2 border-white/20 pb-2 font-pixel text-[9px] font-bold">
-                  <span>SIMULATED TIER STATUS:</span>
-                  <span>[{currentTier.tierName}]</span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="font-pixel text-2xl sm:text-3xl font-extrabold block text-white">
-                    {currentTier.multiplierLabel}
-                  </span>
-                  <span className="font-mono text-xs font-bold block text-gray-300">
-                    {currentTier.isGuaranteed 
-                      ? '👑 Instant Auto-Win in Every Whitelist Draw' 
-                      : `Draw Weight: ${currentTier.multiplier} Tickets in Pool`}
-                  </span>
-                </div>
-
-                <p className="font-mono text-xs leading-relaxed pt-2 border-t border-white/20 text-gray-300">
-                  {currentTier.description}
-                </p>
-              </div>
+            <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">02. Complete Social Actions</span>
+              <p className="text-[#8a8a9a] leading-relaxed">
+                Follow target project channels, engage with the campaign post, and join partner communities.
+              </p>
             </div>
 
+            <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">03. Instant Ticket Generation</span>
+              <p className="text-[#8a8a9a] leading-relaxed">
+                Receive a unique digital ticket ID confirming your registration into the active campaign database.
+              </p>
+            </div>
+
+            <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">04. Winner Publication & Mint</span>
+              <p className="text-[#8a8a9a] leading-relaxed">
+                When the countdown closes, selected winners are published on the Winners archive and whitelisted directly for mint day.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* How It Applies Across All Drop Types */}
-        <div className="bg-white border-2 sm:border-3 border-black p-6 sm:p-8 shadow-pixel space-y-6">
-          <div className="flex items-center gap-2 border-b-2 border-black pb-3">
-            <Trophy size={20} className="text-black" />
-            <h2 className="font-pixel text-base sm:text-lg text-black font-extrabold uppercase">
-              MULTIPLIER RULES ACROSS RAFFLE MODES
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 font-mono text-xs">
-            
-            {/* Public Drops */}
-            <div className="border-2 border-black p-4 bg-gray-50 space-y-2">
-              <span className="font-pixel text-[9px] text-white font-bold block bg-black px-2 py-1 border border-black">
-                [PUBLIC / OPEN RAFFLES]
-              </span>
-              <p className="font-bold text-gray-800 leading-relaxed">
-                Open to all users worldwide without holding requirements (0 NFTs = 1x Base Chance). If you hold DOTSET NFTs in your connected wallet, your entries automatically jump to 1x - 50x or 100% Guaranteed Win!
-              </p>
-            </div>
-
-            {/* Minters Drops */}
-            <div className="border-2 border-black p-4 bg-gray-50 space-y-2">
-              <span className="font-pixel text-[9px] text-white font-bold block bg-black px-2 py-1 border border-black">
-                [MINTERS ONLY RAFFLES]
-              </span>
-              <p className="font-bold text-gray-800 leading-relaxed">
-                Restricted strictly to verified on-chain DOTSET NFT minters. Your verified mint count dictates your multiplier and weight during winner draws.
-              </p>
-            </div>
-
-            {/* Holders Only Drops */}
-            <div className="border-2 border-black p-4 bg-gray-50 space-y-2">
-              <span className="font-pixel text-[9px] text-white font-bold block bg-black px-2 py-1 border border-black">
-                [HOLDERS ONLY RAFFLES]
-              </span>
-              <p className="font-bold text-gray-800 leading-relaxed">
-                Exclusive VIP allocations for current DOTSET NFT holders. 100+ holders secure guaranteed spots; 50-99 holders receive 50x-99x weighted tickets.
-              </p>
-            </div>
-
-          </div>
-        </div>
-
-        {/* CTA Footer Banner */}
-        <div className="bg-black text-white border-3 border-black p-6 sm:p-10 shadow-pixel text-center space-y-4">
-          <h3 className="font-pixel text-lg sm:text-2xl text-white font-extrabold uppercase">
-            BOOST YOUR WINNING PROBABILITY TODAY
+        {/* CTA Footer */}
+        <div className="cq-card p-8 text-center space-y-4 bg-gradient-to-b from-[#0f0f0f] to-[#141414]">
+          <h3 className="font-syne text-xl sm:text-2xl font-bold text-white">
+            Ready to Explore Active Drops?
           </h3>
-          <p className="font-mono text-xs sm:text-sm text-gray-300 max-w-2xl mx-auto font-bold">
-            Hold 1 to 50 NFTs for multiplied tickets or acquire 100+ DOTSET NFTs to lock in 100% guaranteed whitelist winner status for every future partner allocation drop.
+          <p className="font-dm text-xs sm:text-sm text-[#8a8a9a] max-w-lg mx-auto">
+            Discover verified Web3 allocations, participate in seconds, and secure your whitelist spots.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <a
-              href="https://opensea.io/collection/flamebound-259045050"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pixel-btn-white text-xs py-3 px-5 w-full sm:w-auto font-bold flex items-center justify-center gap-2"
-            >
-              <span>[BUY DOTSET ON OPENSEA]</span>
-              <ExternalLink size={14} />
-            </a>
-
+          <div className="pt-2">
             <Link
               href="/#active-raffles"
-              className="pixel-btn text-xs py-3 px-5 w-full sm:w-auto font-bold flex items-center justify-center gap-2 border-white"
+              className="btn-primary-cq text-xs py-2.5 px-6 inline-flex items-center gap-2"
             >
-              <span>[EXPLORE LIVE RAFFLES]</span>
+              <span>Explore Active Raffles</span>
               <ArrowRight size={14} />
             </Link>
           </div>

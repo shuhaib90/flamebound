@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Raffle, CustomTask } from '@/lib/types';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -14,8 +14,7 @@ import {
   Share2, 
   Twitter, 
   ExternalLink, 
-  ShieldAlert, 
-  CheckCircle, 
+  CheckCircle2, 
   Copy, 
   Check, 
   MessageSquare, 
@@ -23,12 +22,13 @@ import {
   AtSign, 
   Send, 
   Globe, 
-  Sparkles
+  Sparkles,
+  ShieldAlert,
+  ArrowRight
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
   const params = useParams();
-  const router = useRouter();
   const raffleId = params?.id as string;
   const { address } = useWallet();
 
@@ -92,7 +92,6 @@ export default function SingleRafflePage() {
         if (data.success && data.raffle) {
           setRaffle(data.raffle);
 
-          // Check localStorage for existing submitted entry
           if (typeof window !== 'undefined') {
             const cachedKeys = Object.keys(localStorage).filter(k => k.startsWith(`dotset_entry_${data.raffle.id}_`));
             if (cachedKeys.length > 0) {
@@ -157,8 +156,7 @@ export default function SingleRafflePage() {
 
   const customTasksList: CustomTask[] = Array.isArray(raffle?.customTasks) ? raffle.customTasks : [];
 
-  // Total required tasks count
-  const baseTaskCount = 4; // handle, wallet, followPartner, followDotset
+  const baseTaskCount = 4;
   const totalTasks = baseTaskCount + (raffle?.engageUrl ? 1 : 0) + customTasksList.length;
 
   const completedCount = 
@@ -229,12 +227,12 @@ export default function SingleRafflePage() {
     }
 
     if (!cleanWallet) {
-      setError('Please enter your wallet address.');
+      setError('Please enter your receiving wallet address.');
       return;
     }
 
     if (!allTasksCompleted) {
-      setError('Please complete all social tasks above before submitting.');
+      setError('Please complete all requirements above before submitting.');
       return;
     }
 
@@ -273,7 +271,7 @@ export default function SingleRafflePage() {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#000000', '#ffffff', '#888888'],
+          colors: ['#4f52c8', '#a5b4fc', '#4ade80', '#ffffff'],
         });
       } else {
         setError(data.message || data.error || 'Failed to submit entry.');
@@ -297,7 +295,7 @@ export default function SingleRafflePage() {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url);
       setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2200);
+      setTimeout(() => setCopiedLink(false), 2000);
     }
   };
 
@@ -310,189 +308,189 @@ export default function SingleRafflePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white selection:bg-black selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#080808] text-[#f0f0f0] selection:bg-[#4f52c8] selection:text-white">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         
-        {/* Top Actions Bar */}
-        <div className="flex items-center justify-between border-b-3 border-black pb-4 mb-6 sm:mb-8">
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between pb-6 mb-8 border-b border-white/[0.08]">
           <Link
             href="/#active-raffles"
-            className="pixel-btn text-[10px] sm:text-xs py-2 px-3 sm:px-4 flex items-center gap-1.5 shadow-pixel"
+            className="btn-outline-cq text-xs py-2 px-3.5 flex items-center gap-2"
           >
             <ArrowLeft size={14} />
-            <span>[← ALL RAFFLES]</span>
+            <span>All Raffles</span>
           </Link>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="pixel-btn-white text-[10px] sm:text-xs py-2 px-3 flex items-center gap-1.5 border-2 border-black shadow-pixel-xs"
+              className="btn-outline-cq text-xs py-2 px-3 flex items-center gap-1.5"
               title="Copy Page Link"
             >
-              {copiedLink ? <Check size={14} /> : <Share2 size={14} />}
-              <span className="hidden sm:inline">{copiedLink ? '[COPIED]' : '[SHARE]'}</span>
+              {copiedLink ? <Check size={14} className="text-[#4ade80]" /> : <Share2 size={14} />}
+              <span>{copiedLink ? 'Copied' : 'Share'}</span>
             </button>
 
             <button
               onClick={handleTwitterShare}
-              className="bg-black text-white hover:bg-gray-800 p-2 sm:px-3 sm:py-2 border-2 border-black flex items-center gap-1.5 shadow-pixel-xs"
-              title="Tweet on X"
+              className="btn-primary-cq text-xs py-2 px-3 flex items-center gap-1.5"
             >
               <Twitter size={14} />
-              <span className="hidden sm:inline font-pixel text-[10px]">[TWEET]</span>
+              <span>Tweet</span>
             </button>
           </div>
         </div>
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white border-3 border-black p-12 text-center shadow-pixel space-y-3">
-            <span className="w-5 h-5 border-2 border-black border-t-transparent animate-spin inline-block" />
-            <span className="font-pixel text-xs text-black block uppercase font-bold">
-              LOADING RAFFLE SPECIFICATIONS...
-            </span>
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-12 rounded-xl text-center space-y-3">
+            <span className="w-5 h-5 border-2 border-[#a5b4fc] border-t-transparent animate-spin inline-block rounded-full" />
+            <p className="font-dm text-sm text-[#8a8a9a]">
+              Loading campaign details...
+            </p>
           </div>
         )}
 
         {/* Not Found State */}
         {!loading && !raffle && (
-          <div className="bg-white border-3 border-black p-12 text-center shadow-pixel space-y-4">
-            <h2 className="font-pixel text-base text-black font-bold uppercase">RAFFLE NOT FOUND</h2>
-            <p className="font-mono text-sm text-gray-700">{error || 'This raffle does not exist or has ended.'}</p>
-            <Link href="/" className="pixel-btn text-xs py-3 px-6 inline-block">
-              [RETURN HOME]
+          <div className="bg-[#0f0f0f] border border-white/[0.08] p-12 rounded-xl text-center space-y-4">
+            <h2 className="font-syne text-lg text-white font-bold">Campaign Not Found</h2>
+            <p className="font-dm text-sm text-[#8a8a9a]">{error || 'This raffle does not exist or has ended.'}</p>
+            <Link href="/" className="btn-primary-cq text-xs py-2.5 px-5 inline-block">
+              Return to Directory
             </Link>
           </div>
         )}
 
         {/* Main Content Layout */}
         {!loading && raffle && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Left Column: Raffle Media & Complete Technical Specs (7 Cols) */}
             <div className="lg:col-span-7 space-y-6">
               
-              <div className="bg-white border-2 sm:border-3 border-black shadow-pixel overflow-hidden">
+              <div className="cq-card overflow-hidden">
                 
                 {/* Header Bar */}
-                <div className="bg-black text-white px-3.5 sm:px-4 py-2.5 flex items-center justify-between border-b-2 sm:border-b-3 border-black">
-                  <div className="flex items-center gap-2 truncate">
+                <div className="bg-[#141414] px-4 py-3 flex items-center justify-between border-b border-white/[0.08]">
+                  <div className="flex items-center gap-2.5 truncate">
                     {raffle.logoUrl ? (
-                      <img src={raffle.logoUrl} alt={projectName} className="w-5 h-5 object-contain shrink-0" />
+                      <img src={raffle.logoUrl} alt={projectName} className="w-5 h-5 object-contain rounded" />
                     ) : (
-                      <img src="/images/dotset-logo.png" alt="DOTSET" className="w-5 h-5 object-contain shrink-0" />
+                      <img src="/images/dotset-logo.png" alt="DOTSET" className="w-5 h-5 object-contain rounded" />
                     )}
-                    <span className="font-pixel text-xs text-white font-bold tracking-wide uppercase truncate">
+                    <span className="font-syne text-sm font-bold text-white tracking-wide truncate">
                       {projectName}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold tracking-wider ${
-                      mintStage === 'GTD'
-                        ? 'bg-white text-black shadow-pixel-xs'
-                        : mintStage === 'FCFS'
-                        ? 'bg-black text-white shadow-pixel-xs'
-                        : 'bg-white text-black'
-                    }`}>
-                      [{mintStage}]
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded font-mono-dm text-[10px] uppercase font-semibold bg-[#4f52c8]/30 border border-[#a5b4fc]/30 text-[#a5b4fc]">
+                      {mintStage}
                     </span>
-                    <span className={'font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ' + (isLive ? 'bg-white text-black animate-pulse' : 'bg-red-600 text-white')}>
-                      {isLive ? '● LIVE' : 'CLOSED'}
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-dm text-[10px] ${
+                      isLive 
+                        ? 'bg-[#4ade80]/10 border border-[#4ade80]/30 text-[#4ade80]' 
+                        : 'bg-white/5 border border-white/10 text-[#8a8a9a]'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#4ade80] animate-pulse' : 'bg-gray-500'}`} />
+                      <span>{isLive ? 'Live' : 'Closed'}</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Big Artwork Banner */}
-                <div className="relative border-b-2 sm:border-b-3 border-black bg-black flex items-center justify-center overflow-hidden h-56 sm:h-72">
+                <div className="relative overflow-hidden h-64 sm:h-80 bg-[#111111]">
                   <PixelArtwork
                     type={raffle.artworkType}
                     bannerUrl={raffle.bannerUrl}
                     logoUrl={raffle.logoUrl}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-3 right-3 bg-black/90 border border-white/40 px-2 py-1 text-white font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-xs">
-                    [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+                  
+                  <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded text-[#f0f0f0] font-mono-dm text-[10px] font-medium">
+                    {raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}
                   </div>
-                  <div className="absolute top-3 left-3 px-2 py-1 font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-xs border border-black bg-white text-black">
-                    STAGE: {mintStage}
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded font-mono-dm text-[10px] font-medium bg-black/70 backdrop-blur-md border border-white/10 text-[#a5b4fc]">
+                    Stage: {mintStage}
                   </div>
                 </div>
 
                 {/* Body Specs */}
-                <div className="p-4 sm:p-6 space-y-4">
+                <div className="p-6 space-y-5">
                   <div>
-                    <h1 className="font-pixel text-base sm:text-xl text-black font-extrabold uppercase tracking-tight">
-                      {raffle.title}
+                    <h1 className="font-syne text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                      <span>{raffle.title}</span>
+                      <CheckCircle2 size={18} className="text-[#38bdf8] shrink-0" />
                     </h1>
-                    <p className="font-mono text-xs sm:text-sm text-gray-700 font-bold mt-1.5 leading-relaxed">
+                    <p className="font-dm text-xs sm:text-sm text-[#8a8a9a] mt-2 leading-relaxed">
                       {raffle.subtitle || raffle.description}
                     </p>
                   </div>
 
                   {raffle.notes && (
-                    <div className="bg-gray-50 border-2 border-black p-3 font-mono text-xs font-bold text-black flex items-center gap-2">
-                      <Sparkles size={15} className="text-black shrink-0" />
+                    <div className="bg-[#4f52c8]/10 border border-[#a5b4fc]/20 p-3 rounded-lg font-dm text-xs text-[#a5b4fc] flex items-center gap-2">
+                      <Sparkles size={16} className="shrink-0" />
                       <span>{raffle.notes}</span>
                     </div>
                   )}
 
-                  {/* Comprehensive Specifications Table */}
-                  <div className="border-2 border-black bg-white">
-                    <div className="bg-black text-white font-pixel text-[9px] px-3 py-1.5 font-bold uppercase">
-                      WHITELIST SPECIFICATIONS
+                  {/* Specifications Grid */}
+                  <div className="border border-white/[0.08] rounded-xl overflow-hidden bg-[#111111]">
+                    <div className="bg-white/[0.03] px-4 py-2 font-mono-dm text-[11px] text-[#8a8a9a] uppercase font-semibold border-b border-white/[0.08]">
+                      Campaign Details
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 font-mono text-xs border-b border-black/20">
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 font-dm text-xs border-b border-white/[0.06]">
                       <div>
-                        <span className="text-[8px] font-pixel text-gray-600 block font-bold">WL ALLOCATION:</span>
-                        <span className="font-pixel text-xs text-black font-bold mt-0.5 block">{raffle.supply} SPOTS</span>
+                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Allocation</span>
+                        <span className="font-mono-dm text-sm text-[#a5b4fc] font-bold mt-0.5 block">{raffle.supply} Spots</span>
                       </div>
                       <div>
-                        <span className="text-[8px] font-pixel text-gray-600 block font-bold">TOTAL SUPPLY:</span>
-                        <span className="font-bold text-black text-xs mt-0.5 block">{raffle.nftTotalSupply || 'TBA'}</span>
+                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Total Supply</span>
+                        <span className="font-mono-dm text-sm text-white font-medium mt-0.5 block">{raffle.nftTotalSupply || 'TBA'}</span>
                       </div>
                       <div>
-                        <span className="text-[8px] font-pixel text-gray-600 block font-bold">MINT PRICE:</span>
-                        <span className="font-bold text-black text-xs bg-gray-100 px-1 py-0.5 border border-black inline-block mt-0.5">
-                          {raffle.mintPrice || 'FREE'}
-                        </span>
+                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Mint Price</span>
+                        <span className="font-mono-dm text-xs text-[#4ade80] font-semibold mt-0.5 block">{raffle.mintPrice || 'FREE'}</span>
                       </div>
                       <div>
-                        <span className="text-[8px] font-pixel text-gray-600 block font-bold">MINT DATE:</span>
-                        <span className="font-bold text-black text-xs mt-0.5 block truncate">{raffle.mintDate || 'TBA'}</span>
+                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Mint Date</span>
+                        <span className="font-mono-dm text-xs text-white mt-0.5 block truncate">{raffle.mintDate || 'TBA'}</span>
                       </div>
                     </div>
 
-                    <div className="p-3 space-y-1.5 font-mono text-xs">
-                      <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">MINT STAGE:</span>
-                        <span className="font-pixel text-[9px] font-bold px-1.5 py-0.5 border border-black bg-black text-white">
-                          [{mintStage}] {mintStage === 'GTD' ? 'GUARANTEED' : mintStage === 'FCFS' ? 'FIRST-COME FIRST-SERVED' : 'WHITELIST'}
+                    <div className="p-4 space-y-2 font-dm text-xs">
+                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                        <span>Stage:</span>
+                        <span className="font-mono-dm text-xs text-white font-semibold">
+                          {mintStage === 'GTD' ? 'Guaranteed (GTD)' : mintStage === 'FCFS' ? 'First-Come First-Served' : 'Whitelist'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">MAX PER WHITELIST:</span>
-                        <span className="font-bold text-black">{raffle.maxMintPerWallet || '1 PER WL'}</span>
+                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                        <span>Max per Winner:</span>
+                        <span className="font-mono-dm text-xs text-white">{raffle.maxMintPerWallet || '1 Spot'}</span>
                       </div>
-                      <div className="flex justify-between items-center text-gray-800">
-                        <span className="font-bold">ELIGIBILITY:</span>
-                        <span className="font-bold text-black">OPEN TO ALL PARTICIPANTS</span>
+                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                        <span>Eligibility:</span>
+                        <span className="font-mono-dm text-xs text-[#4ade80]">Open to All Participants</span>
                       </div>
-                      <div className="flex justify-between items-center text-gray-800 pt-1 border-t border-black/10">
-                        <span className="font-bold">{mintStage === 'FCFS' ? 'CLAIMED SPOTS:' : 'TOTAL ENTRIES:'}</span>
-                        <span className="font-pixel text-xs text-black font-bold">
-                          {raffle.totalEntries} / {raffle.supply} {mintStage === 'FCFS' ? 'CLAIMED' : 'ENTRIES'}
+                      <div className="flex justify-between items-center text-[#8a8a9a] pt-2 border-t border-white/[0.06]">
+                        <span>Total Registered:</span>
+                        <span className="font-mono-dm text-xs text-white font-bold">
+                          {raffle.totalEntries || 0} Entrants
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 4-Box Pixel Countdown Clock */}
-                  <div className="bg-black text-white p-3.5 sm:p-4 border-2 sm:border-3 border-black shadow-pixel space-y-2.5">
-                    <div className="flex items-center justify-between font-pixel text-[9px] border-b border-white/20 pb-1.5 font-bold">
-                      <span className="text-gray-300">RAFFLE DEADLINE:</span>
+                  {/* Countdown Clock */}
+                  <div className="bg-[#111111] p-4 rounded-xl border border-white/[0.08] space-y-3">
+                    <div className="flex items-center justify-between font-mono-dm text-xs text-[#8a8a9a]">
+                      <span>Deadline:</span>
                       <span className="text-white">
                         {new Date(raffle.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
@@ -500,26 +498,26 @@ export default function SingleRafflePage() {
 
                     {isLive ? (
                       <div className="grid grid-cols-4 gap-2 text-center">
-                        <div className="bg-white text-black p-1.5 border border-black shadow-pixel-xs">
-                          <span className="font-pixel text-sm sm:text-base font-bold block">{String(timeLeft.days).padStart(2, '0')}</span>
-                          <span className="font-pixel text-[7px] block font-bold text-gray-600">DAYS</span>
+                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.days).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Days</span>
                         </div>
-                        <div className="bg-white text-black p-1.5 border border-black shadow-pixel-xs">
-                          <span className="font-pixel text-sm sm:text-base font-bold block">{String(timeLeft.hours).padStart(2, '0')}</span>
-                          <span className="font-pixel text-[7px] block font-bold text-gray-600">HRS</span>
+                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Hours</span>
                         </div>
-                        <div className="bg-white text-black p-1.5 border border-black shadow-pixel-xs">
-                          <span className="font-pixel text-sm sm:text-base font-bold block">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                          <span className="font-pixel text-[7px] block font-bold text-gray-600">MIN</span>
+                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Mins</span>
                         </div>
-                        <div className="bg-white text-black p-1.5 border border-black shadow-pixel-xs">
-                          <span className="font-pixel text-sm sm:text-base font-bold block">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                          <span className="font-pixel text-[7px] block font-bold text-gray-600">SEC</span>
+                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Secs</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="font-pixel text-xs text-center text-red-400 py-2 bg-red-950/40 border border-red-800 uppercase font-bold">
-                        [RAFFLE CONCLUDED]
+                      <div className="font-mono-dm text-xs text-center text-[#f87171] py-2 bg-[#f87171]/10 rounded-lg border border-[#f87171]/20">
+                        Campaign Concluded
                       </div>
                     )}
                   </div>
@@ -533,38 +531,38 @@ export default function SingleRafflePage() {
             {/* Right Column: Whitelist Entry Checklist (5 Cols) */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="bg-white border-2 sm:border-3 border-black shadow-pixel p-4 sm:p-6 space-y-4">
+              <div className="cq-card p-5 sm:p-6 space-y-4">
                 
-                <div className="border-b-2 border-black pb-3">
-                  <h2 className="font-pixel text-sm sm:text-base text-black font-extrabold uppercase">
-                    {raffle.entryMethod === 'fcfs' ? 'CLAIM FCFS WHITELIST' : 'ENTER WHITELIST'}
+                <div className="border-b border-white/[0.08] pb-3">
+                  <h2 className="font-syne text-base font-bold text-white">
+                    {raffle.entryMethod === 'fcfs' ? 'Claim FCFS Spot' : 'Enter Whitelist'}
                   </h2>
-                  <p className="font-mono text-xs text-gray-700 font-bold mt-1">
-                    Complete requirements below to submit your verified entry.
+                  <p className="font-dm text-xs text-[#8a8a9a] mt-1">
+                    Complete requirements to submit your verified entry.
                   </p>
                 </div>
 
                 {/* SUCCESS RECEIPT STATE */}
                 {entryReceipt ? (
                   <div className="space-y-4 py-2">
-                    <div className="bg-black text-white border-2 border-black p-4 sm:p-5 text-center space-y-2 shadow-pixel">
-                      <div className="inline-block p-1.5 bg-white text-black mb-1">
-                        <CheckCircle size={26} />
+                    <div className="bg-[#4ade80]/10 border border-[#4ade80]/30 p-5 rounded-xl text-center space-y-2">
+                      <div className="inline-block p-2 bg-[#4ade80]/20 rounded-full text-[#4ade80] mb-1">
+                        <CheckCircle2 size={28} />
                       </div>
-                      <h3 className="font-pixel text-xs sm:text-sm font-bold text-white uppercase">
-                        {raffle.entryMethod === 'fcfs' ? 'FCFS SPOT CONFIRMED!' : 'WHITELIST ENTRY CONFIRMED!'}
+                      <h3 className="font-syne text-sm font-bold text-white">
+                        {raffle.entryMethod === 'fcfs' ? 'FCFS Spot Confirmed!' : 'Whitelist Entry Confirmed!'}
                       </h3>
-                      <p className="font-mono text-xs text-gray-300 font-bold">
-                        Your entry is confirmed in this drop!
+                      <p className="font-dm text-xs text-[#8a8a9a]">
+                        Your registration has been successfully recorded on-chain.
                       </p>
                     </div>
 
                     {/* Receipt Specs Card */}
-                    <div className="bg-gray-50 border-2 border-black p-3.5 space-y-2 shadow-pixel-xs font-mono text-xs">
-                      <div className="flex items-center justify-between border-b border-black/20 pb-2">
-                        <span className="font-pixel text-[9px] text-gray-600">TICKET ID:</span>
+                    <div className="bg-[#141414] border border-white/[0.08] p-4 rounded-xl space-y-2.5 font-dm text-xs">
+                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                        <span className="text-[#8a8a9a] font-mono-dm text-[11px]">Ticket ID:</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-pixel text-xs font-bold text-black select-all">
+                          <span className="font-mono-dm text-xs font-bold text-[#a5b4fc] select-all">
                             {entryReceipt.id}
                           </span>
                           <button
@@ -573,25 +571,25 @@ export default function SingleRafflePage() {
                               setCopiedReceipt(true);
                               setTimeout(() => setCopiedReceipt(false), 2000);
                             }}
-                            className="p-1 bg-black text-white hover:bg-gray-800 transition-colors"
+                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
                             title="Copy Ticket ID"
                           >
-                            {copiedReceipt ? <Check size={12} /> : <Copy size={12} />}
+                            {copiedReceipt ? <Check size={12} className="text-[#4ade80]" /> : <Copy size={12} />}
                           </button>
                         </div>
                       </div>
 
-                      <div className="space-y-1 pt-1">
+                      <div className="space-y-1.5 pt-1">
                         <div>
-                          <span className="text-gray-600 block text-[9px]">WALLET:</span>
-                          <span className="font-mono font-bold text-black select-all break-all text-xs">
+                          <span className="text-[#555566] block font-mono-dm text-[10px] uppercase">Receiving Wallet:</span>
+                          <span className="font-mono-dm text-xs text-white select-all break-all">
                             {entryReceipt.walletAddress}
                           </span>
                         </div>
                         {entryReceipt.twitterUsername && (
                           <div>
-                            <span className="text-gray-600 block text-[9px]">X HANDLE:</span>
-                            <span className="font-mono font-bold text-black text-xs">
+                            <span className="text-[#555566] block font-mono-dm text-[10px] uppercase">X Handle:</span>
+                            <span className="font-mono-dm text-xs text-white">
                               @{entryReceipt.twitterUsername.replace('@', '')}
                             </span>
                           </div>
@@ -601,23 +599,23 @@ export default function SingleRafflePage() {
 
                     <Link
                       href="/#active-raffles"
-                      className="w-full pixel-btn text-xs py-3 shadow-pixel block text-center"
+                      className="w-full btn-outline-cq text-xs py-3 block text-center"
                     >
-                      [← RETURN TO ALL RAFFLES]
+                      Return to Directory
                     </Link>
                   </div>
                 ) : (
                   /* SIMPLE OPEN ENTRY FORM */
                   <>
                     {/* Progress Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center font-pixel text-[9px] uppercase font-bold text-black">
-                        <span>{completedCount}/{totalTasks} TASKS COMPLETED</span>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center font-mono-dm text-[11px] text-[#8a8a9a]">
+                        <span>{completedCount}/{totalTasks} Tasks Completed</span>
                         <span>{progressPercent}%</span>
                       </div>
-                      <div className="h-2.5 bg-gray-200 border border-black p-0.5">
+                      <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-black transition-all duration-300"
+                          className="h-full bg-[#a5b4fc] rounded-full transition-all duration-300"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
@@ -625,9 +623,9 @@ export default function SingleRafflePage() {
 
                     {/* Error Notification */}
                     {error && (
-                      <div className="bg-red-500 text-white border-2 border-black p-2 font-mono text-xs flex items-center gap-2 font-bold">
-                        <ShieldAlert size={15} className="shrink-0" />
-                        <div className="flex-1 text-[10px]">
+                      <div className="bg-[#f87171]/10 border border-[#f87171]/30 text-[#f87171] p-3 rounded-lg font-dm text-xs flex items-center gap-2">
+                        <ShieldAlert size={16} className="shrink-0" />
+                        <div className="flex-1 text-xs">
                           {error}
                         </div>
                       </div>
@@ -637,15 +635,13 @@ export default function SingleRafflePage() {
                     <div className="space-y-2 pt-1">
                       
                       {/* 1. YOUR X HANDLE */}
-                      <div className={'border-2 border-black p-2.5 transition-colors ' + (tasks.handleLinked ? 'bg-gray-100' : 'bg-white')}>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <AtSign size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[10px] font-bold text-black uppercase">
-                            YOUR X (TWITTER) HANDLE
-                          </span>
+                      <div className={`p-3 rounded-lg border transition-colors ${tasks.handleLinked ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                        <div className="flex items-center gap-1.5 mb-2 font-dm text-xs font-medium text-white">
+                          <AtSign size={14} className="text-[#8a8a9a]" />
+                          <span>Your X (Twitter) Handle</span>
                         </div>
 
-                        <form onSubmit={handleSaveHandle} className="flex gap-1.5">
+                        <form onSubmit={handleSaveHandle} className="flex gap-2">
                           <input
                             type="text"
                             placeholder="@yourhandle"
@@ -654,25 +650,27 @@ export default function SingleRafflePage() {
                               setTwitterHandle(e.target.value);
                               setTasks(prev => ({ ...prev, handleLinked: false }));
                             }}
-                            className="flex-1 bg-white border border-black p-1.5 text-xs font-mono font-bold outline-none"
+                            className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-white placeholder-[#555566] outline-none"
                           />
                           <button
                             type="submit"
-                            className={'pixel-btn text-[9px] py-1.5 px-2.5 shrink-0 ' + (tasks.handleLinked ? 'bg-black text-white' : '')}
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium shrink-0 transition-colors ${
+                              tasks.handleLinked 
+                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30' 
+                                : 'bg-white text-black hover:bg-gray-200'
+                            }`}
                           >
-                            {tasks.handleLinked ? '✓ DONE' : '[SET]'}
+                            {tasks.handleLinked ? 'Linked' : 'Set'}
                           </button>
                         </form>
                       </div>
 
                       {/* 2. RECEIVING WALLET ADDRESS */}
-                      <div className={'border-2 border-black p-2.5 transition-colors ' + (tasks.walletProvided ? 'bg-gray-100' : 'bg-white')}>
-                        <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <Wallet size={14} className="text-black shrink-0" />
-                            <span className="font-pixel text-[10px] font-bold text-black uppercase">
-                              RECEIVING WALLET ADDRESS
-                            </span>
+                      <div className={`p-3 rounded-lg border transition-colors ${tasks.walletProvided ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                        <div className="flex items-center justify-between gap-1.5 mb-2">
+                          <div className="flex items-center gap-1.5 font-dm text-xs font-medium text-white">
+                            <Wallet size={14} className="text-[#8a8a9a]" />
+                            <span>Receiving EVM Wallet Address</span>
                           </div>
                           {address && (
                             <button
@@ -681,84 +679,92 @@ export default function SingleRafflePage() {
                                 setWalletInput(address);
                                 setTasks(prev => ({ ...prev, walletProvided: true }));
                               }}
-                              className="font-pixel text-[8px] underline text-gray-700"
+                              className="font-mono-dm text-[10px] text-[#a5b4fc] hover:underline"
                             >
-                              [USE CONNECTED]
+                              [Use Connected]
                             </button>
                           )}
                         </div>
 
-                        <form onSubmit={handleSaveWallet} className="flex gap-1.5">
+                        <form onSubmit={handleSaveWallet} className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="0x... (EVM Wallet Address)"
+                            placeholder="0x... (Whitelist receiver)"
                             value={walletInput}
                             onChange={(e) => {
                               setWalletInput(e.target.value);
                               setTasks(prev => ({ ...prev, walletProvided: false }));
                             }}
-                            className="flex-1 bg-white border border-black p-1.5 text-xs font-mono font-bold outline-none"
+                            className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-white placeholder-[#555566] outline-none"
                           />
                           <button
                             type="submit"
-                            className={'pixel-btn text-[9px] py-1.5 px-2.5 shrink-0 ' + (tasks.walletProvided ? 'bg-black text-white' : '')}
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium shrink-0 transition-colors ${
+                              tasks.walletProvided 
+                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30' 
+                                : 'bg-white text-black hover:bg-gray-200'
+                            }`}
                           >
-                            {tasks.walletProvided ? '✓ DONE' : '[SET]'}
+                            {tasks.walletProvided ? 'Set' : 'Confirm'}
                           </button>
                         </form>
                       </div>
 
                       {/* 3. FOLLOW PARTNER */}
-                      <div className={'border-2 border-black p-2.5 flex items-center justify-between gap-2 transition-colors ' + (tasks.followPartner ? 'bg-gray-100' : 'bg-white')}>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Twitter size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[9px] font-bold text-black uppercase truncate">
-                            FOLLOW ({projectName})
-                          </span>
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followPartner ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                          <Twitter size={14} className="text-[#38bdf8] shrink-0" />
+                          <span className="truncate">Follow @{projectName}</span>
                         </div>
 
                         <button
                           type="button"
                           onClick={handleFollowPartner}
-                          className={'pixel-btn text-[9px] py-1.5 px-2.5 flex items-center gap-1 shrink-0 ' + (tasks.followPartner ? 'bg-black text-white' : '')}
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                            tasks.followPartner
+                              ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
                         >
                           {tasks.followPartner ? (
                             <>
-                              <Check size={11} />
-                              <span>[DONE]</span>
+                              <Check size={12} />
+                              <span>Done</span>
                             </>
                           ) : (
                             <>
-                              <span>[FOLLOW]</span>
-                              <ExternalLink size={10} />
+                              <span>Follow</span>
+                              <ExternalLink size={11} />
                             </>
                           )}
                         </button>
                       </div>
 
                       {/* 4. FOLLOW DOTSET */}
-                      <div className={'border-2 border-black p-2.5 flex items-center justify-between gap-2 transition-colors ' + (tasks.followDotset ? 'bg-gray-100' : 'bg-white')}>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <Twitter size={14} className="text-black shrink-0" />
-                          <span className="font-pixel text-[9px] font-bold text-black uppercase truncate">
-                            FOLLOW (DOTSET)
-                          </span>
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                          <Twitter size={14} className="text-[#38bdf8] shrink-0" />
+                          <span className="truncate">Follow @DOTSET</span>
                         </div>
 
                         <button
                           type="button"
                           onClick={handleFollowDotset}
-                          className={'pixel-btn text-[9px] py-1.5 px-2.5 flex items-center gap-1 shrink-0 ' + (tasks.followDotset ? 'bg-black text-white' : '')}
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                            tasks.followDotset
+                              ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
                         >
                           {tasks.followDotset ? (
                             <>
-                              <Check size={11} />
-                              <span>[DONE]</span>
+                              <Check size={12} />
+                              <span>Done</span>
                             </>
                           ) : (
                             <>
-                              <span>[FOLLOW]</span>
-                              <ExternalLink size={10} />
+                              <span>Follow</span>
+                              <ExternalLink size={11} />
                             </>
                           )}
                         </button>
@@ -766,28 +772,30 @@ export default function SingleRafflePage() {
 
                       {/* 5. ENGAGE WITH POST */}
                       {raffle.engageUrl && (
-                        <div className={'border-2 border-black p-2.5 flex items-center justify-between gap-2 transition-colors ' + (tasks.engage ? 'bg-gray-100' : 'bg-white')}>
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <MessageSquare size={14} className="text-black shrink-0" />
-                            <span className="font-pixel text-[9px] font-bold text-black uppercase truncate">
-                              ENGAGE WITH POST
-                            </span>
+                        <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.engage ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                          <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                            <MessageSquare size={14} className="text-[#fb923c] shrink-0" />
+                            <span className="truncate">Like & Repost Post</span>
                           </div>
 
                           <button
                             type="button"
                             onClick={handleEngageTask}
-                            className={'pixel-btn text-[9px] py-1.5 px-2.5 flex items-center gap-1 shrink-0 ' + (tasks.engage ? 'bg-black text-white' : '')}
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                              tasks.engage
+                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
+                                : 'bg-white/10 text-white hover:bg-white/20'
+                            }`}
                           >
                             {tasks.engage ? (
                               <>
-                                <Check size={11} />
-                                <span>[DONE]</span>
+                                <Check size={12} />
+                                <span>Done</span>
                               </>
                             ) : (
                               <>
-                                <span>[POST]</span>
-                                <ExternalLink size={10} />
+                                <span>Engage</span>
+                                <ExternalLink size={11} />
                               </>
                             )}
                           </button>
@@ -800,21 +808,19 @@ export default function SingleRafflePage() {
                         return (
                           <div
                             key={ct.id || idx}
-                            className={'border-2 border-black p-2.5 flex items-center justify-between gap-2 transition-colors ' + (isDone ? 'bg-gray-100' : 'bg-white')}
+                            className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${isDone ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}
                           >
-                            <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
                               {ct.type === 'discord' ? (
-                                <MessageSquare size={14} className="text-black shrink-0" />
+                                <MessageSquare size={14} className="text-[#a5b4fc] shrink-0" />
                               ) : ct.type === 'telegram' ? (
-                                <Send size={14} className="text-black shrink-0" />
+                                <Send size={14} className="text-[#38bdf8] shrink-0" />
                               ) : ct.type === 'twitter' ? (
-                                <Twitter size={14} className="text-black shrink-0" />
+                                <Twitter size={14} className="text-[#38bdf8] shrink-0" />
                               ) : (
-                                <Globe size={14} className="text-black shrink-0" />
+                                <Globe size={14} className="text-[#4ade80] shrink-0" />
                               )}
-                              <span className="font-pixel text-[9px] font-bold text-black uppercase truncate">
-                                {ct.title}
-                              </span>
+                              <span className="truncate">{ct.title}</span>
                             </div>
 
                             <button
@@ -823,17 +829,21 @@ export default function SingleRafflePage() {
                                 if (ct.url) window.open(ct.url, '_blank');
                                 setCustomTasksDone(prev => ({ ...prev, [ct.id]: true }));
                               }}
-                              className={'pixel-btn text-[9px] py-1.5 px-2.5 flex items-center gap-1 shrink-0 ' + (isDone ? 'bg-black text-white' : '')}
+                              className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                                isDone
+                                  ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
+                                  : 'bg-white/10 text-white hover:bg-white/20'
+                              }`}
                             >
                               {isDone ? (
                                 <>
-                                  <Check size={11} />
-                                  <span>[DONE]</span>
+                                  <Check size={12} />
+                                  <span>Done</span>
                                 </>
                               ) : (
                                 <>
-                                  <span>{ct.actionLabel || '[VISIT]'}</span>
-                                  <ExternalLink size={10} />
+                                  <span>{ct.actionLabel || 'Visit'}</span>
+                                  <ExternalLink size={11} />
                                 </>
                               )}
                             </button>
@@ -844,26 +854,26 @@ export default function SingleRafflePage() {
                     </div>
 
                     {/* Submit Whitelist Entry CTA */}
-                    <div className="pt-2 border-t-2 border-black">
+                    <div className="pt-3 border-t border-white/[0.08]">
                       <button
                         type="button"
                         onClick={handleSubmitEntry}
                         disabled={!allTasksCompleted || submitting || !isLive || (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)}
-                        className={'w-full py-3 font-pixel text-xs tracking-wider uppercase font-bold transition-all shadow-pixel text-center ' + (
+                        className={`w-full py-3 rounded-lg font-dm text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
                           allTasksCompleted && !submitting && isLive && !(raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
-                            ? 'bg-black text-white hover:bg-gray-800 cursor-pointer' 
-                            : 'bg-gray-200 text-gray-500 border-2 border-black cursor-not-allowed'
-                        )}
+                            ? 'bg-white text-black hover:bg-gray-200 cursor-pointer shadow-lg' 
+                            : 'bg-white/10 text-[#8a8a9a] border border-white/10 cursor-not-allowed'
+                        }`}
                       >
                         {submitting 
-                          ? 'CONFIRMING ENTRY...' 
+                          ? 'Confirming Entry...' 
                           : !isLive
-                          ? '[RAFFLE CLOSED / CONCLUDED]'
+                          ? 'Campaign Concluded'
                           : (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
-                          ? '[ALL FCFS SPOTS CLAIMED]'
+                          ? 'All FCFS Spots Claimed'
                           : allTasksCompleted 
-                          ? (mintStage === 'FCFS' ? '[CLAIM FCFS SPOT]' : '[SUBMIT WHITELIST ENTRY]')
-                          : ('[COMPLETE ALL TASKS (' + completedCount + '/' + totalTasks + ')]')}
+                          ? (mintStage === 'FCFS' ? 'Claim FCFS Spot' : 'Submit Whitelist Entry')
+                          : (`Complete All Tasks (${completedCount}/${totalTasks})`)}
                       </button>
                     </div>
                   </>

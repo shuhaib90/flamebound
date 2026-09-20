@@ -1,11 +1,11 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'DOTSET — Web3 Whitelist & Raffle Hub',
-  description: 'Official Whitelist Raffle portal for DOTSET. Clean monochrome pixel UX, provable on-chain holder verification, and guaranteed partner allocations.',
-  keywords: ['DOTSET', 'dotset', 'NFT', 'Whitelist', 'Raffle', 'Web3', 'Ethereum', 'Robinhood', 'Base', 'ZEC'],
+  title: 'DOTSET — Web3 Quest & Raffle Platform',
+  description: 'Complete quests, engage with early crypto projects, and earn verified whitelist spots on DOTSET.',
+  keywords: ['DOTSET', 'web3 quest', 'crypto raffle', 'whitelist', 'airdrop', 'testnet', 'robinhood', 'ethereum', 'base'],
   icons: {
     icon: [
       { url: '/images/dotset-logo.png', type: 'image/png' },
@@ -22,9 +22,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-black antialiased selection:bg-black selection:text-white min-h-screen flex flex-col">
+      <body className="bg-[#080808] text-[#f0f0f0] antialiased selection:bg-[#4f52c8] selection:text-white min-h-screen flex flex-col font-dm relative">
+        {/* Ambient Grid and Glow matching CloudQuest */}
+        <div className="amb-grid" />
+        <div className="amb-glow" />
+        
         <Providers>
-          {children}
+          <div className="relative z-10 flex flex-col min-h-screen">
+            {children}
+          </div>
         </Providers>
       </body>
     </html>
