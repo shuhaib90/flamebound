@@ -1,25 +1,23 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { RaffleCard } from '@/components/RaffleCard';
-import { RaffleModal } from '@/components/RaffleModal';
 import { HowItWorks } from '@/components/HowItWorks';
 import { WinnersSection } from '@/components/WinnersSection';
 import { Footer } from '@/components/Footer';
 import { Raffle } from '@/lib/types';
-import { PixelFlame } from '@/components/PixelFlame';
-import { Sparkles, Flame, RefreshCw, Filter } from 'lucide-react';
+import { Sparkles, Filter, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const router = useRouter();
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRaffle, setSelectedRaffle] = useState<Raffle | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'live' | 'closed'>('all');
+  const [stageFilter, setStageFilter] = useState<'all' | 'live' | 'fcfs' | 'gtd' | 'closed'>('all');
+  const [networkFilter, setNetworkFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchRaffles = async () => {
     try {
@@ -40,42 +38,32 @@ export default function HomePage() {
     fetchRaffles();
   }, []);
 
-  // Handle direct share deep-linking ?raffle=raffleId
-  useEffect(() => {
-    if (typeof window !== 'undefined' && raffles.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const raffleId = params.get('raffle');
-      if (raffleId) {
-        const found = raffles.find(r => r.id === raffleId);
-        if (found) {
-          setSelectedRaffle(found);
-          setIsModalOpen(true);
-          setTimeout(() => {
-            const el = document.getElementById(`raffle-${raffleId}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 300);
-        }
-      }
-    }
-  }, [raffles]);
-
-  const handleOpenRaffle = (raffle: Raffle) => {
-    setSelectedRaffle(raffle);
-    setIsModalOpen(true);
-  };
-
-  const handleEditRaffle = (raffle: Raffle) => {
-    router.push('/admin');
-  };
-
   const filteredRaffles = raffles.filter(r => {
-    if (filter === 'live') return r.status === 'live' || r.status === 'ending_soon';
-    if (filter === 'closed') return r.status === 'closed' || r.status === 'winners_drawn';
+    const isLive = r.status === 'live' || r.status === 'ending_soon';
+    const mintStage = r.mintStage || (r.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
+
+    if (stageFilter === 'live' && !isLive) return false;
+    if (stageFilter === 'closed' && isLive) return false;
+    if (stageFilter === 'fcfs' && mintStage !== 'FCFS') return false;
+    if (stageFilter === 'gtd' && mintStage !== 'GTD') return false;
+
+    if (networkFilter !== 'all') {
+      const net = (r.customNetwork || r.network || '').toLowerCase();
+      if (!net.includes(networkFilter.toLowerCase())) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (r.title || '').toLowerCase().includes(q);
+      const matchProject = (r.project || '').toLowerCase().includes(q);
+      if (!matchTitle && !matchProject) return false;
+    }
+
     return true;
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-lime">
+    <div className="min-h-screen flex flex-col bg-white selection:bg-black selection:text-white">
       {/* Fixed/Top Pixel Navigation Bar */}
       <Header />
 
@@ -85,83 +73,134 @@ export default function HomePage() {
       {/* Main Content Area */}
       <main className="flex-1">
         
-        {/* LIVE RAFFLES SECTION */}
-        <section id="active-raffles" className="py-16 md:py-24 border-b-4 border-black select-none">
+        {/* LIVE RAFFLES DIRECTORY */}
+        <section id="active-raffles" className="py-12 sm:py-16 border-b-3 border-black select-none bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            {/* Section Header with Tabs */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between border-b-4 border-black pb-4 mb-8 gap-4">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between border-b-3 border-black pb-4 mb-6 gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Flame size={20} className="text-black fill-black" />
-                  <span className="font-pixel text-xs bg-black text-lime px-2 py-0.5 uppercase font-bold">
-                    ACTIVE ALLOCATIONS
+                  <span className="font-pixel text-[9px] bg-black text-white px-2 py-0.5 uppercase font-bold">
+                    VERIFIED DIRECTORY
+                  </span>
+                  <span className="font-pixel text-[9px] border border-black px-2 py-0.5 uppercase font-bold text-gray-700">
+                    {filteredRaffles.length} RAFFLE{filteredRaffles.length !== 1 ? 'S' : ''}
                   </span>
                 </div>
-                <h2 className="font-pixel text-2xl sm:text-4xl md:text-5xl text-black font-extrabold uppercase tracking-tight">
-                  LIVE RAFFLES
+                <h2 className="font-pixel text-xl sm:text-3xl md:text-4xl text-black font-extrabold uppercase tracking-tight">
+                  ACTIVE RAFFLES & DROPS
                 </h2>
               </div>
 
-              {/* Filter Tabs */}
-              <div className="flex items-center gap-2 font-pixel text-[10px]">
+              {/* Search Bar */}
+              <div className="w-full md:w-72 relative">
+                <input
+                  type="text"
+                  placeholder="Search project name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white border-2 border-black p-2 pl-8 font-mono text-xs text-black font-bold outline-none shadow-pixel-xs"
+                />
+                <Search size={14} className="absolute left-2.5 top-3 text-gray-500" />
+              </div>
+            </div>
+
+            {/* EmperorJournals-Style Filter Pills */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+              
+              {/* Stage Filter Buttons */}
+              <div className="flex flex-wrap gap-1.5 font-pixel text-[9px] font-bold uppercase">
                 <button
-                  onClick={() => setFilter('all')}
-                  className={`px-3 py-2 border-3 border-black uppercase font-bold transition-all ${
-                    filter === 'all' ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+                  onClick={() => setStageFilter('all')}
+                  className={`px-3 py-2 border-2 border-black transition-all ${
+                    stageFilter === 'all' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-gray-100'
                   }`}
                 >
-                  ALL ({raffles.length})
+                  [ALL ({raffles.length})]
                 </button>
                 <button
-                  onClick={() => setFilter('live')}
-                  className={`px-3 py-2 border-3 border-black uppercase font-bold transition-all ${
-                    filter === 'live' ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+                  onClick={() => setStageFilter('live')}
+                  className={`px-3 py-2 border-2 border-black transition-all ${
+                    stageFilter === 'live' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-gray-100'
                   }`}
                 >
-                  ■ LIVE ONLY
+                  ● LIVE NOW
                 </button>
                 <button
-                  onClick={() => setFilter('closed')}
-                  className={`px-3 py-2 border-3 border-black uppercase font-bold transition-all ${
-                    filter === 'closed' ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+                  onClick={() => setStageFilter('fcfs')}
+                  className={`px-3 py-2 border-2 border-black transition-all ${
+                    stageFilter === 'fcfs' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-gray-100'
+                  }`}
+                >
+                  [FCFS]
+                </button>
+                <button
+                  onClick={() => setStageFilter('gtd')}
+                  className={`px-3 py-2 border-2 border-black transition-all ${
+                    stageFilter === 'gtd' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-gray-100'
+                  }`}
+                >
+                  [GTD]
+                </button>
+                <button
+                  onClick={() => setStageFilter('closed')}
+                  className={`px-3 py-2 border-2 border-black transition-all ${
+                    stageFilter === 'closed' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-gray-100'
                   }`}
                 >
                   CLOSED
                 </button>
               </div>
+
+              {/* Network Pills */}
+              <div className="flex flex-wrap gap-1 font-mono text-xs font-bold">
+                {['all', 'robinhood', 'ethereum', 'base', 'polygon'].map((net) => (
+                  <button
+                    key={net}
+                    onClick={() => setNetworkFilter(net)}
+                    className={`px-2.5 py-1.5 border-2 border-black text-[10px] uppercase font-bold transition-colors ${
+                      networkFilter === net ? 'bg-black text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {net === 'all' ? 'ALL NETWORKS' : net}
+                  </button>
+                ))}
+              </div>
+
             </div>
 
             {/* Raffles Grid */}
             {loading ? (
-              <div className="bg-white border-4 border-black p-12 text-center shadow-pixel-lg">
-                <div className="animate-spin inline-block mb-3">
-                  <PixelFlame size={32} />
-                </div>
-                <p className="font-pixel text-xs text-black uppercase">
-                  FETCHING LIVE WHITELIST RAFFLES...
+              <div className="bg-white border-3 border-black p-12 text-center shadow-pixel space-y-3">
+                <span className="w-4 h-4 border-2 border-black border-t-transparent animate-spin inline-block" />
+                <p className="font-pixel text-xs text-black uppercase font-bold">
+                  FETCHING VERIFIED RAFFLES...
                 </p>
               </div>
             ) : filteredRaffles.length === 0 ? (
-              <div className="bg-white border-4 border-black p-12 text-center shadow-pixel-lg space-y-3">
-                <p className="font-pixel text-sm text-black uppercase font-bold">
+              <div className="bg-white border-3 border-black p-12 text-center shadow-pixel space-y-4">
+                <p className="font-pixel text-xs text-black uppercase font-bold">
                   NO ACTIVE RAFFLES MATCHING FILTER.
                 </p>
                 <button
-                  onClick={() => setFilter('all')}
-                  className="pixel-btn text-xs py-2 px-4 shadow-pixel"
+                  onClick={() => {
+                    setStageFilter('all');
+                    setNetworkFilter('all');
+                    setSearchQuery('');
+                  }}
+                  className="pixel-btn text-xs py-2.5 px-4 shadow-pixel"
                 >
-                  VIEW ALL RAFFLES
+                  RESET FILTERS
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredRaffles.map((raffle) => (
                   <RaffleCard
                     key={raffle.id}
                     raffle={raffle}
-                    onEnter={handleOpenRaffle}
-                    onEdit={handleEditRaffle}
+                    onEdit={() => router.push('/admin')}
                   />
                 ))}
               </div>
@@ -180,16 +219,6 @@ export default function HomePage() {
 
       {/* Footer */}
       <Footer />
-
-      {/* Interactive Raffle Modal */}
-      <RaffleModal
-        raffle={selectedRaffle}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          fetchRaffles();
-        }}
-      />
     </div>
   );
 }

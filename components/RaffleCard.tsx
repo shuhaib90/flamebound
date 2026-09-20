@@ -1,8 +1,7 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Raffle } from '@/lib/types';
 import { PixelArtwork } from './PixelArtworks';
 import { useWallet } from '@/lib/wallet-context';
@@ -13,7 +12,7 @@ import {
   Check, 
   Edit3,
   Clock,
-  Flame
+  Sparkles
 } from 'lucide-react';
 
 interface RaffleCardProps {
@@ -23,7 +22,6 @@ interface RaffleCardProps {
 }
 
 export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
-  const router = useRouter();
   const { isAdmin } = useWallet();
   const [copiedShare, setCopiedShare] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{
@@ -85,168 +83,139 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
     e.stopPropagation();
     const shortUrl = getShortUrl();
     const roleType = raffle.eligibility === 'public' ? 'Public' : raffle.eligibility === 'holders_only' ? 'Holders' : 'Minters';
-    const text = `${raffle.title}\n[STAGE: ${mintStage}] • ${raffle.supply} SPOTS (${roleType})\n\nEnter now:`;
+    const text = `DOTSET X ${raffle.project || raffle.title}\n[STAGE: ${mintStage}] • ${raffle.supply} SPOTS (${roleType})\n\nEnter now:`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shortUrl)}`;
     window.open(tweetUrl, '_blank');
   };
 
+  // Format countdown like EmperorJournals (e.g. "17h 51m left" or "2d 14h left")
+  const formatCountdown = () => {
+    if (timeLeft.isEnded || !isLive) return 'Ended';
+    if (timeLeft.days > 0) return `${timeLeft.days}d ${timeLeft.hours}h left`;
+    if (timeLeft.hours > 0) return `${timeLeft.hours}h ${timeLeft.minutes}m left`;
+    return `${timeLeft.minutes}m ${timeLeft.seconds}s left`;
+  };
+
+  const collaboratorTitle = raffle.project && !raffle.title.toLowerCase().includes(raffle.project.toLowerCase())
+    ? `DOTSET X ${raffle.project.toUpperCase()}`
+    : raffle.title.toUpperCase();
+
   return (
     <div 
       id={`raffle-${raffle.id}`}
-      className="bg-white border-3 sm:border-4 border-black shadow-pixel sm:shadow-pixel-lg flex flex-col justify-between transition-transform duration-150 hover:-translate-y-1 hover:shadow-pixel-xl select-none scroll-mt-28 group"
+      className="bg-white border-2 sm:border-3 border-black shadow-pixel flex flex-col justify-between transition-all duration-150 hover:-translate-y-1 hover:shadow-pixel-lg select-none scroll-mt-28 group"
     >
       <div>
-        {/* Card Header Bar */}
-        <div className="bg-black text-lime px-3 sm:px-4 py-2 flex items-center justify-between border-b-3 sm:border-b-4 border-black">
-          <div className="flex items-center gap-2 truncate">
-            {raffle.logoUrl ? (
-              <img
-                src={raffle.logoUrl}
-                alt={raffle.project}
-                className="w-5 h-5 object-contain shrink-0"
-              />
-            ) : (
-              <span className="w-2 h-2 bg-lime inline-block" />
-            )}
-            <span className="font-pixel text-[10px] sm:text-[11px] text-white tracking-wide truncate uppercase font-bold">
-              {raffle.project || 'FLAMEBOUND'}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Mint Stage Badge: GTD / FCFS / WL / CUSTOM */}
-            <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 border border-black font-bold tracking-wider ${
-              mintStage === 'GTD'
-                ? 'bg-lime text-black shadow-pixel-xs'
-                : mintStage === 'FCFS'
-                ? 'bg-amber-400 text-black shadow-pixel-xs'
-                : mintStage === 'CUSTOM'
-                ? 'bg-purple-600 text-white shadow-pixel-xs'
-                : 'bg-white text-black'
-            }`}>
-              [{mintStage}]
-            </span>
-
-            {/* Eligibility Badge */}
-            <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-1.5 py-0.5 border border-white/40 font-bold">
-              {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS]' : '[MINTERS]'}
-            </span>
-
-            {/* Live Indicator */}
-            <span className={`font-pixel text-[8px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 border border-black font-bold ${
-              isLive ? 'bg-lime text-black animate-pulse' : 'bg-red-600 text-white'
-            }`}>
-              {isLive ? '● LIVE' : 'CLOSED'}
-            </span>
-          </div>
-        </div>
-
-        {/* Artwork Image Banner with Direct Link */}
-        <Link href={rafflePageUrl} className="block relative border-b-3 sm:border-b-4 border-black bg-black flex items-center justify-center overflow-hidden h-40 sm:h-44 cursor-pointer">
+        {/* Artwork Image Banner (EmperorJournals style with overlay badges) */}
+        <Link 
+          href={rafflePageUrl} 
+          className="block relative border-b-2 sm:border-b-3 border-black bg-black flex items-center justify-center overflow-hidden h-44 sm:h-48 cursor-pointer"
+        >
           <PixelArtwork
             type={raffle.artworkType}
             bannerUrl={raffle.bannerUrl}
             logoUrl={raffle.logoUrl}
-            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           
-          <div className="absolute top-2 right-2 bg-black/90 border border-lime px-2 py-0.5 text-lime font-pixel text-[8px] sm:text-[9px] font-bold shadow-pixel-xs">
-            [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
+          {/* Top-Left: Network & Stage Pills */}
+          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
+            <span className="bg-black/90 text-white font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-white/40 font-bold uppercase shadow-pixel-xs">
+              {raffle.customNetwork || raffle.network || 'ROBINHOOD'}
+            </span>
+            <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold uppercase shadow-pixel-xs ${
+              mintStage === 'GTD' 
+                ? 'bg-white text-black' 
+                : mintStage === 'FCFS' 
+                ? 'bg-black text-white' 
+                : 'bg-white text-black'
+            }`}>
+              [{mintStage}]
+            </span>
           </div>
 
-          <div className={`absolute top-2 left-2 px-2 py-0.5 font-pixel text-[8px] sm:text-[9px] font-bold shadow-pixel-xs border border-black ${
-            mintStage === 'GTD' 
-              ? 'bg-lime text-black' 
-              : mintStage === 'FCFS' 
-              ? 'bg-amber-400 text-black' 
-              : mintStage === 'CUSTOM'
-              ? 'bg-purple-600 text-white'
-              : 'bg-white text-black'
-          }`}>
-            STAGE: {mintStage}
+          {/* Top-Right: Live / Closed Status */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+            <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold uppercase shadow-pixel-xs ${
+              isLive ? 'bg-white text-black animate-pulse' : 'bg-red-600 text-white'
+            }`}>
+              {isLive ? '● LIVE' : 'CLOSED'}
+            </span>
           </div>
 
-          {raffle.notes && (
-            <div className="absolute bottom-2 left-2 bg-black/90 text-lime font-mono text-[9px] sm:text-[10px] px-2 py-0.5 border border-lime truncate max-w-[90%] font-bold">
-              {raffle.notes}
-            </div>
-          )}
+          {/* Bottom Banner Tag: Eligibility */}
+          <div className="absolute bottom-2 left-2.5 bg-black/90 text-white font-pixel text-[8px] px-2 py-0.5 border border-white/30 truncate max-w-[85%] font-bold">
+            {raffle.eligibility === 'public' ? 'OPEN TO ALL' : raffle.eligibility === 'holders_only' ? 'DOTSET HOLDERS ONLY' : 'DOTSET MINTERS ONLY'}
+          </div>
         </Link>
 
-        {/* Highlighted Specs Only */}
-        <div className="p-3 sm:p-4 space-y-3">
+        {/* Card Details */}
+        <div className="p-3.5 sm:p-4 space-y-3">
+          
+          {/* Project Title */}
           <div>
             <Link href={rafflePageUrl}>
-              <h3 className="font-pixel text-sm sm:text-base font-bold text-black uppercase tracking-tight line-clamp-1 hover:text-gray-700 transition-colors">
-                {raffle.title}
+              <h3 className="font-pixel text-xs sm:text-sm font-bold text-black uppercase tracking-tight line-clamp-1 hover:underline">
+                {collaboratorTitle}
               </h3>
             </Link>
-          </div>
-
-          {/* Compact 2x2 Highlights Badge Grid */}
-          <div className="grid grid-cols-2 gap-1.5 bg-lime/15 border-2 sm:border-3 border-black p-2.5 font-mono text-xs">
-            <div>
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">
-                {mintStage === 'FCFS' ? 'FCFS SPOTS:' : 'WL SPOTS:'}
-              </span>
-              <span className="font-pixel text-[11px] text-black font-bold mt-0.5 block">{raffle.supply} SPOTS</span>
-            </div>
-
-            <div>
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">MINT PRICE:</span>
-              <span className="font-mono text-xs font-bold text-black mt-0.5 block truncate">
-                {raffle.mintPrice || 'FREE'}
-              </span>
-            </div>
-
-            <div className="pt-1 border-t border-black/15">
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">
-                {mintStage === 'FCFS' ? 'CLAIMED:' : 'ENTRIES:'}
-              </span>
-              <span className="font-pixel text-[10px] text-black font-bold mt-0.5 block">
-                {raffle.entryMethod === 'fcfs' 
-                  ? `${raffle.totalEntries} / ${raffle.supply} CLAIMED` 
-                  : `${raffle.totalEntries} ENTRIES`}
-              </span>
-            </div>
-
-            <div className="pt-1 border-t border-black/15">
-              <span className="text-[8px] font-pixel text-gray-700 block font-bold">MINT STAGE:</span>
-              <span className="font-mono text-[10px] font-bold text-black mt-0.5 block truncate">
-                [{mintStage}] • {raffle.eligibility === 'public' ? 'OPEN' : raffle.eligibility === 'holders_only' ? 'HOLDERS' : 'MINTERS'}
-              </span>
-            </div>
-          </div>
-
-          {/* Compact Countdown Bar */}
-          <div className="bg-black text-lime px-2.5 py-1.5 border-2 border-black flex items-center justify-between text-[9px] font-pixel font-bold shadow-pixel-xs">
-            <span className="text-white flex items-center gap-1">
-              <Clock size={11} className="text-lime" />
-              <span>ENDS:</span>
-            </span>
-            {isLive ? (
-              <span className="text-lime tracking-wide">
-                {String(timeLeft.days).padStart(2, '0')}D : {String(timeLeft.hours).padStart(2, '0')}H : {String(timeLeft.minutes).padStart(2, '0')}M : {String(timeLeft.seconds).padStart(2, '0')}S
-              </span>
-            ) : (
-              <span className="text-red-400">CLOSED</span>
+            {raffle.subtitle && (
+              <p className="font-mono text-[11px] text-gray-600 truncate mt-0.5 font-bold">
+                {raffle.subtitle}
+              </p>
             )}
           </div>
+
+          {/* EmperorJournals 3-Box Stats Matrix */}
+          <div className="grid grid-cols-3 gap-1.5 bg-gray-50 border-2 border-black p-2 font-mono text-center">
+            
+            {/* Ends In */}
+            <div className="p-1 border-r border-black/20">
+              <span className="text-[8px] font-pixel text-gray-600 block uppercase font-bold">ENDS IN</span>
+              <span className="font-mono text-[11px] text-black font-bold mt-0.5 block truncate">
+                {formatCountdown()}
+              </span>
+            </div>
+
+            {/* Entries */}
+            <div className="p-1 border-r border-black/20">
+              <span className="text-[8px] font-pixel text-gray-600 block uppercase font-bold">ENTRIES</span>
+              <span className="font-mono text-[11px] text-black font-bold mt-0.5 block truncate">
+                {raffle.totalEntries || 0}
+              </span>
+            </div>
+
+            {/* Spots */}
+            <div className="p-1">
+              <span className="text-[8px] font-pixel text-gray-600 block uppercase font-bold">SPOTS</span>
+              <span className="font-pixel text-[10px] text-black font-bold mt-0.5 block truncate">
+                {raffle.supply}
+              </span>
+            </div>
+
+          </div>
+
+          {/* Mint Price & Stage Row */}
+          <div className="flex justify-between items-center text-[11px] font-mono px-1 font-bold text-gray-700">
+            <span>MINT PRICE: <strong className="text-black">{raffle.mintPrice || 'FREE'}</strong></span>
+            <span>DATE: <strong className="text-black">{raffle.mintDate || 'TBA'}</strong></span>
+          </div>
+
         </div>
       </div>
 
-      {/* Action Buttons: Open Full Page + Share + Twitter */}
-      <div className="p-3 sm:p-4 pt-0 space-y-2">
+      {/* Action Buttons */}
+      <div className="p-3.5 sm:p-4 pt-0 space-y-2">
         <div className="flex gap-2">
-          {/* Main Enter CTA (Navigates to Full Page) */}
+          {/* Main CTA */}
           <Link
             href={rafflePageUrl}
-            className={`flex-1 text-[10px] sm:text-xs py-2.5 sm:py-3 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 text-[10px] sm:text-xs py-2.5 sm:py-3 flex items-center justify-center gap-1.5 transition-all ${
               isLive
                 ? (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
-                  ? 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed font-pixel text-[9px]'
-                  : 'pixel-btn shadow-pixel hover:bg-black/90'
-                : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed font-pixel text-[9px] sm:text-[10px]'
+                  ? 'bg-gray-200 text-gray-600 border-2 border-black cursor-not-allowed font-pixel text-[9px]'
+                  : 'pixel-btn shadow-pixel'
+                : 'bg-gray-200 text-gray-600 border-2 border-black cursor-not-allowed font-pixel text-[9px]'
             }`}
           >
             <span>
@@ -265,26 +234,26 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           <button
             type="button"
             onClick={handleShare}
-            className="w-10 sm:w-11 bg-white text-black hover:bg-black hover:text-lime border-2 sm:border-3 border-black flex items-center justify-center shadow-pixel transition-colors shrink-0"
+            className="w-10 sm:w-11 bg-white text-black hover:bg-black hover:text-white border-2 border-black flex items-center justify-center shadow-pixel transition-colors shrink-0"
             title="Copy Raffle Link"
             aria-label="Copy Raffle Link"
           >
-            {copiedShare ? <Check size={16} className="text-black" /> : <Share2 size={16} />}
+            {copiedShare ? <Check size={15} /> : <Share2 size={15} />}
           </button>
 
           {/* Twitter SVG Icon */}
           <button
             type="button"
             onClick={handleTwitterShare}
-            className="w-10 sm:w-11 bg-black text-lime hover:bg-white hover:text-black border-2 sm:border-3 border-black flex items-center justify-center shadow-pixel transition-colors shrink-0"
+            className="w-10 sm:w-11 bg-white text-black hover:bg-black hover:text-white border-2 border-black flex items-center justify-center shadow-pixel transition-colors shrink-0"
             title="Share on X"
             aria-label="Share on X"
           >
-            <Twitter size={16} />
+            <Twitter size={15} />
           </button>
         </div>
 
-        {/* If Admin connected, show direct card editing button */}
+        {/* Admin Quick Edit Button */}
         {isAdmin && onEdit && (
           <button
             onClick={() => onEdit(raffle)}

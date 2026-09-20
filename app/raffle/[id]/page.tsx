@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -148,7 +148,7 @@ export default function SingleRafflePage() {
       setError(null);
     } else if (holderStatus && !holderStatus.isHolder && isConnected) {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      const role = raffle?.eligibility === 'holders_only' ? 'Flamebound NFT holder' : 'Flamebound minter';
+      const role = raffle?.eligibility === 'holders_only' ? 'DOTSET NFT holder' : 'DOTSET minter';
       setError(holderStatus.message || `Your wallet is not a verified ${role}.`);
     }
   }, [holderStatus, isConnected, raffle]);
@@ -177,7 +177,7 @@ export default function SingleRafflePage() {
     return () => clearInterval(timer);
   }, [raffle?.endDate]);
 
-  const projectName = raffle?.project || 'FLAMEBOUND';
+  const projectName = raffle?.project || 'DOTSET';
   const isLive = raffle?.status === 'live' && !timeLeft.isEnded;
 
   const handleSaveHandle = (e: React.FormEvent) => {
@@ -220,7 +220,7 @@ export default function SingleRafflePage() {
       setError(null);
     } else {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(res?.message || 'Your wallet does not currently hold a Flamebound NFT.');
+      setError(res?.message || 'Your wallet does not currently hold a DOTSET NFT.');
     }
   };
 
@@ -314,7 +314,7 @@ export default function SingleRafflePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-lime selection:bg-black selection:text-lime">
+    <div className="min-h-screen flex flex-col bg-white selection:bg-black selection:text-white">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
@@ -341,7 +341,7 @@ export default function SingleRafflePage() {
 
             <button
               onClick={handleTwitterShare}
-              className="bg-black text-lime hover:bg-black/90 p-2 sm:px-3 sm:py-2 border-3 border-black flex items-center gap-1.5 shadow-pixel-sm"
+              className="bg-black text-white hover:bg-black/90 p-2 sm:px-3 sm:py-2 border-3 border-black flex items-center gap-1.5 shadow-pixel-sm"
               title="Tweet on X"
             >
               <Twitter size={14} />
@@ -381,12 +381,12 @@ export default function SingleRafflePage() {
               <div className="bg-white border-3 sm:border-4 border-black shadow-pixel-lg overflow-hidden">
                 
                 {/* Header Bar */}
-                <div className="bg-black text-lime px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between border-b-3 sm:border-b-4 border-black">
+                <div className="bg-black text-white px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between border-b-3 sm:border-b-4 border-black">
                   <div className="flex items-center gap-2 truncate">
                     {raffle.logoUrl ? (
                       <img src={raffle.logoUrl} alt={projectName} className="w-6 h-6 object-contain shrink-0" />
                     ) : (
-                      <img src="/images/flamebound-logo.png" alt="Flamebound" className="w-6 h-6 object-contain shrink-0" />
+                      <img src="/images/dotset-logo.png" alt="Flamebound" className="w-6 h-6 object-contain shrink-0" />
                     )}
                     <span className="font-pixel text-xs text-white font-bold tracking-wide uppercase truncate">
                       {projectName}
@@ -396,7 +396,7 @@ export default function SingleRafflePage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold tracking-wider ${
                       mintStage === 'GTD'
-                        ? 'bg-lime text-black shadow-pixel-xs'
+                        ? 'bg-white text-black shadow-pixel-xs'
                         : mintStage === 'FCFS'
                         ? 'bg-amber-400 text-black shadow-pixel-xs'
                         : mintStage === 'CUSTOM'
@@ -408,7 +408,7 @@ export default function SingleRafflePage() {
                     <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-2 py-0.5 border border-white/40 font-bold">
                       {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS]' : '[MINTERS]'}
                     </span>
-                    <span className={'font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ' + (isLive ? 'bg-lime text-black animate-pulse' : 'bg-red-600 text-white')}>
+                    <span className={'font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ' + (isLive ? 'bg-white text-black animate-pulse' : 'bg-red-600 text-white')}>
                       {isLive ? '● LIVE' : 'CLOSED'}
                     </span>
                   </div>
@@ -422,12 +422,12 @@ export default function SingleRafflePage() {
                     logoUrl={raffle.logoUrl}
                     className="w-full h-full"
                   />
-                  <div className="absolute top-3 right-3 bg-black/90 border-2 border-lime px-2 py-1 text-lime font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-sm">
+                  <div className="absolute top-3 right-3 bg-black/90 border-2 border-white px-2 py-1 text-white font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-sm">
                     [{raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}]
                   </div>
                   <div className={`absolute top-3 left-3 px-2.5 py-1 font-pixel text-[9px] sm:text-[10px] font-bold shadow-pixel-sm border border-black ${
                     mintStage === 'GTD'
-                      ? 'bg-lime text-black'
+                      ? 'bg-white text-black'
                       : mintStage === 'FCFS'
                       ? 'bg-amber-400 text-black'
                       : mintStage === 'CUSTOM'
@@ -450,7 +450,7 @@ export default function SingleRafflePage() {
                   </div>
 
                   {raffle.notes && (
-                    <div className="bg-lime/20 border-2 sm:border-3 border-black p-3 font-mono text-xs font-bold text-black flex items-center gap-2">
+                    <div className="bg-gray-100 border-2 sm:border-3 border-black p-3 font-mono text-xs font-bold text-black flex items-center gap-2">
                       <Sparkles size={16} className="text-black shrink-0" />
                       <span>{raffle.notes}</span>
                     </div>
@@ -472,7 +472,7 @@ export default function SingleRafflePage() {
                       </div>
                       <div>
                         <span className="text-[8px] sm:text-[9px] font-pixel text-gray-600 block font-bold">MINT PRICE:</span>
-                        <span className="font-bold text-black text-xs bg-lime/30 px-1 py-0.5 border border-black inline-block mt-0.5">
+                        <span className="font-bold text-black text-xs bg-gray-100 px-1 py-0.5 border border-black inline-block mt-0.5">
                           {raffle.mintPrice || 'FREE'}
                         </span>
                       </div>
@@ -487,7 +487,7 @@ export default function SingleRafflePage() {
                         <span className="font-bold">MINT STAGE:</span>
                         <span className={`font-pixel text-[10px] font-bold px-2 py-0.5 border border-black ${
                           mintStage === 'GTD' 
-                            ? 'bg-lime text-black' 
+                            ? 'bg-white text-black' 
                             : mintStage === 'FCFS' 
                             ? 'bg-amber-400 text-black' 
                             : mintStage === 'CUSTOM'
@@ -504,15 +504,15 @@ export default function SingleRafflePage() {
                       <div className="flex justify-between items-center text-gray-800">
                         <span className="font-bold">ELIGIBILITY:</span>
                         <span className="font-bold text-black">
-                          {raffle.eligibility === 'public' ? 'OPEN TO ALL (PUBLIC)' : raffle.eligibility === 'holders_only' ? 'FLAMEBOUND HOLDERS ONLY' : 'FLAMEBOUND MINTERS ONLY'}
+                          {raffle.eligibility === 'public' ? 'OPEN TO ALL (PUBLIC)' : raffle.eligibility === 'holders_only' ? 'DOTSET HOLDERS ONLY' : 'DOTSET MINTERS ONLY'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-800">
                         <span className="font-bold">HOLDER BOOST:</span>
                         <Link 
                           href="/how-it-works"
-                          className="font-pixel text-[9px] font-bold px-2 py-0.5 border border-black bg-lime text-black hover:bg-black hover:text-lime transition-colors"
-                          title="View Flamebound Multiplier Rules"
+                          className="font-pixel text-[9px] font-bold px-2 py-0.5 border border-black bg-white text-black hover:bg-black hover:text-white transition-colors"
+                          title="View DOTSET Multiplier Rules"
                         >
                           [1x - 50x • 100% GTD ↗]
                         </Link>
@@ -527,29 +527,29 @@ export default function SingleRafflePage() {
                   </div>
 
                   {/* 4-Box Pixel Countdown Clock */}
-                  <div className="bg-black text-lime p-3.5 sm:p-4 border-3 sm:border-4 border-black shadow-pixel space-y-2.5 sm:space-y-3">
-                    <div className="flex items-center justify-between font-pixel text-[9px] sm:text-[10px] border-b border-lime/30 pb-2 font-bold">
+                  <div className="bg-black text-white p-3.5 sm:p-4 border-3 sm:border-4 border-black shadow-pixel space-y-2.5 sm:space-y-3">
+                    <div className="flex items-center justify-between font-pixel text-[9px] sm:text-[10px] border-b border-white/30 pb-2 font-bold">
                       <span className="text-white">RAFFLE DEADLINE:</span>
-                      <span className="text-lime">
+                      <span className="text-white">
                         {new Date(raffle.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
 
                     {isLive ? (
                       <div className="grid grid-cols-4 gap-2 text-center">
-                        <div className="bg-lime text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
+                        <div className="bg-white text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
                           <span className="font-pixel text-sm sm:text-lg font-bold block">{String(timeLeft.days).padStart(2, '0')}</span>
                           <span className="font-pixel text-[7px] sm:text-[8px] block font-bold text-black/80">DAYS</span>
                         </div>
-                        <div className="bg-lime text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
+                        <div className="bg-white text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
                           <span className="font-pixel text-sm sm:text-lg font-bold block">{String(timeLeft.hours).padStart(2, '0')}</span>
                           <span className="font-pixel text-[7px] sm:text-[8px] block font-bold text-black/80">HRS</span>
                         </div>
-                        <div className="bg-lime text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
+                        <div className="bg-white text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
                           <span className="font-pixel text-sm sm:text-lg font-bold block">{String(timeLeft.minutes).padStart(2, '0')}</span>
                           <span className="font-pixel text-[7px] sm:text-[8px] block font-bold text-black/80">MIN</span>
                         </div>
-                        <div className="bg-lime text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
+                        <div className="bg-white text-black p-1.5 sm:p-2 border-2 border-black shadow-pixel-xs">
                           <span className="font-pixel text-sm sm:text-lg font-bold block">{String(timeLeft.seconds).padStart(2, '0')}</span>
                           <span className="font-pixel text-[7px] sm:text-[8px] block font-bold text-black/80">SEC</span>
                         </div>
@@ -589,8 +589,8 @@ export default function SingleRafflePage() {
                 {/* SUCCESS RECEIPT STATE */}
                 {entryReceipt ? (
                   <div className="space-y-4 py-2">
-                    <div className="bg-lime border-3 sm:border-4 border-black p-4 sm:p-5 text-center space-y-2.5 shadow-pixel">
-                      <div className="inline-block p-2 bg-black text-lime mb-1">
+                    <div className="bg-black border-3 sm:border-4 border-black p-4 sm:p-5 text-center space-y-2.5 shadow-pixel">
+                      <div className="inline-block p-2 bg-black text-white mb-1">
                         <CheckCircle size={30} />
                       </div>
                       <h3 className="font-pixel text-sm sm:text-base font-bold text-black uppercase">
@@ -604,11 +604,11 @@ export default function SingleRafflePage() {
                     </div>
 
                     {/* Receipt Specs Card */}
-                    <div className="bg-black text-lime border-3 sm:border-4 border-black p-3.5 sm:p-4 space-y-2.5 shadow-pixel-sm">
-                      <div className="flex items-center justify-between border-b-2 border-lime/30 pb-2">
+                    <div className="bg-black text-white border-3 sm:border-4 border-black p-3.5 sm:p-4 space-y-2.5 shadow-pixel-sm">
+                      <div className="flex items-center justify-between border-b-2 border-white/30 pb-2">
                         <span className="font-pixel text-[9px] sm:text-[10px] text-white">TICKET ID:</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-pixel text-xs sm:text-sm font-bold text-lime tracking-wider select-all">
+                          <span className="font-pixel text-xs sm:text-sm font-bold text-white tracking-wider select-all">
                             {entryReceipt.id}
                           </span>
                           <button
@@ -617,7 +617,7 @@ export default function SingleRafflePage() {
                               setCopiedReceipt(true);
                               setTimeout(() => setCopiedReceipt(false), 2000);
                             }}
-                            className="p-1 bg-lime text-black border border-black hover:bg-white transition-colors"
+                            className="p-1 bg-white text-black border border-black hover:bg-white transition-colors"
                             title="Copy Ticket ID"
                           >
                             {copiedReceipt ? <Check size={13} /> : <Copy size={13} />}
@@ -635,14 +635,14 @@ export default function SingleRafflePage() {
                         {raffle.eligibility !== 'public' && (
                           <div>
                             <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
-                            <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
-                              {entryReceipt.tokenBalance} Flamebound NFT(s)
+                            <span className="font-mono font-bold text-white text-[11px] sm:text-xs">
+                              {entryReceipt.tokenBalance} DOTSET NFT(s)
                             </span>
                           </div>
                         )}
                         <div>
                           <span className="text-gray-300 block text-[9px] sm:text-[10px]">DRAW WIN CHANCE:</span>
-                          <span className="font-pixel text-[11px] text-lime font-bold">
+                          <span className="font-pixel text-[11px] text-white font-bold">
                             {userTier.multiplierLabel}
                           </span>
                         </div>
@@ -650,7 +650,7 @@ export default function SingleRafflePage() {
                     </div>
 
                     {twitterHandle && (
-                      <div className="p-3 bg-lime/20 border-2 border-black flex justify-between text-xs">
+                      <div className="p-3 bg-gray-100 border-2 border-black flex justify-between text-xs">
                         <span className="text-gray-700 font-bold">X / TWITTER HANDLE:</span>
                         <span className="font-bold text-black font-mono">@{twitterHandle.replace('@', '')}</span>
                       </div>
@@ -670,17 +670,17 @@ export default function SingleRafflePage() {
                     {isConnected && address && (
                       <div className={`p-3.5 border-3 border-black shadow-pixel-sm space-y-2 ${
                         userTier.tierRank === 'TITAN_WHALE'
-                          ? 'bg-black text-lime border-lime'
+                          ? 'bg-black text-white border-white'
                           : userTier.tierRank === 'WHALE'
                           ? 'bg-black text-amber-400 border-amber-400'
                           : userTier.tierRank === 'HOLDER'
                           ? 'bg-black text-white border-white'
-                          : 'bg-lime/20 text-black'
+                          : 'bg-gray-100 text-black'
                       }`}>
                         <div className="flex items-center justify-between border-b border-current/20 pb-1.5">
                           <div className="flex items-center gap-1.5 font-pixel text-[10px] font-bold">
                             {userTier.tierRank === 'TITAN_WHALE' ? (
-                              <Crown size={15} className="text-lime fill-lime" />
+                              <Crown size={15} className="text-white fill-lime" />
                             ) : userTier.tierRank === 'WHALE' ? (
                               <Zap size={15} className="text-amber-400 fill-amber-400" />
                             ) : userTier.tierRank === 'HOLDER' ? (
@@ -695,12 +695,12 @@ export default function SingleRafflePage() {
 
                           <span className={`font-pixel text-[8px] sm:text-[9px] px-2 py-0.5 border border-black font-bold ${
                             userTier.tierRank === 'TITAN_WHALE'
-                              ? 'bg-lime text-black'
+                              ? 'bg-white text-black'
                               : userTier.tierRank === 'WHALE'
                               ? 'bg-amber-400 text-black'
                               : userTier.tierRank === 'HOLDER'
                               ? 'bg-white text-black'
-                              : 'bg-black text-lime'
+                              : 'bg-black text-white'
                           }`}>
                             [{userTier.multiplierLabel}]
                           </span>
@@ -709,12 +709,12 @@ export default function SingleRafflePage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
                           <p className="font-bold leading-relaxed">
                             {userTier.tierRank === 'TITAN_WHALE'
-                              ? `You hold ${currentBalance} Flamebound NFTs. You receive 100% Guaranteed Winner allocation!`
+                              ? `You hold ${currentBalance} DOTSET NFTs. You receive 100% Guaranteed Winner allocation!`
                               : userTier.tierRank === 'WHALE'
-                              ? `You hold ${currentBalance} Flamebound NFTs. Your win chance is boosted ${currentBalance}x (${currentBalance} draw tickets)!`
+                              ? `You hold ${currentBalance} DOTSET NFTs. Your win chance is boosted ${currentBalance}x (${currentBalance} draw tickets)!`
                               : userTier.tierRank === 'HOLDER'
-                              ? `You hold ${currentBalance} Flamebound NFT${currentBalance > 1 ? 's' : ''}. Your entry has a ${currentBalance}x win chance.`
-                              : `You hold 0 Flamebound NFTs (1x standard base chance). Hold Flamebound NFTs to boost odds up to 50x or 100% Guaranteed Win!`}
+                              ? `You hold ${currentBalance} DOTSET NFT${currentBalance > 1 ? 's' : ''}. Your entry has a ${currentBalance}x win chance.`
+                              : `You hold 0 DOTSET NFTs (1x standard base chance). Hold DOTSET NFTs to boost odds up to 50x or 100% Guaranteed Win!`}
                           </p>
 
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -747,7 +747,7 @@ export default function SingleRafflePage() {
                       </div>
                       <div className="h-3 sm:h-3.5 bg-black border-2 border-black p-0.5">
                         <div
-                          className="h-full bg-lime transition-all duration-300"
+                          className="h-full bg-black transition-all duration-300"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
@@ -767,7 +767,7 @@ export default function SingleRafflePage() {
                     <div className="space-y-2.5 pt-1">
                       
                       {/* 1. SEPARATE DEDICATED BOX: YOUR X HANDLE */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 transition-colors ' + (tasks.handleLinked ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 transition-colors ' + (tasks.handleLinked ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <AtSign size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[10px] sm:text-[11px] font-bold text-black uppercase truncate">
@@ -784,11 +784,11 @@ export default function SingleRafflePage() {
                               setTwitterHandle(e.target.value);
                               setTasks(prev => ({ ...prev, handleLinked: false }));
                             }}
-                            className="w-full sm:flex-1 bg-lime/15 border-2 border-black p-2 text-xs font-mono font-bold outline-none min-w-0"
+                            className="w-full sm:flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono font-bold outline-none min-w-0"
                           />
                           <button
                             type="submit"
-                            className={'pixel-btn text-[9px] sm:text-[10px] py-2 px-3 shrink-0 text-center ' + (tasks.handleLinked ? 'bg-black text-lime' : '')}
+                            className={'pixel-btn text-[9px] sm:text-[10px] py-2 px-3 shrink-0 text-center ' + (tasks.handleLinked ? 'bg-black text-white' : '')}
                           >
                             {tasks.handleLinked ? '✓ LINKED' : '[CONFIRM HANDLE]'}
                           </button>
@@ -796,7 +796,7 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 2. FOLLOW ( {PROJECT_NAME} ) - FIRST */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.followPartner ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.followPartner ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Twitter size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
@@ -807,7 +807,7 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleFollowPartner}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followPartner ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followPartner ? 'bg-black text-white' : '')}
                         >
                           {tasks.followPartner ? (
                             <>
@@ -825,18 +825,18 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 3. FOLLOW ( FLAMEBOUND ) - SECOND */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.followFlamebound ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.followFlamebound ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Twitter size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
-                            FOLLOW (FLAMEBOUND)
+                            FOLLOW (DOTSET)
                           </span>
                         </div>
 
                         <button
                           type="button"
                           onClick={handleFollowFlamebound}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followFlamebound ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.followFlamebound ? 'bg-black text-white' : '')}
                         >
                           {tasks.followFlamebound ? (
                             <>
@@ -846,7 +846,7 @@ export default function SingleRafflePage() {
                           ) : (
                             <>
                               <span className="sm:hidden">[FOLLOW]</span>
-                              <span className="hidden sm:inline">[FOLLOW @FLAMEBOUNDNFT]</span>
+                              <span className="hidden sm:inline">[FOLLOW @DOTSET]</span>
                               <ExternalLink size={10} />
                             </>
                           )}
@@ -854,7 +854,7 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 4. ENGAGE WITH POST */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.engage ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.engage ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <MessageSquare size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
@@ -865,7 +865,7 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleEngageTask}
-                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.engage ? 'bg-black text-lime' : '')}
+                          className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (tasks.engage ? 'bg-black text-white' : '')}
                         >
                           {tasks.engage ? (
                             <>
@@ -887,7 +887,7 @@ export default function SingleRafflePage() {
                         return (
                           <div
                             key={ct.id || idx}
-                            className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (isDone ? 'bg-lime/25' : 'bg-white')}
+                            className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (isDone ? 'bg-gray-100' : 'bg-white')}
                           >
                             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                               {ct.type === 'discord' ? (
@@ -910,7 +910,7 @@ export default function SingleRafflePage() {
                                 if (ct.url) window.open(ct.url, '_blank');
                                 setCustomTasksDone(prev => ({ ...prev, [ct.id]: true }));
                               }}
-                              className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (isDone ? 'bg-black text-lime' : '')}
+                              className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ' + (isDone ? 'bg-black text-white' : '')}
                             >
                               {isDone ? (
                                 <>
@@ -929,7 +929,7 @@ export default function SingleRafflePage() {
                       })}
 
                       {/* 6. CONNECT EVM WALLET */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.wallet ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.wallet ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Wallet size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
@@ -953,7 +953,7 @@ export default function SingleRafflePage() {
                                 );
                               }
                               return (
-                                <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold inline-block">
+                                <span className="font-pixel text-[9px] bg-black text-white px-2 py-1 border border-black font-bold inline-block">
                                   ✓ LINKED
                                 </span>
                               );
@@ -963,7 +963,7 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 7. ON-CHAIN ELIGIBILITY CHECK */}
-                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-lime/25' : 'bg-white')}>
+                      <div className={'border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ' + (tasks.holderCheck ? 'bg-gray-100' : 'bg-white')}>
                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                           <Flame size={14} className="text-black shrink-0" />
                           <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
@@ -976,7 +976,7 @@ export default function SingleRafflePage() {
                         </div>
 
                         {raffle.eligibility === 'public' ? (
-                          <span className="font-pixel text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold">
+                          <span className="font-pixel text-[9px] bg-black text-white px-2 py-1 border border-black font-bold">
                             ✓ ELIGIBLE
                           </span>
                         ) : (
@@ -984,7 +984,7 @@ export default function SingleRafflePage() {
                             type="button"
                             onClick={handleRunHolderCheck}
                             disabled={isVerifyingHolder || !isConnected}
-                            className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-lime' : '')}
+                            className={'pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1.5 shrink-0 ' + (!isConnected ? 'opacity-50 cursor-not-allowed ' : ' ') + (tasks.holderCheck ? 'bg-black text-white' : '')}
                           >
                             <span>
                               {isVerifyingHolder 
@@ -1007,7 +1007,7 @@ export default function SingleRafflePage() {
                         disabled={!allTasksCompleted || submitting || !isLive || (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)}
                         className={'w-full py-3.5 sm:py-4 font-pixel text-xs tracking-wider uppercase font-bold transition-all shadow-pixel text-center ' + (
                           allTasksCompleted && !submitting && isLive && !(raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
-                            ? 'bg-black text-lime hover:bg-black/90 cursor-pointer' 
+                            ? 'bg-black text-white hover:bg-black/90 cursor-pointer' 
                             : 'bg-gray-300 text-gray-600 border-3 border-black cursor-not-allowed opacity-75'
                         )}
                       >

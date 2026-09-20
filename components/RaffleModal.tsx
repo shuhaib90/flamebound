@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Raffle, HolderVerificationResult } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from '@/lib/blockchain';
+import { formatAddress, DOTSET_PRIMARY_CONTRACT } from '@/lib/blockchain';
 import { PixelFlame } from './PixelFlame';
 import confetti from 'canvas-confetti';
 import { 
@@ -39,7 +39,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
   const [tasks, setTasks] = useState({
     handleLinked: false,
     followPartner: false,
-    followFlamebound: false,
+    followDOTSET: false,
     engage: false,
     wallet: false,
     holderCheck: false,
@@ -74,7 +74,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
       setError(null);
     } else if (holderStatus && !holderStatus.isHolder && isConnected) {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(holderStatus.message || 'Your wallet is not a verified minter for Flamebound.');
+      setError(holderStatus.message || 'Your wallet is not a verified minter for DOTSET.');
     }
   }, [holderStatus, isConnected]);
 
@@ -92,7 +92,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
             if (parsed && parsed.id) {
               setEntryReceipt(parsed);
               if (parsed.twitterUsername) setTwitterHandle(parsed.twitterUsername);
-              setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+              setTasks({ handleLinked: true, followPartner: true, followDOTSET: true, engage: true, wallet: true, holderCheck: true });
             }
           } catch (e) {}
         }
@@ -104,7 +104,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
           if (data.success && data.userEntry) {
             setEntryReceipt(data.userEntry);
             if (data.userEntry.twitterUsername) setTwitterHandle(data.userEntry.twitterUsername);
-            setTasks({ handleLinked: true, followPartner: true, followFlamebound: true, engage: true, wallet: true, holderCheck: true });
+            setTasks({ handleLinked: true, followPartner: true, followDOTSET: true, engage: true, wallet: true, holderCheck: true });
             localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.userEntry));
           }
         } catch (e) {}
@@ -116,7 +116,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
   if (!isOpen || !raffle) return null;
 
-  const projectName = raffle.project || 'FLAMEBOUND';
+  const projectName = raffle.project || 'DOTSET';
 
   // Handle Box submission
   const handleSaveHandle = (e: React.FormEvent) => {
@@ -133,20 +133,20 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
   // Follow Partner Project (First)
   const handleFollowPartner = () => {
-    const target = raffle.followUrl || raffle.twitterUrl || 'https://x.com/FlameboundNft';
+    const target = raffle.followUrl || raffle.twitterUrl || 'https://x.com/DOTSETNft';
     window.open(target, '_blank');
     setTasks(prev => ({ ...prev, followPartner: true }));
   };
 
-  // Follow Flamebound (Second)
-  const handleFollowFlamebound = () => {
-    window.open('https://x.com/FlameboundNft', '_blank');
-    setTasks(prev => ({ ...prev, followFlamebound: true }));
+  // Follow DOTSET (Second)
+  const handleFollowDOTSET = () => {
+    window.open('https://x.com/DOTSETNft', '_blank');
+    setTasks(prev => ({ ...prev, followDOTSET: true }));
   };
 
   // Engage Task
   const handleEngageTask = () => {
-    const target = raffle.engageUrl || raffle.twitterUrl || 'https://x.com/FlameboundNft';
+    const target = raffle.engageUrl || raffle.twitterUrl || 'https://x.com/DOTSETNft';
     window.open(target, '_blank');
     setTasks(prev => ({ ...prev, engage: true }));
   };
@@ -164,7 +164,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
       setError(null);
     } else {
       setTasks(prev => ({ ...prev, holderCheck: false }));
-      setError(res?.message || 'Your wallet does not currently hold a Flamebound NFT.');
+      setError(res?.message || 'Your wallet does not currently hold a DOTSET NFT.');
     }
   };
 
@@ -237,16 +237,16 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
       <div className="bg-white border-3 sm:border-4 border-black w-full max-w-[96vw] sm:max-w-xl md:max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         
         {/* Modal Header */}
-        <div className="bg-lime border-b-3 sm:border-b-4 border-black p-3 sm:p-4 flex items-center justify-between gap-2">
+        <div className="bg-black border-b-3 sm:border-b-4 border-black p-3 sm:p-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
             {raffle.logoUrl ? (
               <img src={raffle.logoUrl} alt={projectName} className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             ) : (
-              <img src="/images/flamebound-logo.png" alt="Flamebound" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
+              <img src="/images/flamebound-logo.png" alt="DOTSET" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold uppercase truncate">
+                <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-1.5 py-0.5 font-bold uppercase truncate">
                   {projectName}
                 </span>
                 <span className="font-pixel text-[8px] sm:text-[9px] bg-white text-black px-1.5 py-0.5 border border-black font-bold">
@@ -261,7 +261,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 border-2 border-black bg-black text-lime hover:bg-white hover:text-black transition-colors shrink-0"
+            className="p-1.5 sm:p-2 border-2 border-black bg-black text-white hover:bg-white hover:text-black transition-colors shrink-0"
             aria-label="Close modal"
           >
             <X size={16} />
@@ -274,29 +274,29 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
           {/* SUCCESS RECEIPT STATE */}
           {entryReceipt ? (
             <div className="space-y-4 sm:space-y-6 py-2">
-              <div className="bg-lime border-3 sm:border-4 border-black p-4 sm:p-6 text-center space-y-2.5">
-                <div className="inline-block p-2.5 bg-black text-lime mb-1">
+              <div className="bg-black border-3 sm:border-4 border-black p-4 sm:p-6 text-center space-y-2.5">
+                <div className="inline-block p-2.5 bg-black text-white mb-1">
                   <CheckCircle size={32} />
                 </div>
                 <h3 className="font-pixel text-sm sm:text-lg font-bold text-black uppercase">
                   WHITELIST ENTRY CONFIRMED!
                 </h3>
                 <p className="font-mono text-[11px] sm:text-xs text-black font-bold max-w-md mx-auto">
-                  Your on-chain Flamebound minter status was verified. Your wallet is officially enrolled into this whitelist raffle!
+                  Your on-chain DOTSET minter status was verified. Your wallet is officially enrolled into this whitelist raffle!
                 </p>
               </div>
 
               {/* Receipt Specs Card */}
-              <div className="bg-black text-lime border-3 sm:border-4 border-black p-3.5 sm:p-5 space-y-2.5">
-                <div className="flex items-center justify-between border-b-2 border-lime/30 pb-2">
+              <div className="bg-black text-white border-3 sm:border-4 border-black p-3.5 sm:p-5 space-y-2.5">
+                <div className="flex items-center justify-between border-b-2 border-white/30 pb-2">
                   <span className="font-pixel text-[9px] sm:text-[10px] text-white">ENTRY TICKET ID:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-pixel text-xs sm:text-sm font-bold text-lime tracking-wider select-all">
+                    <span className="font-pixel text-xs sm:text-sm font-bold text-white tracking-wider select-all">
                       {entryReceipt.id}
                     </span>
                     <button
                       onClick={copyReceiptId}
-                      className="p-1 bg-lime text-black border border-black hover:bg-white transition-colors"
+                      className="p-1 bg-black text-black border border-black hover:bg-white transition-colors"
                       title="Copy Entry ID"
                     >
                       {copied ? <Check size={13} /> : <Copy size={13} />}
@@ -313,14 +313,14 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   </div>
                   <div>
                     <span className="text-gray-300 block text-[9px] sm:text-[10px]">VERIFIED MINTS:</span>
-                    <span className="font-mono font-bold text-lime text-[11px] sm:text-xs">
-                      {entryReceipt.tokenBalance} Flamebound NFT(s)
+                    <span className="font-mono font-bold text-white text-[11px] sm:text-xs">
+                      {entryReceipt.tokenBalance} DOTSET NFT(s)
                     </span>
                   </div>
                 </div>
 
                 {twitterHandle && (
-                  <div className="pt-1 border-t border-lime/20 flex justify-between text-[11px] sm:text-xs">
+                  <div className="pt-1 border-t border-white/20 flex justify-between text-[11px] sm:text-xs">
                     <span className="text-gray-300 text-[9px] sm:text-[10px]">X / TWITTER USERNAME:</span>
                     <span className="font-bold text-white">@{twitterHandle.replace('@', '')}</span>
                   </div>
@@ -338,7 +338,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
             /* SIMPLE CLEAN ENTRY FORM */
             <>
               {/* NFT Collection Specs Drawer */}
-              <div className="bg-lime/15 border-2 sm:border-3 border-black p-2.5 sm:p-3.5 space-y-2">
+              <div className="bg-gray-100 border-2 sm:border-3 border-black p-2.5 sm:p-3.5 space-y-2">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[11px] sm:text-xs">
                   <div>
                     <span className="text-[8px] sm:text-[9px] font-pixel text-gray-700 block font-bold">WL SPOTS:</span>
@@ -375,7 +375,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                 </div>
                 <div className="h-3 sm:h-3.5 bg-black border-2 border-black p-0.5">
                   <div
-                    className="h-full bg-lime transition-all duration-300"
+                    className="h-full bg-black transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -396,7 +396,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                 
                 {/* 1. SEPARATE DEDICATED BOX: YOUR X HANDLE */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 transition-colors ${
-                  tasks.handleLinked ? 'bg-lime/25' : 'bg-white'
+                  tasks.handleLinked ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <AtSign size={14} className="text-black shrink-0" />
@@ -415,12 +415,12 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                         setHandleConfirmed(false);
                         setTasks(prev => ({ ...prev, handleLinked: false }));
                       }}
-                      className="w-full sm:flex-1 bg-lime/15 border-2 border-black p-2 text-xs font-mono font-bold outline-none min-w-0"
+                      className="w-full sm:flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono font-bold outline-none min-w-0"
                     />
                     <button
                       type="submit"
                       className={`pixel-btn text-[9px] sm:text-[10px] py-2 px-3 shrink-0 text-center ${
-                        tasks.handleLinked ? 'bg-black text-lime' : ''
+                        tasks.handleLinked ? 'bg-black text-white' : ''
                       }`}
                     >
                       {tasks.handleLinked ? '✓ LINKED' : '[CONFIRM HANDLE]'}
@@ -430,7 +430,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
                 {/* 2. FOLLOW ( {PROJECT_NAME} ) - FIRST */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
-                  tasks.followPartner ? 'bg-lime/25' : 'bg-white'
+                  tasks.followPartner ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Twitter size={14} className="text-black shrink-0" />
@@ -443,7 +443,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     type="button"
                     onClick={handleFollowPartner}
                     className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
-                      tasks.followPartner ? 'bg-black text-lime' : ''
+                      tasks.followPartner ? 'bg-black text-white' : ''
                     }`}
                   >
                     {tasks.followPartner ? (
@@ -461,25 +461,25 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   </button>
                 </div>
 
-                {/* 3. FOLLOW ( FLAMEBOUND ) - SECOND */}
+                {/* 3. FOLLOW ( DOTSET ) - SECOND */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
-                  tasks.followFlamebound ? 'bg-lime/25' : 'bg-white'
+                  tasks.followDOTSET ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Twitter size={14} className="text-black shrink-0" />
                     <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
-                      FOLLOW (FLAMEBOUND)
+                      FOLLOW (DOTSET)
                     </span>
                   </div>
 
                   <button
                     type="button"
-                    onClick={handleFollowFlamebound}
+                    onClick={handleFollowDOTSET}
                     className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
-                      tasks.followFlamebound ? 'bg-black text-lime' : ''
+                      tasks.followDOTSET ? 'bg-black text-white' : ''
                     }`}
                   >
-                    {tasks.followFlamebound ? (
+                    {tasks.followDOTSET ? (
                       <>
                         <Check size={11} />
                         <span>[FOLLOWED]</span>
@@ -487,7 +487,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     ) : (
                       <>
                         <span className="sm:hidden">[FOLLOW]</span>
-                        <span className="hidden sm:inline">[FOLLOW @FLAMEBOUNDNFT]</span>
+                        <span className="hidden sm:inline">[FOLLOW @DOTSETNFT]</span>
                         <ExternalLink size={10} />
                       </>
                     )}
@@ -496,7 +496,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
                 {/* 4. ENGAGE WITH {PROJECT_NAME} */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
-                  tasks.engage ? 'bg-lime/25' : 'bg-white'
+                  tasks.engage ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <MessageSquare size={14} className="text-black shrink-0" />
@@ -509,7 +509,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     type="button"
                     onClick={handleEngageTask}
                     className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3.5 flex items-center gap-1 shrink-0 ${
-                      tasks.engage ? 'bg-black text-lime' : ''
+                      tasks.engage ? 'bg-black text-white' : ''
                     }`}
                   >
                     {tasks.engage ? (
@@ -528,7 +528,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
                 {/* 5. CONNECT EVM WALLET */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
-                  tasks.wallet ? 'bg-lime/25' : 'bg-white'
+                  tasks.wallet ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Wallet size={14} className="text-black shrink-0" />
@@ -553,7 +553,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                           );
                         }
                         return (
-                          <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-lime px-2 py-1 border border-black font-bold inline-block">
+                          <span className="font-pixel text-[8px] sm:text-[9px] bg-black text-white px-2 py-1 border border-black font-bold inline-block">
                             ✓ LINKED
                           </span>
                         );
@@ -564,7 +564,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
 
                 {/* 6. ON-CHAIN MINTER STATUS */}
                 <div className={`border-2 sm:border-3 border-black p-2.5 sm:p-3 flex items-center justify-between gap-2 transition-colors ${
-                  tasks.holderCheck ? 'bg-lime/25' : 'bg-white'
+                  tasks.holderCheck ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Flame size={14} className="text-black shrink-0" />
@@ -581,7 +581,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                     disabled={isVerifyingHolder || !isConnected}
                     className={`pixel-btn text-[9px] sm:text-[10px] py-1.5 sm:py-2 px-2.5 sm:px-3 flex items-center gap-1 shrink-0 ${
                       !isConnected ? 'opacity-50 cursor-not-allowed' : ''
-                    } ${tasks.holderCheck ? 'bg-black text-lime' : ''}`}
+                    } ${tasks.holderCheck ? 'bg-black text-white' : ''}`}
                   >
                     <span>
                       {isVerifyingHolder 
@@ -603,7 +603,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   disabled={!allTasksCompleted || loading}
                   className={`w-full py-3 sm:py-4 px-2 font-pixel text-[10px] sm:text-xs tracking-wider uppercase font-bold transition-all text-center ${
                     allTasksCompleted && !loading
-                      ? 'bg-black text-lime hover:bg-black/90 cursor-pointer shadow-none sm:shadow-pixel'
+                      ? 'bg-black text-white hover:bg-black/90 cursor-pointer shadow-none sm:shadow-pixel'
                       : 'bg-gray-300 text-gray-600 border-2 sm:border-3 border-black cursor-not-allowed opacity-75'
                   }`}
                 >
@@ -623,3 +623,4 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
     </div>
   );
 }
+

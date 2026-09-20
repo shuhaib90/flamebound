@@ -5,9 +5,11 @@
 @tailwind utilities;
 
 :root {
-  --bg-lime: #A6FF00;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #FAFAFA;
   --pixel-black: #000000;
   --pixel-white: #FFFFFF;
+  --pixel-gray: #E5E5E5;
 }
 
 * {
@@ -15,7 +17,7 @@
 }
 
 html, body {
-  background-color: #A6FF00 !important;
+  background-color: #FFFFFF !important;
   color: #000000 !important;
   font-family: 'Space Mono', monospace;
   margin: 0;
@@ -30,38 +32,38 @@ html, body {
   max-width: 100vw;
 }
 
-/* Custom Scrollbars */
+/* Custom Minimalist Monochrome Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #A6FF00;
+  background: #FFFFFF;
   border-left: 2px solid #000000;
 }
 ::-webkit-scrollbar-thumb {
   background: #000000;
-  border: 1px solid #A6FF00;
+  border: 1px solid #000000;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #222222;
+  background: #333333;
 }
 
 /* Highlight / Selection */
 ::selection {
   background: #000000;
-  color: #A6FF00;
+  color: #FFFFFF;
 }
 
 /* Pixel Box Utilities */
 .pixel-border {
-  border: 4px solid #000000;
+  border: 3px solid #000000;
   box-shadow: 4px 4px 0px #000000;
 }
 
 .pixel-border-sm {
-  border: 3px solid #000000;
-  box-shadow: 3px 3px 0px #000000;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
 }
 
 .pixel-border-lg {
@@ -69,23 +71,25 @@ html, body {
   box-shadow: 6px 6px 0px #000000;
 }
 
+/* Primary Black Pixel Button */
 .pixel-btn {
   background-color: #000000;
-  color: #A6FF00;
-  border: 3px solid #000000;
+  color: #FFFFFF;
+  border: 2px solid #000000;
   font-family: 'Press Start 2P', monospace;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.4;
   padding: 10px 14px;
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 3px 3px 0px #000000;
-  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   text-decoration: none;
+  font-weight: 700;
 }
 
 @media (min-width: 640px) {
@@ -98,7 +102,7 @@ html, body {
 }
 
 .pixel-btn:hover {
-  background-color: #111111;
+  background-color: #222222;
   color: #FFFFFF;
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
@@ -109,42 +113,14 @@ html, body {
   box-shadow: 1px 1px 0px #000000;
 }
 
-.pixel-btn-lime {
-  background-color: #A6FF00;
-  color: #000000;
-  border: 3px solid #000000;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 11px;
-  line-height: 1.4;
-  padding: 10px 14px;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 3px 3px 0px #000000;
-  transition: transform 0.05s ease, box-shadow 0.05s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.pixel-btn-lime:hover {
-  background-color: #BAFF33;
-  color: #000000;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px #000000;
-}
-
-.pixel-btn-lime:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000000;
-}
-
+/* Secondary White Pixel Button */
 .pixel-btn-white {
   background-color: #FFFFFF;
   color: #000000;
-  border: 3px solid #000000;
+  border: 2px solid #000000;
   font-family: 'Press Start 2P', monospace;
-  font-size: 11px;
+  font-size: 10px;
+  line-height: 1.4;
   padding: 10px 14px;
   box-shadow: 3px 3px 0px #000000;
   cursor: pointer;
@@ -153,11 +129,23 @@ html, body {
   justify-content: center;
   gap: 6px;
   text-transform: uppercase;
-  transition: transform 0.05s ease, box-shadow 0.05s ease;
+  transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s ease;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .pixel-btn-white {
+    font-size: 11px;
+    padding: 12px 18px;
+    box-shadow: 4px 4px 0px #000000;
+    gap: 8px;
+  }
 }
 
 .pixel-btn-white:hover {
-  background-color: #F0F0F0;
+  background-color: #000000;
+  color: #FFFFFF;
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
 }
@@ -167,19 +155,27 @@ html, body {
   box-shadow: 1px 1px 0px #000000;
 }
 
-/* Retro CRT scanlines overlay */
-.scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 4px, 6px 100%;
-  pointer-events: none;
+/* Inverted / Accent Button */
+.pixel-btn-lime {
+  background-color: #000000;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 3px 3px 0px #000000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.pixel-btn-lime:hover {
+  background-color: #333333;
+  color: #FFFFFF;
 }
 
 /* Pixel Font Helpers */

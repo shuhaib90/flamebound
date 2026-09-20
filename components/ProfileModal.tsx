@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/lib/wallet-context';
 import { Raffle, RaffleEntry, Winner } from '@/lib/types';
-import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from '@/lib/blockchain';
+import { formatAddress, DOTSET_PRIMARY_CONTRACT } from '@/lib/blockchain';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { 
   X, 
@@ -96,9 +96,9 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   // Determine Minter Tier
   const getTierInfo = (count: number) => {
-    if (count >= 10) return { title: 'ELDER MINTER WHALE', badge: '👑 VIP MINTER', color: 'bg-black text-lime border-lime' };
-    if (count >= 6) return { title: 'FLAMEBOUND TITAN', badge: '★★★ TIER 3', color: 'bg-black text-lime border-white' };
-    if (count >= 3) return { title: 'INFERNO MINTER LORD', badge: '★★ TIER 2', color: 'bg-lime text-black border-black' };
+    if (count >= 10) return { title: 'ELDER MINTER WHALE', badge: '👑 VIP MINTER', color: 'bg-black text-white border-white' };
+    if (count >= 6) return { title: 'DOTSET TITAN', badge: '★★★ TIER 3', color: 'bg-black text-white border-white' };
+    if (count >= 3) return { title: 'INFERNO MINTER LORD', badge: '★★ TIER 2', color: 'bg-black text-black border-black' };
     if (count >= 1) return { title: 'VERIFIED MINTER', badge: '★ TIER 1', color: 'bg-white text-black border-black' };
     return { title: 'NON-MINTER', badge: 'UNVERIFIED', color: 'bg-gray-200 text-gray-700 border-black' };
   };
@@ -110,26 +110,26 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       <div className="bg-white border-3 sm:border-4 border-black shadow-none sm:shadow-pixel-xl w-full max-w-[96vw] sm:max-w-2xl my-auto relative animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         
         {/* Header */}
-        <div className="bg-lime border-b-3 sm:border-b-4 border-black p-3 sm:p-5 flex items-center justify-between">
+        <div className="bg-black border-b-3 sm:border-b-4 border-black p-3 sm:p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/images/flamebound-logo.png"
-              alt="Flamebound"
+              alt="DOTSET"
               className="w-10 h-10 object-contain drop-shadow-sm"
             />
             <div>
-              <span className="font-pixel text-[10px] bg-black text-lime px-2 py-0.5 font-bold uppercase block w-fit">
+              <span className="font-pixel text-[10px] bg-black text-white px-2 py-0.5 font-bold uppercase block w-fit">
                 USER PROFILE
               </span>
               <h2 className="font-pixel text-base sm:text-lg text-black font-bold uppercase mt-0.5">
-                FLAMEBOUND PASSPORT
+                DOTSET PASSPORT
               </h2>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 border-2 border-black bg-black text-lime hover:bg-white hover:text-black transition-colors"
+            className="p-2 border-2 border-black bg-black text-white hover:bg-white hover:text-black transition-colors"
           >
             <X size={18} />
           </button>
@@ -140,7 +140,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           
           {/* Wallet Info Card */}
           {!isConnected || !address ? (
-            <div className="bg-lime/20 border-3 border-black p-6 text-center space-y-3 shadow-pixel-sm">
+            <div className="bg-gray-100 border-3 border-black p-6 text-center space-y-3 shadow-pixel-sm">
               <p className="font-pixel text-xs text-black uppercase font-bold">
                 CONNECT YOUR EVM WALLET TO VIEW YOUR ENTRIES & MINTER TIER
               </p>
@@ -151,8 +151,8 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           ) : (
             <>
               {/* Connected User Overview */}
-              <div className="bg-black text-lime border-4 border-black p-4 sm:p-5 shadow-pixel-sm space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-lime/30 pb-3">
+              <div className="bg-black text-white border-4 border-black p-4 sm:p-5 shadow-pixel-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-white/30 pb-3">
                   <div className="space-y-1">
                     <span className="text-[10px] text-gray-300 block font-bold">CONNECTED WALLET:</span>
                     <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       </span>
                       <button
                         onClick={copyAddress}
-                        className="p-1 bg-lime text-black border border-black hover:bg-white transition-colors shrink-0"
+                        className="p-1 bg-black text-black border border-black hover:bg-white transition-colors shrink-0"
                         title="Copy Address"
                       >
                         {copied ? <Check size={12} /> : <Copy size={12} />}
@@ -176,24 +176,24 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                 {/* Holdings & Tier Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                  <div className="bg-lime/10 border-2 border-lime/40 p-2">
+                  <div className="bg-black/10 border-2 border-white/40 p-2">
                     <span className="text-[9px] text-gray-300 block font-bold">TOTAL MINTS</span>
-                    <span className="font-pixel text-base text-lime font-bold mt-0.5 block">{balance} NFT</span>
+                    <span className="font-pixel text-base text-white font-bold mt-0.5 block">{balance} NFT</span>
                   </div>
 
-                  <div className="bg-lime/10 border-2 border-lime/40 p-2">
+                  <div className="bg-black/10 border-2 border-white/40 p-2">
                     <span className="text-[9px] text-gray-300 block font-bold">MINTER TIER</span>
                     <span className="font-pixel text-[10px] text-white font-bold mt-1 block truncate">{tier.title}</span>
                   </div>
 
-                  <div className="bg-lime/10 border-2 border-lime/40 p-2">
+                  <div className="bg-black/10 border-2 border-white/40 p-2">
                     <span className="text-[9px] text-gray-300 block font-bold">ENTERED</span>
                     <span className="font-pixel text-base text-white font-bold mt-0.5 block">{userEntries.length}</span>
                   </div>
 
-                  <div className="bg-lime/10 border-2 border-lime/40 p-2">
+                  <div className="bg-black/10 border-2 border-white/40 p-2">
                     <span className="text-[9px] text-gray-300 block font-bold">WON WHITELISTS</span>
-                    <span className="font-pixel text-base text-lime font-bold mt-0.5 block">{userWins.length}</span>
+                    <span className="font-pixel text-base text-white font-bold mt-0.5 block">{userWins.length}</span>
                   </div>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 <button
                   onClick={() => setActiveTab('holdings')}
                   className={`px-3 py-2 font-pixel text-[10px] border-2 border-black uppercase font-bold flex items-center gap-1.5 ${
-                    activeTab === 'holdings' ? 'bg-black text-lime shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
+                    activeTab === 'holdings' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
                   }`}
                 >
                   <Flame size={12} />
@@ -213,7 +213,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 <button
                   onClick={() => setActiveTab('entries')}
                   className={`px-3 py-2 font-pixel text-[10px] border-2 border-black uppercase font-bold flex items-center gap-1.5 ${
-                    activeTab === 'entries' ? 'bg-black text-lime shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
+                    activeTab === 'entries' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
                   }`}
                 >
                   <Layers size={12} />
@@ -223,7 +223,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 <button
                   onClick={() => setActiveTab('wins')}
                   className={`px-3 py-2 font-pixel text-[10px] border-2 border-black uppercase font-bold flex items-center gap-1.5 ${
-                    activeTab === 'wins' ? 'bg-black text-lime shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
+                    activeTab === 'wins' ? 'bg-black text-white shadow-pixel-xs' : 'bg-white text-black hover:bg-black/10'
                   }`}
                 >
                   <Trophy size={12} />
@@ -250,22 +250,22 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     </div>
 
                     {balance > 0 ? (
-                      <div className="bg-lime/20 border-2 border-black p-3 space-y-2">
+                      <div className="bg-gray-100 border-2 border-black p-3 space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-black">Flamebound Collection Balance:</span>
+                          <span className="font-bold text-black">DOTSET Collection Balance:</span>
                           <span className="font-pixel text-sm text-black font-bold">{balance} NFT(s)</span>
                         </div>
                         <p className="text-[11px] text-gray-700">
-                          Your wallet is 100% eligible for all live and upcoming Flamebound partner & genesis whitelist raffles.
+                          Your wallet is 100% eligible for all live and upcoming DOTSET partner & genesis whitelist raffles.
                         </p>
                       </div>
                     ) : (
                       <div className="bg-red-50 border-2 border-red-700 p-3 space-y-2">
                         <p className="text-red-900 font-bold text-xs">
-                          No Flamebound NFTs currently detected in this wallet.
+                          No DOTSET NFTs currently detected in this wallet.
                         </p>
                         <p className="text-gray-700 text-[11px]">
-                          Purchase a Flamebound NFT on OpenSea to unlock instant guaranteed entry to holder-only raffles.
+                          Purchase a DOTSET NFT on OpenSea to unlock instant guaranteed entry to holder-only raffles.
                         </p>
                         <a
                           href="https://opensea.io/collection/flamebound-259045050"
@@ -279,9 +279,9 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     )}
 
                     <div className="pt-2 border-t border-black/20 text-[11px] text-gray-700 flex justify-between items-center">
-                      <span>Contract: {formatAddress(FLAMEBOUND_PRIMARY_CONTRACT)}</span>
+                      <span>Contract: {formatAddress(DOTSET_PRIMARY_CONTRACT)}</span>
                       <a
-                        href={`https://etherscan.io/address/${FLAMEBOUND_PRIMARY_CONTRACT}`}
+                        href={`https://etherscan.io/address/${DOTSET_PRIMARY_CONTRACT}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline text-black font-bold flex items-center gap-1"
@@ -307,8 +307,8 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       return (
                         <div key={entry.id} className="bg-white border-3 border-black p-3.5 flex items-center justify-between gap-3 shadow-pixel-xs">
                           <div>
-                            <span className="font-pixel text-[9px] bg-black text-lime px-2 py-0.5 font-bold uppercase">
-                              {raffle?.project || 'FLAMEBOUND'}
+                            <span className="font-pixel text-[9px] bg-black text-white px-2 py-0.5 font-bold uppercase">
+                              {raffle?.project || 'DOTSET'}
                             </span>
                             <h4 className="font-pixel text-xs font-bold text-black uppercase mt-1">
                               {raffle?.title || entry.raffleId}
@@ -322,7 +322,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             <span className="font-pixel text-xs font-bold text-black block">
                               {entry.id}
                             </span>
-                            <span className="font-pixel text-[8px] bg-lime text-black px-1.5 py-0.5 border border-black font-bold inline-block mt-1">
+                            <span className="font-pixel text-[8px] bg-black text-black px-1.5 py-0.5 border border-black font-bold inline-block mt-1">
                               ✓ CONFIRMED
                             </span>
                           </div>
@@ -342,11 +342,11 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     </div>
                   ) : (
                     userWins.map(({ raffle, winner }) => (
-                      <div key={raffle.id} className="bg-black text-lime border-4 border-black p-4 flex items-center justify-between gap-3 shadow-pixel-sm">
+                      <div key={raffle.id} className="bg-black text-white border-4 border-black p-4 flex items-center justify-between gap-3 shadow-pixel-sm">
                         <div>
                           <div className="flex items-center gap-2">
-                            <Trophy size={16} className="text-lime" />
-                            <span className="font-pixel text-[10px] bg-lime text-black px-2 py-0.5 font-bold uppercase">
+                            <Trophy size={16} className="text-white" />
+                            <span className="font-pixel text-[10px] bg-black text-black px-2 py-0.5 font-bold uppercase">
                               ★ WINNER (RANK #{winner.rank})
                             </span>
                           </div>
@@ -359,7 +359,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
 
                         <div className="text-right shrink-0">
-                          <span className="font-pixel text-[9px] text-lime font-bold block">
+                          <span className="font-pixel text-[9px] text-white font-bold block">
                             {winner.entryNumber}
                           </span>
                           <span className="font-pixel text-[8px] bg-white text-black px-2 py-0.5 border border-black font-bold block mt-1">
@@ -380,3 +380,4 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     </div>
   );
 }
+

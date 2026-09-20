@@ -10,9 +10,11 @@ const erc721Abi = parseAbi([
   'function ownerOf(uint256 tokenId) view returns (address)',
 ]);
 
-// Official live Flamebound NFT deployment configurations
+// Official live DOTSET NFT deployment configurations
 export const FLAMEBOUND_PRIMARY_CONTRACT = '0xad11f08a3a1e15756abcf565269d3c32b6d464b9';
+export const DOTSET_PRIMARY_CONTRACT = FLAMEBOUND_PRIMARY_CONTRACT;
 export const FLAMEBOUND_PRIMARY_RPC = 'https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY';
+export const DOTSET_PRIMARY_RPC = FLAMEBOUND_PRIMARY_RPC;
 
 // Clean test holders registry with valid EIP-55 checksummed addresses
 export const KNOWN_TEST_HOLDERS: Record<string, { balance: number; tokenIds: string[]; name: string }> = {

@@ -1,80 +1,80 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useWallet } from '@/lib/wallet-context';
 import { ProfileModal } from './ProfileModal';
-import { User, ShieldCheck, Flame, Menu, X, ExternalLink } from 'lucide-react';
+import { User, Menu, X, Sparkles } from 'lucide-react';
 
 export function Header() {
-  const { isConnected, isAdmin, address, shortAddress } = useWallet();
+  const { isConnected, isAdmin } = useWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-lime border-b-4 border-black select-none">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b-3 border-black select-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* Logo & Brand (Clean Transparent PNG Logo) */}
+            {/* Logo & Brand (DOTSET with Uploaded Logo) */}
             <Link href="/" className="flex items-center gap-3 group">
               <img
-                src="/images/flamebound-logo.png"
-                alt="Flamebound"
-                className="h-12 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm"
+                src="/images/dotset-logo.png"
+                alt="DOTSET"
+                className="h-11 w-auto object-contain group-hover:scale-105 transition-transform"
               />
               <div className="flex flex-col">
-                <span className="font-pixel text-lg sm:text-xl font-bold tracking-wider text-black group-hover:text-black/80">
-                  FLAMEBOUND
+                <span className="font-pixel text-lg sm:text-xl font-bold tracking-tight text-black group-hover:text-black/80">
+                  DOTSET
                 </span>
-                <span className="font-mono text-[10px] tracking-widest text-black/80 font-bold">
-                  WL RAFFLE SYSTEM
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-widest text-gray-600 font-bold uppercase">
+                  WHITELIST & RAFFLES
                 </span>
               </div>
             </Link>
 
             {/* Desktop Nav Links */}
-            <nav className="hidden md:flex items-center space-x-6 font-mono text-xs font-bold text-black uppercase">
+            <nav className="hidden md:flex items-center space-x-2 font-mono text-xs font-bold text-black uppercase">
               <Link 
                 href="/#active-raffles" 
-                className="hover:bg-black hover:text-lime px-3 py-1.5 border-2 border-transparent hover:border-black transition-colors"
+                className="px-3 py-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-all"
               >
-                [LIVE RAFFLES]
+                [RAFFLES]
               </Link>
               <Link 
                 href="/how-it-works" 
-                className="hover:bg-black hover:text-lime px-3 py-1.5 border-2 border-transparent hover:border-black transition-colors"
+                className="px-3 py-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-all"
               >
                 [HOW IT WORKS]
               </Link>
               <Link 
                 href="/#winners" 
-                className="hover:bg-black hover:text-lime px-3 py-1.5 border-2 border-transparent hover:border-black transition-colors"
+                className="px-3 py-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-all"
               >
                 [WINNERS]
               </Link>
 
-              {/* Only show Admin Panel button if connected wallet is the official Admin wallet */}
+              {/* Admin Panel link for admin wallet */}
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="bg-black text-lime hover:bg-white hover:text-black px-3 py-1.5 border-2 border-black font-pixel text-[10px] transition-colors flex items-center gap-1 shadow-pixel-sm animate-pulse"
+                  className="bg-black text-white hover:bg-white hover:text-black px-3 py-2 border-2 border-black font-pixel text-[10px] transition-all flex items-center gap-1 shadow-pixel-xs"
                 >
-                  <span>★ [ADMIN PANEL]</span>
+                  <Sparkles size={12} />
+                  <span>[ADMIN]</span>
                 </Link>
               )}
             </nav>
 
-            {/* Right Action: User Profile SVG Button + RainbowKit Connect Button */}
+            {/* Right Action: Profile + Connect Wallet */}
             <div className="hidden md:flex items-center space-x-2.5">
-              {/* Profile SVG Icon Button (Placed directly near wallet button) */}
               {isConnected && (
                 <button
                   type="button"
                   onClick={() => setProfileModalOpen(true)}
-                  className="bg-black text-lime hover:bg-white hover:text-black p-2.5 border-3 border-black transition-colors flex items-center justify-center shadow-pixel"
+                  className="bg-white hover:bg-black hover:text-white text-black p-2.5 border-2 border-black transition-colors flex items-center justify-center shadow-pixel-sm"
                   title="My Profile Passport"
                   aria-label="My Profile Passport"
                 >
@@ -113,7 +113,7 @@ export function Header() {
                               type="button"
                               className="pixel-btn text-xs py-2.5 px-4 shadow-pixel flex items-center gap-2"
                             >
-                              <span className="w-2 h-2 bg-lime inline-block animate-ping" />
+                              <span className="w-2 h-2 bg-white inline-block animate-ping" />
                               <span>[CONNECT WALLET]</span>
                             </button>
                           );
@@ -124,7 +124,7 @@ export function Header() {
                             <button
                               onClick={openChainModal}
                               type="button"
-                              className="bg-red-600 text-white border-3 border-black font-pixel text-[10px] py-2 px-3 shadow-pixel"
+                              className="bg-red-600 text-white border-2 border-black font-pixel text-[10px] py-2 px-3 shadow-pixel-xs"
                             >
                               [WRONG NETWORK]
                             </button>
@@ -136,9 +136,9 @@ export function Header() {
                             <button
                               onClick={openAccountModal}
                               type="button"
-                              className="bg-black text-lime hover:bg-black/90 border-3 border-black font-mono text-xs font-bold py-2 px-3 shadow-pixel flex items-center gap-2"
+                              className="bg-black text-white hover:bg-white hover:text-black border-2 border-black font-mono text-xs font-bold py-2 px-3 shadow-pixel-xs flex items-center gap-2 transition-colors"
                             >
-                              <span className="w-2 h-2 rounded-full bg-lime inline-block" />
+                              <span className="w-2 h-2 rounded-full bg-white inline-block" />
                               <span>{account.displayName}</span>
                             </button>
                           </div>
@@ -156,7 +156,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => setProfileModalOpen(true)}
-                  className="bg-black text-lime hover:bg-white hover:text-black p-2 border-2 border-black transition-colors flex items-center justify-center"
+                  className="bg-white text-black p-2 border-2 border-black shadow-pixel-xs flex items-center justify-center"
                   title="My Profile"
                 >
                   <User size={16} />
@@ -164,7 +164,7 @@ export function Header() {
               )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 border-3 border-black bg-black text-lime hover:bg-white hover:text-black transition-colors"
+                className="p-2 border-2 border-black bg-black text-white hover:bg-white hover:text-black transition-colors"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -176,25 +176,25 @@ export function Header() {
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-lime border-b-4 border-black px-4 pt-3 pb-6 space-y-3 font-mono font-bold text-xs uppercase">
+          <div className="md:hidden bg-white border-b-3 border-black px-4 pt-3 pb-6 space-y-2.5 font-mono font-bold text-xs uppercase">
             <Link
               href="/#active-raffles"
               onClick={() => setMobileMenuOpen(false)}
-              className="block p-2 border-2 border-black bg-white hover:bg-black hover:text-lime"
+              className="block p-2.5 border-2 border-black bg-white hover:bg-black hover:text-white"
             >
-              [LIVE RAFFLES]
+              [RAFFLES]
             </Link>
             <Link
               href="/how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="block p-2 border-2 border-black bg-white hover:bg-black hover:text-lime"
+              className="block p-2.5 border-2 border-black bg-white hover:bg-black hover:text-white"
             >
               [HOW IT WORKS]
             </Link>
             <Link
               href="/#winners"
               onClick={() => setMobileMenuOpen(false)}
-              className="block p-2 border-2 border-black bg-white hover:bg-black hover:text-lime"
+              className="block p-2.5 border-2 border-black bg-white hover:bg-black hover:text-white"
             >
               [WINNERS]
             </Link>
@@ -205,7 +205,7 @@ export function Header() {
                   setMobileMenuOpen(false);
                   setProfileModalOpen(true);
                 }}
-                className="w-full text-left p-2 border-2 border-black bg-black text-lime font-pixel text-[10px] flex items-center gap-2"
+                className="w-full text-left p-2.5 border-2 border-black bg-black text-white font-pixel text-[10px] flex items-center gap-2"
               >
                 <User size={14} />
                 <span>[MY PROFILE PASSPORT]</span>
@@ -216,7 +216,7 @@ export function Header() {
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block p-2 border-2 border-black bg-black text-lime font-pixel text-[10px]"
+                className="block p-2.5 border-2 border-black bg-black text-white font-pixel text-[10px]"
               >
                 ★ [ADMIN PANEL]
               </Link>

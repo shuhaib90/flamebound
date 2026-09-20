@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -110,8 +110,8 @@ export function AdminDashboard() {
     entryMethod: 'raffle',
     customTasks: [],
     artworkType: 'genesis',
-    logoUrl: '/images/flamebound-logo.png',
-    bannerUrl: '/images/flamebound-logo.png',
+    logoUrl: '/images/dotset-logo.png',
+    bannerUrl: '/images/dotset-logo.png',
     followUrl: 'https://x.com/FlameboundNft',
     engageUrl: 'https://x.com/FlameboundNft',
     twitterUrl: 'https://x.com/FlameboundNft',
@@ -522,20 +522,20 @@ function formatDateTimeLocal(dateStr?: string) {
   });
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-lime flex items-center justify-center p-4 select-none">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4 select-none">
         <div className="bg-white border-4 border-black shadow-pixel-xl p-8 max-w-md w-full">
           <div className="flex items-center gap-3 border-b-4 border-black pb-4 mb-6">
             <div className="p-2 bg-black">
               <PixelFlame size={28} />
             </div>
             <div>
-              <h1 className="font-pixel text-base text-black font-bold">FLAMEBOUND ADMIN</h1>
+              <h1 className="font-pixel text-base text-black font-bold">DOTSET ADMIN</h1>
               <span className="font-mono text-xs text-gray-700">AUTHORIZED ACCESS ONLY</span>
             </div>
           </div>
 
           {/* Connect Admin Wallet Option */}
-          <div className="bg-lime/20 border-3 border-black p-4 mb-6 space-y-3">
+          <div className="bg-gray-100 border-3 border-black p-4 mb-6 space-y-3">
             <span className="font-pixel text-[9px] uppercase text-black block font-bold">
               ★ 1-CLICK ADMIN WALLET LOGIN:
             </span>
@@ -596,7 +596,7 @@ function formatDateTimeLocal(dateStr?: string) {
             <Link href="/" className="flex items-center gap-1 hover:underline font-bold text-black">
               <ArrowLeft size={14} /> Back to Raffles
             </Link>
-            <span className="text-[10px]">FLAMEBOUND CONTROLLER</span>
+            <span className="text-[10px]">DOTSET CONTROLLER</span>
           </div>
         </div>
       </div>
@@ -604,14 +604,14 @@ function formatDateTimeLocal(dateStr?: string) {
   }
 
   return (
-    <div className="min-h-screen bg-lime select-none flex flex-col">
+    <div className="min-h-screen bg-white select-none flex flex-col">
       <header className="bg-black text-lime border-b-4 border-black px-4 sm:px-8 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <PixelFlame size={24} />
             <div>
               <span className="font-pixel text-base text-white tracking-wider font-bold">
-                FLAMEBOUND ADMIN DASHBOARD
+                DOTSET ADMIN DASHBOARD
               </span>
               <span className="font-mono text-xs text-lime block">
                 Official WL Raffle & On-Chain Verification Controller
@@ -741,7 +741,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       {raffle.subtitle}
                     </p>
 
-                    <div className="bg-lime/20 border-2 border-black p-3 space-y-1.5 font-mono text-[11px] mb-4">
+                    <div className="bg-gray-100 border-2 border-black p-3 space-y-1.5 font-mono text-[11px] mb-4">
                       <div className="flex justify-between">
                         <strong>Project:</strong> 
                         <span className="font-bold">{raffle.project || 'FLAMEBOUND'}</span>
@@ -818,7 +818,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       <button
                         type="button"
                         onClick={() => handleToggleMethod(raffle)}
-                        className="font-pixel text-[9px] py-1.5 bg-lime/30 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
+                        className="font-pixel text-[9px] py-1.5 bg-gray-100 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
                       >
                         <span>{raffle.entryMethod === 'fcfs' ? 'MODE: FCFS ⚡' : 'MODE: RAFFLE 🎲'}</span>
                       </button>
@@ -911,7 +911,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     required
                     value={editingRaffle.title}
                     onChange={(e) => setEditingRaffle({ ...editingRaffle, title: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
                 <div>
@@ -924,7 +924,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     placeholder="e.g. CULT or FLAMEBOUND"
                     value={editingRaffle.project || ''}
                     onChange={(e) => setEditingRaffle({ ...editingRaffle, project: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
               </div>
@@ -937,7 +937,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   type="text"
                   value={editingRaffle.subtitle || ''}
                   onChange={(e) => setEditingRaffle({ ...editingRaffle, subtitle: e.target.value })}
-                  className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                 />
               </div>
 
@@ -955,7 +955,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     placeholder="e.g. cult, genesis, banners"
                     value={editingRaffle.slug || ''}
                     onChange={(e) => setEditingRaffle({ ...editingRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    className="flex-1 min-w-0 bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="flex-1 min-w-0 bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
               </div>
@@ -1098,7 +1098,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* Task Custom URLs */}
-              <div className="bg-lime/10 border-2 border-black p-3 space-y-3">
+              <div className="bg-gray-50 border-2 border-black p-3 space-y-3">
                 <div className="font-pixel text-[9px] uppercase font-bold text-black border-b border-black/30 pb-1">
                   [CUSTOM TASK URLS & SOCIAL LINKS]
                 </div>
@@ -1131,7 +1131,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
-              <div className="bg-lime/10 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+              <div className="bg-gray-50 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
                   <div>
                     <span className="font-pixel text-[10px] uppercase font-bold text-black block">
@@ -1226,7 +1226,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               placeholder="e.g. Join Official Discord"
                               value={task.title}
                               onChange={(e) => updateCustomTask('edit', idx, 'title', e.target.value)}
-                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                             />
                           </div>
 
@@ -1239,7 +1239,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               placeholder="https://..."
                               value={task.url}
                               onChange={(e) => updateCustomTask('edit', idx, 'url', e.target.value)}
-                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black"
+                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black"
                             />
                           </div>
 
@@ -1253,7 +1253,7 @@ function formatDateTimeLocal(dateStr?: string) {
                                 placeholder="[JOIN DISCORD]"
                                 value={task.actionLabel || ''}
                                 onChange={(e) => updateCustomTask('edit', idx, 'actionLabel', e.target.value)}
-                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                               />
                             </div>
 
@@ -1264,7 +1264,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               <select
                                 value={task.type || 'link'}
                                 onChange={(e) => updateCustomTask('edit', idx, 'type', e.target.value as any)}
-                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                               >
                                 <option value="discord">DISCORD</option>
                                 <option value="telegram">TELEGRAM</option>
@@ -1282,7 +1282,7 @@ function formatDateTimeLocal(dateStr?: string) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-lime/10 border-2 border-black p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 border-2 border-black p-3">
                 <div>
                   <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
                     WL SPOTS:
@@ -1342,7 +1342,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="Logo URL or click Upload"
                       value={editingRaffle.logoUrl || ''}
                       onChange={(e) => setEditingRaffle({ ...editingRaffle, logoUrl: e.target.value })}
-                      className="flex-1 bg-lime/20 border-2 border-black p-2 text-xs font-mono"
+                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
                     />
                     <input
                       type="file"
@@ -1373,7 +1373,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="Banner URL or click Upload"
                       value={editingRaffle.bannerUrl || ''}
                       onChange={(e) => setEditingRaffle({ ...editingRaffle, bannerUrl: e.target.value, artworkType: 'custom' })}
-                      className="flex-1 bg-lime/20 border-2 border-black p-2 text-xs font-mono"
+                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
                     />
                     <input
                       type="file"
@@ -1404,7 +1404,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   <select
                     value={editingRaffle.network}
                     onChange={(e) => setEditingRaffle({ ...editingRaffle, network: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
                   >
                     <option value="ROBINHOOD NETWORK">ROBINHOOD NETWORK</option>
                     <option value="ETHEREUM">ETHEREUM</option>
@@ -1426,7 +1426,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="e.g. MONAD or BERACHAIN"
                       value={editingRaffle.customNetwork || ''}
                       onChange={(e) => setEditingRaffle({ ...editingRaffle, customNetwork: e.target.value })}
-                      className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
+                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
                     />
                   </div>
                 ) : (
@@ -1439,7 +1439,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       required
                       value={editingRaffle.contractAddress}
                       onChange={(e) => setEditingRaffle({ ...editingRaffle, contractAddress: e.target.value })}
-                      className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
+                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
                     />
                   </div>
                 )}
@@ -1454,7 +1454,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   placeholder="e.g. Guaranteed Phase 1 mint for whitelist winners"
                   value={editingRaffle.notes || ''}
                   onChange={(e) => setEditingRaffle({ ...editingRaffle, notes: e.target.value })}
-                  className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
+                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
                 />
               </div>
 
@@ -1512,7 +1512,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* RAFFLE SCHEDULE & DEADLINE (TIME PICKER & PRESETS) */}
-              <div className="bg-lime/20 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+              <div className="bg-gray-100 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1 flex justify-between items-center">
                   <span>[RAFFLE SCHEDULE & DEADLINE TIME]</span>
                 </div>
@@ -1623,7 +1623,7 @@ function formatDateTimeLocal(dateStr?: string) {
                 <select
                   value={selectedRaffleFilter}
                   onChange={(e) => setSelectedRaffleFilter(e.target.value)}
-                  className="bg-lime/20 border-2 border-black px-3 py-2 font-pixel text-[10px] uppercase font-bold outline-none"
+                  className="bg-gray-100 border-2 border-black px-3 py-2 font-pixel text-[10px] uppercase font-bold outline-none"
                 >
                   <option value="all">ALL RAFFLES</option>
                   {raffles.map(r => (
@@ -1646,7 +1646,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   placeholder="Search 0x..., @handle, FB-ID"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-lime/10 border-2 border-black px-3 py-2 text-xs font-mono outline-none"
+                  className="bg-gray-50 border-2 border-black px-3 py-2 text-xs font-mono outline-none"
                 />
               </div>
 
@@ -1692,7 +1692,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     </tr>
                   ) : (
                     displayedEntries.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-lime/20 transition-colors">
+                      <tr key={entry.id} className="hover:bg-gray-100 transition-colors">
                         <td className="p-3 font-pixel text-[10px] font-bold text-black">
                           {entry.id}
                         </td>
@@ -1758,7 +1758,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     required
                     value={newRaffle.title}
                     onChange={(e) => setNewRaffle({ ...newRaffle, title: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
                 <div>
@@ -1771,7 +1771,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     placeholder="e.g. CULT or FLAMEBOUND"
                     value={newRaffle.project}
                     onChange={(e) => setNewRaffle({ ...newRaffle, project: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
               </div>
@@ -1785,7 +1785,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   required
                   value={newRaffle.subtitle}
                   onChange={(e) => setNewRaffle({ ...newRaffle, subtitle: e.target.value })}
-                  className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                 />
               </div>
 
@@ -1803,7 +1803,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     placeholder="e.g. cult, genesis, phase1 (optional)"
                     value={newRaffle.slug}
                     onChange={(e) => setNewRaffle({ ...newRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    className="flex-1 min-w-0 bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="flex-1 min-w-0 bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                 </div>
               </div>
@@ -1946,7 +1946,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* Task Custom URLs */}
-              <div className="bg-lime/10 border-3 border-black p-4 space-y-3">
+              <div className="bg-gray-50 border-3 border-black p-4 space-y-3">
                 <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1">
                   [CUSTOM TASK URLS & SOCIAL LINKS]
                 </div>
@@ -1979,7 +1979,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
-              <div className="bg-lime/10 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
+              <div className="bg-gray-50 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
                   <div>
                     <span className="font-pixel text-[10px] uppercase font-bold text-black block">
@@ -2074,7 +2074,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               placeholder="e.g. Join Official Discord"
                               value={task.title}
                               onChange={(e) => updateCustomTask('create', idx, 'title', e.target.value)}
-                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                             />
                           </div>
 
@@ -2087,7 +2087,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               placeholder="https://..."
                               value={task.url}
                               onChange={(e) => updateCustomTask('create', idx, 'url', e.target.value)}
-                              className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black"
+                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black"
                             />
                           </div>
 
@@ -2101,7 +2101,7 @@ function formatDateTimeLocal(dateStr?: string) {
                                 placeholder="[JOIN DISCORD]"
                                 value={task.actionLabel || ''}
                                 onChange={(e) => updateCustomTask('create', idx, 'actionLabel', e.target.value)}
-                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                               />
                             </div>
 
@@ -2112,7 +2112,7 @@ function formatDateTimeLocal(dateStr?: string) {
                               <select
                                 value={task.type || 'link'}
                                 onChange={(e) => updateCustomTask('create', idx, 'type', e.target.value as any)}
-                                className="w-full bg-lime/10 border border-black p-1.5 font-mono text-xs text-black font-bold"
+                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
                               >
                                 <option value="discord">DISCORD</option>
                                 <option value="telegram">TELEGRAM</option>
@@ -2131,7 +2131,7 @@ function formatDateTimeLocal(dateStr?: string) {
               </div>
 
               {/* NFT Collection Specifications */}
-              <div className="bg-lime/10 border-3 border-black p-4 space-y-3">
+              <div className="bg-gray-50 border-3 border-black p-4 space-y-3">
                 <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1">
                   ⚡ NFT COLLECTION SPECIFICATIONS:
                 </div>
@@ -2231,7 +2231,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="Paste Logo URL or Upload File"
                       value={newRaffle.logoUrl}
                       onChange={(e) => setNewRaffle({ ...newRaffle, logoUrl: e.target.value })}
-                      className="flex-1 bg-lime/20 border-2 border-black p-2 text-xs font-mono"
+                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
                     />
                     <input
                       type="file"
@@ -2262,7 +2262,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="Paste Banner URL or Upload File"
                       value={newRaffle.bannerUrl}
                       onChange={(e) => setNewRaffle({ ...newRaffle, bannerUrl: e.target.value, artworkType: 'custom' })}
-                      className="flex-1 bg-lime/20 border-2 border-black p-2 text-xs font-mono"
+                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
                     />
                     <input
                       type="file"
@@ -2293,7 +2293,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   <select
                     value={newRaffle.network}
                     onChange={(e) => setNewRaffle({ ...newRaffle, network: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   >
                     <option value="ROBINHOOD NETWORK">ROBINHOOD NETWORK</option>
                     <option value="ETHEREUM">ETHEREUM</option>
@@ -2315,7 +2315,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       placeholder="e.g. MONAD or BERACHAIN"
                       value={newRaffle.customNetwork}
                       onChange={(e) => setNewRaffle({ ...newRaffle, customNetwork: e.target.value })}
-                      className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                     />
                   </div>
                 ) : (
@@ -2328,7 +2328,7 @@ function formatDateTimeLocal(dateStr?: string) {
                       required
                       value={newRaffle.contractAddress}
                       onChange={(e) => setNewRaffle({ ...newRaffle, contractAddress: e.target.value })}
-                      className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                     />
                   </div>
                 )}
@@ -2342,7 +2342,7 @@ function formatDateTimeLocal(dateStr?: string) {
                   <select
                     value={newRaffle.artworkType}
                     onChange={(e) => setNewRaffle({ ...newRaffle, artworkType: e.target.value as any })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   >
                     <option value="genesis">GENESIS SKULL</option>
                     <option value="cyber_beast">CYBER BEAST</option>
@@ -2360,7 +2360,7 @@ function formatDateTimeLocal(dateStr?: string) {
                     required
                     value={newRaffle.endDate}
                     onChange={(e) => setNewRaffle({ ...newRaffle, endDate: e.target.value })}
-                    className="w-full bg-lime/20 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
                   />
                   <div className="flex flex-wrap gap-1 mt-2">
                     <span className="font-pixel text-[8px] text-gray-700 font-bold self-center mr-1">QUICK SET:</span>
@@ -2421,3 +2421,4 @@ function formatDateTimeLocal(dateStr?: string) {
     </div>
   );
 }
+
