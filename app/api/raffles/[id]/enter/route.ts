@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getRaffleByIdAsync, createEntryAsync, getEntryByWalletAsync } from '@/lib/db';
 import { isValidEvmAddress } from '@/lib/blockchain';
 
@@ -68,15 +68,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       walletAddress: cleanWallet,
       twitterUsername: cleanTwitter,
       taskStatus: taskStatus || {},
-      isHolder: true,
-      tokenBalance: 1,
-      status: 'confirmed',
-      contractAddress: raffle.contractAddress,
       network: raffle.customNetwork || raffle.network,
-      metadata: {
-        entryMethod: raffle.entryMethod || 'raffle',
-        isFcfsWinner: isFcfs,
-      }
     });
 
     return NextResponse.json({

@@ -1,13 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Raffle, RaffleEntry, AdminStats, CustomTask } from '@/lib/types';
-import { PixelFlame, PixelCheck, PixelCross } from '@/components/PixelFlame';
-import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from '@/lib/blockchain';
 import { useWallet } from '@/lib/wallet-context';
-import { ADMIN_WALLET, isAdminWallet } from '@/lib/wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { 
   ShieldCheck, 
   Plus, 
@@ -26,10 +22,14 @@ import {
   Wallet,
   Globe,
   Twitter,
-  MessageSquare,
   Send,
   ExternalLink,
-  Check
+  Check,
+  Clock,
+  Search,
+  Lock,
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 
 interface NewRaffleForm {
@@ -47,9 +47,6 @@ interface NewRaffleForm {
   maxMintPerWallet: string;
   network: string;
   customNetwork: string;
-  contractAddress: string;
-  requiredTokenCount: number;
-  artworkType: 'genesis' | 'cyber_beast' | 'founders_pass' | 'relic' | 'custom';
   logoUrl: string;
   bannerUrl: string;
   followUrl: string;
@@ -59,7 +56,6 @@ interface NewRaffleForm {
   mintUrl: string;
   notes: string;
   endDate: string;
-  eligibility: 'minters_only' | 'holders_only' | 'public';
   entryMethod: 'raffle' | 'fcfs';
   customTasks: CustomTask[];
 }
@@ -77,7 +73,6 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'raffles' | 'entries' | 'create'>('raffles');
   const [selectedRaffleFilter, setSelectedRaffleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [holderOnlyFilter, setHolderOnlyFilter] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const logoFileRef = useRef<HTMLInputElement>(null);
@@ -88,49 +83,72 @@ export function AdminDashboard() {
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
   const [editingRaffle, setEditingRaffle] = useState<Raffle | null>(null);
+  const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
 
   const [newRaffle, setNewRaffle] = useState<NewRaffleForm>({
-    title: 'FLAMEBOUND PARTNER WL',
-    project: 'FLAMEBOUND',
+    title: 'DOTSET PARTNER WL',
+    project: 'DOTSET',
     slug: 'partner-wl',
     type: 'WL RAFFLE',
     mintStage: 'GTD',
-    subtitle: 'Exclusive whitelist raffle for verified Flamebound minters.',
-    description: 'Whitelist allocation for verified Flamebound minters with priority access.',
+    subtitle: 'Exclusive guaranteed whitelist spot allocation for partner community.',
+    description: 'Whitelist allocation for verified entrants with direct mint allocation.',
     supply: 50,
     nftTotalSupply: '1,000 NFTs',
-    mintPrice: '0.0001 ETH',
-    mintDate: '15 SEP 2026 — 18:00 UTC',
+    mintPrice: 'FREE MINT',
+    mintDate: 'TBA',
     maxMintPerWallet: '1 PER WL',
-    network: 'ROBINHOOD NETWORK',
+    network: 'ETHEREUM',
     customNetwork: '',
-    contractAddress: FLAMEBOUND_PRIMARY_CONTRACT,
-    requiredTokenCount: 1,
-    eligibility: 'minters_only',
-    entryMethod: 'raffle',
-    customTasks: [],
-    artworkType: 'genesis',
     logoUrl: '/images/dotset-logo.png',
     bannerUrl: '/images/dotset-logo.png',
-    followUrl: 'https://x.com/FlameboundNft',
-    engageUrl: 'https://x.com/FlameboundNft',
-    twitterUrl: 'https://x.com/FlameboundNft',
-    discordUrl: '',
-    mintUrl: 'https://opensea.io/collection/flamebound-259045050',
-    notes: 'Phase 1 Guaranteed Whitelist Mint',
-    endDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16),
+    followUrl: 'https://x.com/dotsetxyz',
+    engageUrl: 'https://x.com/dotsetxyz',
+    twitterUrl: 'https://x.com/dotsetxyz',
+    discordUrl: 'https://discord.com',
+    mintUrl: '',
+    notes: 'Official Partner Whitelist',
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    entryMethod: 'raffle',
+    customTasks: [],
   });
 
-  const [actionMessage, setActionMessage] = useState('');
+  const isAuthenticated = isAdmin || sessionAuth;
 
-  const isAuthenticated = Boolean(isAdmin || sessionAuth);
-
-  useEffect(() => {
-    const auth = sessionStorage.getItem('flamebound_admin_auth');
-    if (auth === 'true') {
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcode === '1234' || passcode.toLowerCase() === 'admin' || passcode === 'dotset2026') {
       setSessionAuth(true);
+      setAuthError('');
+    } else {
+      setAuthError('Incorrect passcode. Please try again.');
     }
-  }, []);
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [rRes, eRes, sRes] = await Promise.all([
+        fetch('/api/raffles'),
+        fetch('/api/admin/entries'),
+        fetch('/api/admin/entries?stats=true'),
+      ]);
+
+      const [rData, eData, sData] = await Promise.all([
+        rRes.json(),
+        eRes.json(),
+        sRes.json(),
+      ]);
+
+      if (rData.success) setRaffles(rData.raffles || []);
+      if (eData.success) setEntries(eData.entries || []);
+      if (sData.success) setStats(sData.stats || null);
+    } catch (err) {
+      console.error('Failed to fetch admin data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -138,152 +156,69 @@ export function AdminDashboard() {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passcode.toLowerCase() === 'flamebound' || passcode.toLowerCase() === 'admin2026') {
-      setSessionAuth(true);
-      sessionStorage.setItem('flamebound_admin_auth', 'true');
-      setAuthError('');
-      fetchData();
-    } else {
-      setAuthError('Invalid Admin Passphrase.');
-    }
-  };
+  const handleImageUpload = async (file: File, type: 'logo' | 'banner', isEdit = false) => {
+    const formData = new FormData();
+    formData.append('file', file);
 
-  const fetchData = async () => {
-    setLoading(true);
+    if (type === 'logo') setUploadingLogo(true);
+    else setUploadingBanner(true);
+
     try {
-      const [rafflesRes, entriesRes] = await Promise.all([
-        fetch('/api/raffles'),
-        fetch('/api/admin/entries'),
-      ]);
-      const rafflesData = await rafflesRes.json();
-      const entriesData = await entriesRes.json();
-      if (rafflesData.success) setRaffles(rafflesData.raffles);
-      if (entriesData.success) {
-        setEntries(entriesData.entries);
-        setStats(entriesData.stats);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'banner', isEdit = false) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (field === 'logo') setUploadingLogo(true);
-    if (field === 'banner') setUploadingBanner(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
       const data = await res.json();
+
       if (data.success && data.url) {
         if (isEdit && editingRaffle) {
-          setEditingRaffle({
-            ...editingRaffle,
-            [field === 'logo' ? 'logoUrl' : 'bannerUrl']: data.url,
-            artworkType: 'custom',
-          });
+          if (type === 'logo') setEditingRaffle({ ...editingRaffle, logoUrl: data.url });
+          else setEditingRaffle({ ...editingRaffle, bannerUrl: data.url });
         } else {
-          setNewRaffle(prev => ({
-            ...prev,
-            [field === 'logo' ? 'logoUrl' : 'bannerUrl']: data.url,
-            artworkType: field === 'banner' ? 'custom' : prev.artworkType,
-          }));
+          if (type === 'logo') setNewRaffle({ ...newRaffle, logoUrl: data.url });
+          else setNewRaffle({ ...newRaffle, bannerUrl: data.url });
         }
-        setActionMessage(`✓ ${field.toUpperCase()} uploaded successfully!`);
+      } else {
+        alert(data.error || 'Failed to upload image');
       }
-    } catch (err: any) {
-      setActionMessage(`✕ Failed to upload ${field}: ` + err.message);
+    } catch (err) {
+      alert('Error uploading image');
     } finally {
-      if (field === 'logo') setUploadingLogo(false);
-      if (field === 'banner') setUploadingBanner(false);
-    }
-  };
-
-  const addCustomTask = (formType: 'create' | 'edit', preset?: Partial<CustomTask>) => {
-    const newTask: CustomTask = {
-      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      title: preset?.title || 'Join Community Discord',
-      url: preset?.url || 'https://',
-      actionLabel: preset?.actionLabel || '[VISIT LINK]',
-      type: preset?.type || 'link',
-      required: preset?.required ?? true,
-    };
-
-    if (formType === 'create') {
-      setNewRaffle(prev => ({
-        ...prev,
-        customTasks: [...(prev.customTasks || []), newTask],
-      }));
-    } else if (editingRaffle) {
-      setEditingRaffle(prev => prev ? ({
-        ...prev,
-        customTasks: [...(prev.customTasks || []), newTask],
-      }) : null);
-    }
-  };
-
-  const updateCustomTask = (formType: 'create' | 'edit', index: number, field: keyof CustomTask, value: any) => {
-    if (formType === 'create') {
-      setNewRaffle(prev => {
-        const updated = [...(prev.customTasks || [])];
-        if (updated[index]) {
-          updated[index] = { ...updated[index], [field]: value };
-        }
-        return { ...prev, customTasks: updated };
-      });
-    } else if (editingRaffle) {
-      setEditingRaffle(prev => {
-        if (!prev) return null;
-        const updated = [...(prev.customTasks || [])];
-        if (updated[index]) {
-          updated[index] = { ...updated[index], [field]: value };
-        }
-        return { ...prev, customTasks: updated };
-      });
-    }
-  };
-
-  const removeCustomTask = (formType: 'create' | 'edit', index: number) => {
-    if (formType === 'create') {
-      setNewRaffle(prev => ({
-        ...prev,
-        customTasks: (prev.customTasks || []).filter((_, i) => i !== index),
-      }));
-    } else if (editingRaffle) {
-      setEditingRaffle(prev => prev ? ({
-        ...prev,
-        customTasks: (prev.customTasks || []).filter((_, i) => i !== index),
-      }) : null);
+      if (type === 'logo') setUploadingLogo(false);
+      else setUploadingBanner(false);
     }
   };
 
   const handleCreateRaffle = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!newRaffle.title.trim()) {
+      alert('Please enter a raffle title');
+      return;
+    }
+
     try {
+      setLoading(true);
       const res = await fetch('/api/raffles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newRaffle,
-          customTasks: newRaffle.customTasks || [],
+          startDate: new Date().toISOString(),
           endDate: new Date(newRaffle.endDate).toISOString(),
           status: 'live',
         }),
       });
+
       const data = await res.json();
       if (data.success) {
-        setActionMessage('✓ Raffle created successfully with full NFT specs & task URLs!');
-        fetchData();
+        alert('Raffle created successfully!');
         setActiveTab('raffles');
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to create raffle');
       }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to create raffle: ' + err.message);
+    } catch (err) {
+      alert('Error creating raffle');
     } finally {
       setLoading(false);
     }
@@ -292,2133 +227,873 @@ export function AdminDashboard() {
   const handleUpdateRaffle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRaffle) return;
-    setLoading(true);
+
     try {
+      setLoading(true);
       const res = await fetch(`/api/raffles/${editingRaffle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingRaffle),
       });
+
       const data = await res.json();
       if (data.success) {
-        setActionMessage('✓ Raffle details updated!');
+        alert('Raffle updated successfully!');
         setEditingRaffle(null);
         fetchData();
+      } else {
+        alert(data.error || 'Failed to update raffle');
       }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to update raffle: ' + err.message);
+    } catch (err) {
+      alert('Error updating raffle');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteRaffle = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this raffle and its entries?')) return;
+  const handleDeleteRaffle = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete raffle "${title}"? This cannot be undone.`)) return;
+
     try {
+      setLoading(true);
       const res = await fetch(`/api/raffles/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setActionMessage('✓ Raffle deleted.');
-        fetchData();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleDeleteEntry = async (id: string) => {
-    if (!confirm(`Delete entry ${id}?`)) return;
-    try {
-      const res = await fetch(`/api/admin/entries?id=${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setActionMessage(`✓ Entry ${id} removed.`);
-        fetchData();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-function formatDateTimeLocal(dateStr?: string) {
-  if (!dateStr) return '';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const year = d.getFullYear();
-    const month = pad(d.getMonth() + 1);
-    const day = pad(d.getDate());
-    const hours = pad(d.getHours());
-    const minutes = pad(d.getMinutes());
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  } catch {
-    return '';
-  }
-}
-
-  const handleToggleStatus = async (raffle: Raffle, explicitStatus?: 'live' | 'closed' | 'ending_soon' | 'winners_drawn') => {
-    const targetStatus = explicitStatus || (raffle.status === 'live' ? 'closed' : 'live');
-    try {
-      setActionMessage(`⏳ Updating status to ${targetStatus.toUpperCase()}...`);
-      const res = await fetch(`/api/raffles/${raffle.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: targetStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setActionMessage(`✓ Switched "${raffle.title}" status to [${targetStatus.toUpperCase()}]`);
+        alert('Raffle deleted');
         fetchData();
       } else {
-        setActionMessage(`✕ Failed to update status: ${data.error || 'Error'}`);
+        alert(data.error || 'Failed to delete raffle');
       }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to update status: ' + err.message);
+    } catch (err) {
+      alert('Error deleting raffle');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDrawWinners = async (raffleId: string, count: number) => {
-    const r = raffles.find(item => item.id === raffleId);
-    const raffleTitle = r ? r.title : 'this raffle';
-    const entryCount = entries.filter(e => e.raffleId === raffleId).length;
+  const handleDrawWinners = async (raffleId: string) => {
+    if (!confirm('Are you ready to draw winners for this raffle?')) return;
 
-    if (entryCount === 0) {
-      alert(`Cannot draw winners for "${raffleTitle}": 0 entries have been submitted yet. Entrants must enter before winners can be selected.`);
-      return;
-    }
-
-    if (!confirm(`Run fair winner draw for "${raffleTitle}" (${count} spots from ${entryCount} total entries)?`)) return;
     try {
-      setActionMessage(`⏳ Drawing ${count} winners for "${raffleTitle}"...`);
+      setDrawingRaffleId(raffleId);
       const res = await fetch(`/api/raffles/${raffleId}/draw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winnerCount: count }),
       });
+
       const data = await res.json();
       if (data.success) {
-        setActionMessage(`✓ Successfully drawn ${data.winners?.length || count} winners for "${raffleTitle}"!`);
+        alert(`Successfully drawn ${data.winners?.length || 0} winners!`);
         fetchData();
       } else {
-        const errorMsg = data.error || data.message || 'Failed to draw winners';
-        setActionMessage(`✕ Draw Error: ${errorMsg}`);
-        alert(`Draw Error: ${errorMsg}`);
+        alert(data.error || 'Failed to draw winners');
       }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to draw winners: ' + err.message);
-      alert('Draw Exception: ' + err.message);
+    } catch (err) {
+      alert('Error drawing winners');
+    } finally {
+      setDrawingRaffleId(null);
     }
   };
 
-  const handleToggleMethod = async (raffle: Raffle) => {
-    const newMethod = raffle.entryMethod === 'fcfs' ? 'raffle' : 'fcfs';
-    try {
-      const res = await fetch(`/api/raffles/${raffle.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryMethod: newMethod }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setActionMessage(`✓ Switched "${raffle.title}" entry method to ${newMethod === 'fcfs' ? '⚡ FCFS' : '🎲 RANDOM RAFFLE DRAW'}`);
-        fetchData();
-      }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to toggle method: ' + err.message);
-    }
-  };
+  // CSV Export (ONLY Wallet Address, X Username) named <projectName>_winners.csv
+  const exportCsv = (raffle: Raffle, entriesOrWinners: 'winners' | 'entries') => {
+    let rows: { wallet: string; twitter: string }[] = [];
+    const projectName = (raffle.project || raffle.title || 'dotset').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
 
-  const handleToggleEligibility = async (raffle: Raffle, newEligibility: 'minters_only' | 'holders_only' | 'public') => {
-    try {
-      const res = await fetch(`/api/raffles/${raffle.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eligibility: newEligibility }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setActionMessage(`✓ Switched "${raffle.title}" eligibility to ${newEligibility.toUpperCase()}`);
-        fetchData();
-      }
-    } catch (err: any) {
-      setActionMessage('✕ Failed to update eligibility: ' + err.message);
-    }
-  };
-
-  const handleExportCSV = (specificRaffleId?: string) => {
-    const targetRaffleId = specificRaffleId || (selectedRaffleFilter !== 'all' ? selectedRaffleFilter : undefined);
-
-    const filtered = entries.filter(e => {
-      if (targetRaffleId && e.raffleId !== targetRaffleId) return false;
-      if (holderOnlyFilter && !e.isHolder) return false;
-      return true;
-    });
-
-    // Determine project name for file/sheet name
-    let projectName = 'flamebound';
-    if (targetRaffleId) {
-      const matchedRaffle = raffles.find(r => r.id === targetRaffleId);
-      if (matchedRaffle) {
-        projectName = (matchedRaffle.project || matchedRaffle.title || 'raffle')
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '_')
-          .replace(/^_+|_+$/g, '');
-      }
-    } else if (selectedRaffleFilter !== 'all') {
-      const matchedRaffle = raffles.find(r => r.id === selectedRaffleFilter);
-      if (matchedRaffle) {
-        projectName = (matchedRaffle.project || matchedRaffle.title || 'raffle')
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '_')
-          .replace(/^_+|_+$/g, '');
-      }
+    if (entriesOrWinners === 'winners' && raffle.winners && raffle.winners.length > 0) {
+      rows = raffle.winners.map(w => ({
+        wallet: w.wallet,
+        twitter: w.twitterUsername || '',
+      }));
+    } else {
+      const raffleEntries = entries.filter(e => e.raffleId === raffle.id);
+      rows = raffleEntries.map(e => ({
+        wallet: e.walletAddress,
+        twitter: e.twitterUsername || '',
+      }));
     }
 
-    // Only Wallet Address and X (Twitter) Username
-    const csvRows = [
-      ['Wallet Address', 'Twitter Username'].join(','),
-      ...filtered.map(e => [
-        e.walletAddress,
-        `"${(e.twitterUsername || '').replace(/^@/, '').trim()}"`
-      ].join(','))
-    ];
+    if (rows.length === 0) {
+      alert('No data available to export.');
+      return;
+    }
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [
+      'Wallet Address,X Username',
+      ...rows.map(r => `"${r.wallet}","${r.twitter}"`),
+    ].join('\n');
+
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${projectName}.csv`);
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${projectName}_${entriesOrWinners}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handleCopyWallets = () => {
-    const filtered = entries
-      .filter(e => {
-        if (selectedRaffleFilter !== 'all' && e.raffleId !== selectedRaffleFilter) return false;
-        if (holderOnlyFilter && !e.isHolder) return false;
-        return true;
-      })
-      .map(e => e.walletAddress);
-
-    navigator.clipboard.writeText(filtered.join('\n'));
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  };
-
-  const displayedEntries = entries.filter(e => {
-    if (selectedRaffleFilter !== 'all' && e.raffleId !== selectedRaffleFilter) return false;
-    if (holderOnlyFilter && !e.isHolder) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return e.walletAddress.toLowerCase().includes(q) || e.id.toLowerCase().includes(q) || (e.twitterUsername && e.twitterUsername.toLowerCase().includes(q));
-    }
-    return true;
-  });
+  // Passcode Gate screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4 select-none">
-        <div className="bg-white border-4 border-black shadow-pixel-xl p-8 max-w-md w-full">
-          <div className="flex items-center gap-3 border-b-4 border-black pb-4 mb-6">
-            <div className="p-2 bg-black">
-              <PixelFlame size={28} />
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-4 selection:bg-[#4f52c8] selection:text-white">
+        <div className="max-w-md w-full bg-[#0f0f0f] border border-white/15 rounded-2xl p-8 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto text-white">
+              <Lock size={22} />
             </div>
-            <div>
-              <h1 className="font-pixel text-base text-black font-bold">DOTSET ADMIN</h1>
-              <span className="font-mono text-xs text-gray-700">AUTHORIZED ACCESS ONLY</span>
-            </div>
-          </div>
-
-          {/* Connect Admin Wallet Option */}
-          <div className="bg-gray-100 border-3 border-black p-4 mb-6 space-y-3">
-            <span className="font-pixel text-[9px] uppercase text-black block font-bold">
-              ★ 1-CLICK ADMIN WALLET LOGIN:
-            </span>
-            <p className="font-mono text-xs text-gray-800">
-              Connect authorized Admin wallet: <code className="bg-white px-1 border border-black font-bold">{formatAddress(ADMIN_WALLET)}</code>
+            <h1 className="font-syne text-2xl font-bold text-white tracking-tight">
+              Admin Controller
+            </h1>
+            <p className="font-dm text-sm text-gray-400">
+              Enter your admin PIN or connect authorized admin wallet.
             </p>
-            <div className="pt-1">
-              <ConnectButton.Custom>
-                {({ openConnectModal, account, mounted }) => {
-                  if (!mounted) return null;
-                  return (
-                    <button
-                      type="button"
-                      onClick={openConnectModal}
-                      className="w-full pixel-btn text-xs py-2.5 shadow-pixel flex items-center justify-center gap-2"
-                    >
-                      <Wallet size={14} />
-                      <span>{account ? `CONNECTED: ${account.displayName}` : '[CONNECT ADMIN WALLET]'}</span>
-                    </button>
-                  );
-                }}
-              </ConnectButton.Custom>
-            </div>
           </div>
 
-          <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t-2 border-black"></div>
-            <span className="flex-shrink mx-4 font-pixel text-[9px] text-gray-600 uppercase">OR PASSPHRASE</span>
-            <div className="flex-grow border-t-2 border-black"></div>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4 mt-3">
+          <form onSubmit={handleUnlock} className="space-y-4">
             <div>
+              <label className="block font-mono-dm text-xs uppercase tracking-wider text-gray-300 mb-1.5 font-medium">
+                Admin Passcode
+              </label>
               <input
                 type="password"
-                placeholder="Admin Passphrase"
                 value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                className="w-full bg-white border-3 border-black p-3 font-mono text-sm text-black outline-none font-bold"
+                onChange={e => setPasscode(e.target.value)}
+                placeholder="Enter passcode..."
+                className="w-full bg-[#161616] border border-white/20 focus:border-white/50 focus:ring-1 focus:ring-white/50 text-white placeholder:text-gray-600 rounded-xl p-3.5 text-sm font-mono-dm outline-none transition-all"
+                autoFocus
               />
             </div>
 
             {authError && (
-              <p className="font-mono text-xs text-red-700 font-bold bg-red-100 p-2 border-2 border-red-700">
-                {authError}
-              </p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-dm">
+                <AlertCircle size={14} className="shrink-0" />
+                <span>{authError}</span>
+              </div>
             )}
 
             <button
               type="submit"
-              className="w-full pixel-btn text-xs py-3.5 shadow-pixel"
+              className="w-full bg-white text-black font-dm font-semibold text-sm py-3.5 rounded-xl hover:bg-gray-200 transition-colors shadow-lg flex items-center justify-center gap-2"
             >
-              [UNLOCK DASHBOARD]
+              <span>Unlock Dashboard</span>
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t-2 border-black flex justify-between items-center font-mono text-xs text-gray-700">
-            <Link href="/" className="flex items-center gap-1 hover:underline font-bold text-black">
-              <ArrowLeft size={14} /> Back to Raffles
+          <div className="text-center pt-2">
+            <Link href="/" className="font-dm text-xs text-gray-400 hover:text-white transition-colors">
+              ← Return to Home
             </Link>
-            <span className="text-[10px]">DOTSET CONTROLLER</span>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white select-none flex flex-col">
-      <header className="bg-black text-lime border-b-4 border-black px-4 sm:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <PixelFlame size={24} />
-            <div>
-              <span className="font-pixel text-base text-white tracking-wider font-bold">
-                DOTSET ADMIN DASHBOARD
-              </span>
-              <span className="font-mono text-xs text-lime block">
-                Official WL Raffle & On-Chain Verification Controller
-              </span>
-            </div>
-          </div>
+  // Filtered entries
+  const filteredEntries = entries.filter(e => {
+    if (selectedRaffleFilter !== 'all' && e.raffleId !== selectedRaffleFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchWallet = e.walletAddress.toLowerCase().includes(q);
+      const matchX = (e.twitterUsername || '').toLowerCase().includes(q);
+      if (!matchWallet && !matchX) return false;
+    }
+    return true;
+  });
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="pixel-btn-lime text-[10px] py-2 px-3 flex items-center gap-1.5"
-            >
-              <ArrowLeft size={14} />
-              <span>LIVE WEBSITE</span>
-            </Link>
-            <button
-              onClick={() => {
-                sessionStorage.removeItem('flamebound_admin_auth');
-                setSessionAuth(false);
-              }}
-              className="pixel-btn text-[10px] py-2 px-3 bg-red-600 hover:bg-red-700 text-white"
-            >
-              LOGOUT
-            </button>
+  return (
+    <div className="min-h-screen bg-[#080808] text-[#f0f0f0] selection:bg-[#4f52c8] selection:text-white pb-20">
+      
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-40 bg-[#0c0c0c]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-dm transition-colors"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Site</span>
+          </Link>
+          <div className="h-4 w-px bg-white/15" />
+          <div className="flex items-center gap-2">
+            <span className="font-syne text-lg font-bold text-white tracking-tight">
+              DOTSET
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-mono-dm uppercase font-semibold">
+              Admin Controller
+            </span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+          </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
-        {actionMessage && (
-          <div className="bg-black text-lime border-3 border-black p-3 font-pixel text-xs flex items-center justify-between shadow-pixel-sm">
-            <span>{actionMessage}</span>
-            <button onClick={() => setActionMessage('')} className="text-white hover:underline text-xs">✕</button>
-          </div>
-        )}
-
-        {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white border-4 border-black p-4 shadow-pixel-sm">
-              <span className="font-pixel text-[9px] uppercase text-gray-700 block font-bold">TOTAL RAFFLES</span>
-              <span className="font-pixel text-2xl font-bold text-black mt-1 block">{stats.totalRaffles}</span>
-              <span className="font-mono text-[11px] text-gray-600">{stats.activeRaffles} Active</span>
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        
+        {/* Top Stats Overview */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-[#121212] border border-white/10 rounded-xl p-4 sm:p-5 shadow-lg">
+            <div className="text-gray-400 text-xs font-mono-dm uppercase font-medium">
+              Total Raffles
             </div>
-            <div className="bg-white border-4 border-black p-4 shadow-pixel-sm">
-              <span className="font-pixel text-[9px] uppercase text-gray-700 block font-bold">TOTAL ENTRIES</span>
-              <span className="font-pixel text-2xl font-bold text-black mt-1 block">{stats.totalEntries}</span>
-              <span className="font-mono text-[11px] text-gray-600">Across all collections</span>
-            </div>
-            <div className="bg-black text-lime border-4 border-black p-4 shadow-pixel-sm">
-              <span className="font-pixel text-[9px] uppercase text-gray-300 block font-bold">VERIFIED MINTERS</span>
-              <span className="font-pixel text-2xl font-bold text-lime mt-1 block">{stats.totalVerifiedHolders}</span>
-              <span className="font-mono text-[11px] text-gray-300">100% On-chain Verified</span>
-            </div>
-            <div className="bg-white border-4 border-black p-4 shadow-pixel-sm">
-              <span className="font-pixel text-[9px] uppercase text-gray-700 block font-bold">WINNERS SELECTED</span>
-              <span className="font-pixel text-2xl font-bold text-black mt-1 block">{stats.totalWinnersSelected}</span>
-              <span className="font-mono text-[11px] text-gray-600">WL Spots Allocated</span>
+            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-white mt-1">
+              {stats?.totalRaffles ?? raffles.length}
             </div>
           </div>
-        )}
 
-        <div className="flex flex-wrap gap-2 border-b-4 border-black pb-3">
+          <div className="bg-[#121212] border border-white/10 rounded-xl p-4 sm:p-5 shadow-lg">
+            <div className="text-gray-400 text-xs font-mono-dm uppercase font-medium">
+              Active Campaigns
+            </div>
+            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-[#4ade80] mt-1">
+              {stats?.activeRaffles ?? raffles.filter(r => r.status === 'live').length}
+            </div>
+          </div>
+
+          <div className="bg-[#121212] border border-white/10 rounded-xl p-4 sm:p-5 shadow-lg">
+            <div className="text-gray-400 text-xs font-mono-dm uppercase font-medium">
+              Total Quest Entries
+            </div>
+            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-[#38bdf8] mt-1">
+              {stats?.totalEntries ?? entries.length}
+            </div>
+          </div>
+
+          <div className="bg-[#121212] border border-white/10 rounded-xl p-4 sm:p-5 shadow-lg">
+            <div className="text-gray-400 text-xs font-mono-dm uppercase font-medium">
+              Winners Selected
+            </div>
+            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-[#fb923c] mt-1">
+              {stats?.totalWinnersSelected ?? raffles.reduce((acc, r) => acc + (r.winners?.length || 0), 0)}
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-white/10 pb-4">
           <button
-            onClick={() => { setActiveTab('raffles'); setEditingRaffle(null); }}
-            className={`px-4 py-2.5 font-pixel text-xs border-3 border-black uppercase font-bold flex items-center gap-2 ${
-              activeTab === 'raffles' && !editingRaffle ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+            onClick={() => setActiveTab('raffles')}
+            className={`px-4 py-2 rounded-lg text-sm font-dm font-semibold transition-all ${
+              activeTab === 'raffles'
+                ? 'bg-white text-black shadow-md'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Layers size={16} />
-            <span>MANAGE RAFFLES ({raffles.length})</span>
+            Manage Raffles ({raffles.length})
           </button>
 
           <button
-            onClick={() => { setActiveTab('entries'); setEditingRaffle(null); }}
-            className={`px-4 py-2.5 font-pixel text-xs border-3 border-black uppercase font-bold flex items-center gap-2 ${
-              activeTab === 'entries' ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+            onClick={() => setActiveTab('entries')}
+            className={`px-4 py-2 rounded-lg text-sm font-dm font-semibold transition-all ${
+              activeTab === 'entries'
+                ? 'bg-white text-black shadow-md'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Users size={16} />
-            <span>VIEW ENTRIES ({entries.length})</span>
+            All Entrants ({entries.length})
           </button>
 
           <button
-            onClick={() => { setActiveTab('create'); setEditingRaffle(null); }}
-            className={`px-4 py-2.5 font-pixel text-xs border-3 border-black uppercase font-bold flex items-center gap-2 ${
-              activeTab === 'create' ? 'bg-black text-lime shadow-pixel-sm' : 'bg-white text-black hover:bg-black/10'
+            onClick={() => setActiveTab('create')}
+            className={`px-4 py-2 rounded-lg text-sm font-dm font-semibold transition-all flex items-center gap-1.5 ml-auto ${
+              activeTab === 'create'
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'bg-white/10 text-white hover:bg-white/20'
             }`}
           >
             <Plus size={16} />
-            <span>+ CREATE NEW RAFFLE</span>
-          </button>
-
-          <button
-            onClick={fetchData}
-            className="ml-auto px-3 py-2.5 font-pixel text-[10px] bg-white text-black border-3 border-black hover:bg-black/10 flex items-center gap-1.5"
-            title="Refresh"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            <span>REFRESH</span>
+            <span>Create New Raffle</span>
           </button>
         </div>
-        {/* TAB 1: MANAGE RAFFLES */}
-        {activeTab === 'raffles' && !editingRaffle && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {raffles.map((raffle) => (
-                <div key={raffle.id} className="bg-white border-4 border-black p-5 shadow-pixel-lg flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
-                      <div className="flex items-center gap-1.5">
-                        {raffle.logoUrl && (
-                          <img src={raffle.logoUrl} alt="Logo" className="w-5 h-5 border border-black object-cover bg-white" />
-                        )}
-                        <span className="font-pixel text-[10px] bg-black text-lime px-2 py-0.5 font-bold">
-                          {raffle.status.toUpperCase()}
+
+        {/* TAB 1: RAFFLES LIST */}
+        {activeTab === 'raffles' && (
+          <div className="space-y-4">
+            {raffles.length === 0 ? (
+              <div className="text-center py-16 bg-[#121212] border border-white/10 rounded-2xl">
+                <p className="text-gray-400 text-sm font-dm">No raffles found.</p>
+                <button
+                  onClick={() => setActiveTab('create')}
+                  className="mt-4 px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Create First Raffle
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {raffles.map(r => (
+                  <div
+                    key={r.id}
+                    className="bg-[#121212] border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Top Badges */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono-dm uppercase font-bold ${
+                          r.status === 'live'
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : r.status === 'winners_drawn'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                        }`}>
+                          ● {r.status}
+                        </span>
+
+                        <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono-dm text-gray-300 font-medium uppercase">
+                          {r.mintStage || (r.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}
                         </span>
                       </div>
-                      <span className="font-mono text-xs font-bold text-black bg-lime px-1.5 py-0.5 border border-black">
-                        {raffle.supply} WL SPOTS
-                      </span>
+
+                      {/* Title & Project */}
+                      <h3 className="font-syne text-lg font-bold text-white tracking-tight leading-snug">
+                        {r.title}
+                      </h3>
+                      <p className="font-dm text-xs text-gray-400 mt-1 line-clamp-2">
+                        {r.subtitle || r.description}
+                      </p>
+
+                      {/* Stats Row */}
+                      <div className="grid grid-cols-3 gap-2 bg-[#181818] border border-white/5 rounded-xl p-3 my-4 text-center">
+                        <div>
+                          <div className="text-[10px] font-mono-dm text-gray-500 uppercase">Supply</div>
+                          <div className="text-xs font-bold text-white mt-0.5">{r.supply} Spots</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-mono-dm text-gray-500 uppercase">Entries</div>
+                          <div className="text-xs font-bold text-[#38bdf8] mt-0.5">{r.totalEntries || 0}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-mono-dm text-gray-500 uppercase">Winners</div>
+                          <div className="text-xs font-bold text-[#fb923c] mt-0.5">{r.winners?.length || 0}</div>
+                        </div>
+                      </div>
                     </div>
 
-                    <h3 className="font-pixel text-sm font-bold text-black uppercase mb-1">
-                      {raffle.title}
-                    </h3>
-                    <p className="font-mono text-xs text-gray-700 mb-3 line-clamp-2">
-                      {raffle.subtitle}
-                    </p>
+                    {/* Actions Row */}
+                    <div className="space-y-2 pt-2 border-t border-white/10">
+                      <div className="flex items-center gap-2">
+                        {/* Draw Winners Button */}
+                        <button
+                          onClick={() => handleDrawWinners(r.id)}
+                          disabled={drawingRaffleId === r.id}
+                          className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-dm font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                        >
+                          <Trophy size={14} />
+                          <span>{drawingRaffleId === r.id ? 'Drawing...' : 'Draw Winners'}</span>
+                        </button>
 
-                    <div className="bg-gray-100 border-2 border-black p-3 space-y-1.5 font-mono text-[11px] mb-4">
-                      <div className="flex justify-between">
-                        <strong>Project:</strong> 
-                        <span className="font-bold">{raffle.project || 'FLAMEBOUND'}</span>
+                        {/* Export CSV Button */}
+                        <button
+                          onClick={() => exportCsv(r, r.winners && r.winners.length > 0 ? 'winners' : 'entries')}
+                          className="bg-white/10 hover:bg-white/20 text-white font-dm text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center gap-1 border border-white/10"
+                          title="Export CSV (Wallets & X handles)"
+                        >
+                          <Download size={14} />
+                          <span>CSV</span>
+                        </button>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <strong>Mint Stage:</strong> 
-                        <span className={`font-pixel text-[9px] px-1.5 py-0.5 border border-black font-bold ${
-                          (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'GTD'
-                            ? 'bg-lime text-black'
-                            : (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'FCFS'
-                            ? 'bg-amber-400 text-black'
-                            : (raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'CUSTOM'
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-white text-black'
-                        }`}>
-                          [{raffle.mintStage || (raffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}]
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <strong>Eligibility:</strong> 
-                        <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 border border-black font-bold">
-                          {raffle.eligibility === 'public' ? '[PUBLIC]' : raffle.eligibility === 'holders_only' ? '[HOLDERS ONLY]' : '[MINTERS ONLY]'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <strong>Method:</strong> 
-                        <span className={`font-pixel text-[9px] px-1.5 py-0.5 border border-black font-bold ${
-                          raffle.entryMethod === 'fcfs' ? 'bg-lime text-black animate-pulse' : 'bg-white text-black'
-                        }`}>
-                          {raffle.entryMethod === 'fcfs' ? 'FCFS (FIRST COME)' : 'RAFFLE DRAW'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <strong>NFT Total Supply:</strong> 
-                        <span className="font-bold">{raffle.nftTotalSupply || 'TBA'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <strong>Mint Price:</strong> 
-                        <span className="font-bold bg-white px-1 border border-black">{raffle.mintPrice || 'FREE'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <strong>Mint Date:</strong> 
-                        <span className="font-bold">{raffle.mintDate || 'TBA'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <strong>Network:</strong> 
-                        <span className="font-bold">[{raffle.customNetwork || raffle.network || 'ETHEREUM'}]</span>
-                      </div>
-                      <div className="truncate">
-                        <strong>Contract:</strong> {formatAddress(raffle.contractAddress)}
-                      </div>
-                      <div className="flex justify-between">
-                        <strong>Total Entries:</strong> 
-                        <span className="font-bold">{raffle.totalEntries} / {raffle.supply} SPOTS</span>
+
+                      <div className="flex items-center gap-2">
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => setEditingRaffle(r)}
+                          className="flex-1 bg-[#1a1a1a] hover:bg-[#252525] border border-white/15 text-white font-dm text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Edit3 size={13} />
+                          <span>Edit Details</span>
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDeleteRaffle(r.id, r.title)}
+                          className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg transition-colors"
+                          title="Delete Raffle"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+
+                        {/* View Link */}
+                        <Link
+                          href={`/raffle/${r.slug || r.id}`}
+                          target="_blank"
+                          className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 rounded-lg transition-colors"
+                          title="View Live Page"
+                        >
+                          <ExternalLink size={14} />
+                        </Link>
                       </div>
                     </div>
                   </div>
-
-                  <div className="space-y-2 pt-2 border-t-2 border-black">
-                    {/* Quick Mode & Status Controls */}
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(raffle)}
-                        className={`font-pixel text-[9px] py-1.5 border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors ${
-                          raffle.status === 'live' 
-                            ? 'bg-red-500 text-white hover:bg-red-600' 
-                            : 'bg-lime text-black hover:bg-black hover:text-lime'
-                        }`}
-                      >
-                        {raffle.status === 'live' ? '🔒 [CLOSE RAFFLE]' : '🔓 [RE-OPEN RAFFLE]'}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleToggleMethod(raffle)}
-                        className="font-pixel text-[9px] py-1.5 bg-gray-100 hover:bg-lime border-2 border-black flex items-center justify-center gap-1 font-bold transition-colors"
-                      >
-                        <span>{raffle.entryMethod === 'fcfs' ? 'MODE: FCFS ⚡' : 'MODE: RAFFLE 🎲'}</span>
-                      </button>
-                    </div>
-
-                    {/* Winner Draw Button for all raffles (Live, Closed, Winners Drawn) */}
-                    <button
-                      onClick={() => handleDrawWinners(raffle.id, raffle.supply)}
-                      className={`w-full pixel-btn text-[10px] py-2.5 flex items-center justify-center gap-1.5 font-bold shadow-pixel-xs ${
-                        raffle.status === 'winners_drawn' ? 'bg-purple-700 text-white' : 'bg-black text-lime'
-                      }`}
-                    >
-                      <Trophy size={14} />
-                      <span>
-                        {raffle.status === 'winners_drawn'
-                          ? `RE-DRAW WINNERS (${raffle.supply} SPOTS)`
-                          : `RUN FAIR DRAW (${raffle.supply} SPOTS)`}
-                      </span>
-                    </button>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setEditingRaffle(raffle)}
-                        className="flex-1 pixel-btn-white text-[10px] py-2 flex items-center justify-center gap-1"
-                      >
-                        <Edit3 size={12} />
-                        <span>EDIT</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSelectedRaffleFilter(raffle.id);
-                          setActiveTab('entries');
-                        }}
-                        className="flex-1 pixel-btn text-[10px] py-2"
-                      >
-                        ENTRIES ({entries.filter(e => e.raffleId === raffle.id).length})
-                      </button>
-
-                      <button
-                        onClick={() => handleExportCSV(raffle.id)}
-                        className="pixel-btn-lime text-[10px] py-2 px-2.5 flex items-center justify-center gap-1"
-                        title={`Export CSV for ${raffle.project || raffle.title}`}
-                      >
-                        <Download size={12} />
-                        <span>CSV</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteRaffle(raffle.id)}
-                        className="p-2 border-2 border-black bg-red-100 hover:bg-red-200 text-red-800"
-                        title="Delete Raffle"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* EDIT RAFFLE VIEW */}
-        {editingRaffle && (
-          <div className="bg-white border-4 border-black p-6 sm:p-8 shadow-pixel-lg max-w-4xl mx-auto">
-            <div className="flex items-center justify-between border-b-3 border-black pb-3 mb-6">
-              <div className="flex items-center gap-2">
-                <Edit3 size={18} />
-                <h2 className="font-pixel text-base sm:text-lg text-black font-bold uppercase">
-                  EDIT RAFFLE: {editingRaffle.title}
-                </h2>
-              </div>
-              <button
-                onClick={() => setEditingRaffle(null)}
-                className="p-1 border border-black bg-black text-lime hover:bg-white hover:text-black"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateRaffle} className="space-y-4 font-mono text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    RAFFLE TITLE:
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingRaffle.title}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, title: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    PROJECT NAME:
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. CULT or FLAMEBOUND"
-                    value={editingRaffle.project || ''}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, project: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                  SUBTITLE:
-                </label>
+        {/* TAB 2: ENTRANTS LIST */}
+        {activeTab === 'entries' && (
+          <div className="space-y-4">
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 bg-[#121212] border border-white/10 p-3.5 rounded-xl">
+              <div className="relative flex-1 w-full">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  value={editingRaffle.subtitle || ''}
-                  onChange={(e) => setEditingRaffle({ ...editingRaffle, subtitle: e.target.value })}
-                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                />
-              </div>
-
-              {/* Short URL / Slug for X Sharing */}
-              <div>
-                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                  SHORT URL SLUG (FOR CLEAN TWITTER / X SHARING):
-                </label>
-                <div className="flex items-center">
-                  <span className="bg-black text-lime font-mono text-xs px-3 py-2.5 border-2 border-r-0 border-black font-bold shrink-0">
-                    flamebound.site/r/
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="e.g. cult, genesis, banners"
-                    value={editingRaffle.slug || ''}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    className="flex-1 min-w-0 bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Eligibility & Mint Stage Rules */}
-              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
-                <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
-                  <span>[MINT STAGE & ELIGIBILITY RULES]</span>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Mint Stage Selector */}
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      MINT STAGE TYPE (GTD / FCFS / WL / CUSTOM):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'GTD' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          (editingRaffle.mintStage || (editingRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'GTD'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [GTD] GUARANTEED
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'FCFS', entryMethod: 'fcfs' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          (editingRaffle.mintStage || (editingRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')) === 'FCFS'
-                            ? 'bg-amber-400 text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [FCFS] FIRST-COME
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'WL' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          editingRaffle.mintStage === 'WL'
-                            ? 'bg-white text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [WL] WHITELIST
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingRaffle({ ...editingRaffle, mintStage: 'CUSTOM' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          editingRaffle.mintStage === 'CUSTOM'
-                            ? 'bg-purple-600 text-white shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [CUSTOM] SPECIAL
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/20">
-                    {/* Eligibility Selector */}
-                    <div>
-                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                        ELIGIBILITY REQUIREMENT:
-                      </label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'minters_only' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            (editingRaffle.eligibility || 'minters_only') === 'minters_only'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          MINTERS ONLY
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'holders_only' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            editingRaffle.eligibility === 'holders_only'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          HOLDERS ONLY
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingRaffle({ ...editingRaffle, eligibility: 'public' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            editingRaffle.eligibility === 'public'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          OPEN TO ALL
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Entry Method Selector */}
-                    <div>
-                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                        ENTRY / DRAW METHOD:
-                      </label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'raffle' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            (editingRaffle.entryMethod || 'raffle') === 'raffle'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          RANDOM DRAW
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingRaffle({ ...editingRaffle, entryMethod: 'fcfs', mintStage: 'FCFS' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            editingRaffle.entryMethod === 'fcfs'
-                              ? 'bg-amber-400 text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          FCFS (INSTANT)
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Task Custom URLs */}
-              <div className="bg-gray-50 border-2 border-black p-3 space-y-3">
-                <div className="font-pixel text-[9px] uppercase font-bold text-black border-b border-black/30 pb-1">
-                  [CUSTOM TASK URLS & SOCIAL LINKS]
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      FOLLOW TASK URL:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://twitter.com/FlameboundNFT"
-                      value={editingRaffle.followUrl || ''}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, followUrl: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      COMMENT / ENGAGE TASK URL:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://twitter.com/FlameboundNFT/status/..."
-                      value={editingRaffle.engageUrl || ''}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, engageUrl: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
-              <div className="bg-gray-50 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
-                  <div>
-                    <span className="font-pixel text-[10px] uppercase font-bold text-black block">
-                      ⚡ CUSTOM ENTRY TASKS (OPTIONAL):
-                    </span>
-                    <span className="font-mono text-[11px] text-gray-700">
-                      Add extra community requirements (Discord, Telegram, Retweets, Links)
-                    </span>
-                  </div>
-
-                  {/* Preset Buttons */}
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('edit', { title: 'Join Official Discord Server', type: 'discord', actionLabel: '[JOIN DISCORD]', url: 'https://discord.gg/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Discord
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('edit', { title: 'Join Telegram Community', type: 'telegram', actionLabel: '[JOIN TELEGRAM]', url: 'https://t.me/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Telegram
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('edit', { title: 'Like & Retweet Announcement', type: 'twitter', actionLabel: '[RETWEET POST]', url: 'https://x.com/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Retweet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('edit')}
-                      className="font-pixel text-[8px] bg-white text-black px-2 py-1 border border-black hover:bg-lime font-bold uppercase transition-colors"
-                    >
-                      + Add Task
-                    </button>
-                  </div>
-                </div>
-
-                {/* Task List Rows */}
-                {(!editingRaffle.customTasks || editingRaffle.customTasks.length === 0) ? (
-                  <div className="p-3 bg-white/60 border-2 border-dashed border-black/40 text-center font-mono text-xs text-gray-600">
-                    No custom tasks added. Click any button above (+ Discord, + Telegram, + Retweet) to add custom tasks.
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {editingRaffle.customTasks.map((task, idx) => (
-                      <div key={task.id || idx} className="bg-white border-2 border-black p-3 space-y-2 shadow-pixel-xs">
-                        <div className="flex items-center justify-between border-b border-black/20 pb-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold">
-                              TASK #{idx + 1}
-                            </span>
-                            <span className="font-pixel text-[9px] uppercase font-bold text-black">
-                              {task.type?.toUpperCase() || 'CUSTOM'} TASK
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <label className="flex items-center gap-1 font-mono text-[11px] font-bold cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={task.required ?? true}
-                                onChange={(e) => updateCustomTask('edit', idx, 'required', e.target.checked)}
-                                className="accent-black"
-                              />
-                              <span>Mandatory</span>
-                            </label>
-
-                            <button
-                              type="button"
-                              onClick={() => removeCustomTask('edit', idx)}
-                              className="p-1 text-red-700 hover:bg-red-100 border border-red-400 font-pixel text-[8px] flex items-center gap-0.5"
-                            >
-                              <Trash2 size={11} />
-                              <span>REMOVE</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <div>
-                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                              TASK TITLE:
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. Join Official Discord"
-                              value={task.title}
-                              onChange={(e) => updateCustomTask('edit', idx, 'title', e.target.value)}
-                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                              ACTION URL / LINK:
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="https://..."
-                              value={task.url}
-                              onChange={(e) => updateCustomTask('edit', idx, 'url', e.target.value)}
-                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <div>
-                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                                BUTTON LABEL:
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="[JOIN DISCORD]"
-                                value={task.actionLabel || ''}
-                                onChange={(e) => updateCustomTask('edit', idx, 'actionLabel', e.target.value)}
-                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                                TYPE:
-                              </label>
-                              <select
-                                value={task.type || 'link'}
-                                onChange={(e) => updateCustomTask('edit', idx, 'type', e.target.value as any)}
-                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                              >
-                                <option value="discord">DISCORD</option>
-                                <option value="telegram">TELEGRAM</option>
-                                <option value="twitter">TWITTER / X</option>
-                                <option value="youtube">YOUTUBE</option>
-                                <option value="website">WEBSITE</option>
-                                <option value="link">CUSTOM LINK</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 border-2 border-black p-3">
-                <div>
-                  <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                    WL SPOTS:
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={editingRaffle.supply}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, supply: Number(e.target.value) })}
-                    className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                    TOTAL NFT SUPPLY:
-                  </label>
-                  <input
-                    type="text"
-                    value={editingRaffle.nftTotalSupply || ''}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, nftTotalSupply: e.target.value })}
-                    className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                    MINT PRICE:
-                  </label>
-                  <input
-                    type="text"
-                    value={editingRaffle.mintPrice || ''}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, mintPrice: e.target.value })}
-                    className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                    MINT DATE:
-                  </label>
-                  <input
-                    type="text"
-                    value={editingRaffle.mintDate || ''}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, mintDate: e.target.value })}
-                    className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Logo & Banner Upload */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    PROJECT LOGO / AVATAR:
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Logo URL or click Upload"
-                      value={editingRaffle.logoUrl || ''}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, logoUrl: e.target.value })}
-                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
-                    />
-                    <input
-                      type="file"
-                      ref={editLogoFileRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'logo', true)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => editLogoFileRef.current?.click()}
-                      disabled={uploadingLogo}
-                      className="pixel-btn text-[10px] py-2 px-3 flex items-center gap-1"
-                    >
-                      <Upload size={12} />
-                      <span>{uploadingLogo ? '...' : 'UPLOAD'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    BANNER / NFT ARTWORK IMAGE:
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Banner URL or click Upload"
-                      value={editingRaffle.bannerUrl || ''}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, bannerUrl: e.target.value, artworkType: 'custom' })}
-                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
-                    />
-                    <input
-                      type="file"
-                      ref={editBannerFileRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'banner', true)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => editBannerFileRef.current?.click()}
-                      disabled={uploadingBanner}
-                      className="pixel-btn text-[10px] py-2 px-3 flex items-center gap-1"
-                    >
-                      <Upload size={12} />
-                      <span>{uploadingBanner ? '...' : 'UPLOAD'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Network and Custom Network */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    NETWORK:
-                  </label>
-                  <select
-                    value={editingRaffle.network}
-                    onChange={(e) => setEditingRaffle({ ...editingRaffle, network: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
-                  >
-                    <option value="ROBINHOOD NETWORK">ROBINHOOD NETWORK</option>
-                    <option value="ETHEREUM">ETHEREUM</option>
-                    <option value="BASE">BASE</option>
-                    <option value="SEPOLIA">SEPOLIA</option>
-                    <option value="POLYGON">POLYGON</option>
-                    <option value="ARBITRUM">ARBITRUM</option>
-                    <option value="CUSTOM">CUSTOM NETWORK</option>
-                  </select>
-                </div>
-
-                {editingRaffle.network === 'CUSTOM' ? (
-                  <div>
-                    <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                      CUSTOM NETWORK NAME:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. MONAD or BERACHAIN"
-                      value={editingRaffle.customNetwork || ''}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, customNetwork: e.target.value })}
-                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                      CONTRACT ADDRESS (HOLDER CHECK):
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={editingRaffle.contractAddress}
-                      onChange={(e) => setEditingRaffle({ ...editingRaffle, contractAddress: e.target.value })}
-                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                  EXTRA NOTES / ANNOUNCEMENT DETAILS:
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Guaranteed Phase 1 mint for whitelist winners"
-                  value={editingRaffle.notes || ''}
-                  onChange={(e) => setEditingRaffle({ ...editingRaffle, notes: e.target.value })}
-                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black font-bold"
-                />
-              </div>
-
-              {/* RAFFLE STATUS & LIFECYCLE CONTROLLER */}
-              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-2 shadow-pixel-sm">
-                <label className="block font-pixel text-[10px] uppercase text-white font-bold">
-                  RAFFLE STATUS & LIFECYCLE:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-pixel text-[9px] font-bold uppercase">
-                  <button
-                    type="button"
-                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'live' })}
-                    className={`p-2 border-2 border-black transition-all ${
-                      editingRaffle.status === 'live' 
-                        ? 'bg-lime text-black shadow-pixel-xs' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    ● LIVE (OPEN)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'closed' })}
-                    className={`p-2 border-2 border-black transition-all ${
-                      editingRaffle.status === 'closed' 
-                        ? 'bg-red-500 text-white shadow-pixel-xs' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    🔒 CLOSED
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'ending_soon' })}
-                    className={`p-2 border-2 border-black transition-all ${
-                      editingRaffle.status === 'ending_soon' 
-                        ? 'bg-amber-400 text-black shadow-pixel-xs' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    ⏳ ENDING SOON
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingRaffle({ ...editingRaffle, status: 'winners_drawn' })}
-                    className={`p-2 border-2 border-black transition-all ${
-                      editingRaffle.status === 'winners_drawn' 
-                        ? 'bg-purple-600 text-white shadow-pixel-xs' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    🏆 WINNERS DRAWN
-                  </button>
-                </div>
-              </div>
-
-              {/* RAFFLE SCHEDULE & DEADLINE (TIME PICKER & PRESETS) */}
-              <div className="bg-gray-100 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
-                <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1 flex justify-between items-center">
-                  <span>[RAFFLE SCHEDULE & DEADLINE TIME]</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                      RAFFLE END TIME (DEADLINE):
-                    </label>
-                    <input
-                      type="datetime-local"
-                      required
-                      value={formatDateTimeLocal(editingRaffle.endDate)}
-                      onChange={(e) => {
-                        const val = e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString();
-                        setEditingRaffle({ ...editingRaffle, endDate: val });
-                      }}
-                      className="w-full bg-white border-2 border-black p-2.5 font-mono text-xs text-black font-bold outline-none"
-                    />
-
-                    {/* Quick Preset Helpers */}
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      <span className="font-pixel text-[8px] text-gray-700 font-bold self-center mr-1">QUICK SET:</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
-                        }}
-                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                      >
-                        +1 Day
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
-                        }}
-                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                      >
-                        +3 Days
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'live' });
-                        }}
-                        className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                      >
-                        +7 Days
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const d = new Date(Date.now() - 60 * 1000);
-                          setEditingRaffle({ ...editingRaffle, endDate: d.toISOString(), status: 'closed' });
-                        }}
-                        className="pixel-btn text-[8px] py-1 px-1.5 bg-red-600 text-white font-bold"
-                      >
-                        [EXPIRE NOW]
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-black mb-1 font-bold">
-                      START TIME (OPTIONAL):
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={formatDateTimeLocal(editingRaffle.startDate)}
-                      onChange={(e) => {
-                        const val = e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString();
-                        setEditingRaffle({ ...editingRaffle, startDate: val });
-                      }}
-                      className="w-full bg-white border-2 border-black p-2.5 font-mono text-xs text-black font-bold outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t-3 border-black flex gap-3">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="pixel-btn text-xs py-3.5 px-6 shadow-pixel"
-                >
-                  {loading ? 'SAVING...' : '[SAVE RAFFLE CHANGES]'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingRaffle(null)}
-                  className="pixel-btn-white text-xs py-3.5 px-6"
-                >
-                  CANCEL
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-        {/* TAB 2: VIEW ENTRIES & EXPORT WHITELIST */}
-        {activeTab === 'entries' && !editingRaffle && (
-          <div className="space-y-6">
-            <div className="bg-white border-4 border-black p-4 shadow-pixel-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <select
-                  value={selectedRaffleFilter}
-                  onChange={(e) => setSelectedRaffleFilter(e.target.value)}
-                  className="bg-gray-100 border-2 border-black px-3 py-2 font-pixel text-[10px] uppercase font-bold outline-none"
-                >
-                  <option value="all">ALL RAFFLES</option>
-                  {raffles.map(r => (
-                    <option key={r.id} value={r.id}>{r.title}</option>
-                  ))}
-                </select>
-
-                <label className="flex items-center gap-2 font-mono text-xs cursor-pointer font-bold">
-                  <input
-                    type="checkbox"
-                    checked={holderOnlyFilter}
-                    onChange={(e) => setHolderOnlyFilter(e.target.checked)}
-                    className="w-4 h-4 accent-black"
-                  />
-                  <span>HOLDERS ONLY</span>
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="Search 0x..., @handle, FB-ID"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-gray-50 border-2 border-black px-3 py-2 text-xs font-mono outline-none"
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by wallet address (0x...) or X handle (@user)..."
+                  className="w-full bg-[#181818] border border-white/10 focus:border-white/30 text-white placeholder:text-gray-500 text-xs font-mono-dm pl-9 pr-3 py-2.5 rounded-lg outline-none"
                 />
               </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                <button
-                  onClick={handleCopyWallets}
-                  className="pixel-btn text-[10px] py-2 px-3 flex items-center gap-1.5"
-                >
-                  <Copy size={14} />
-                  <span>{copySuccess ? 'COPIED!' : 'COPY WALLETS'}</span>
-                </button>
-
-                <button
-                  onClick={() => handleExportCSV()}
-                  className="pixel-btn-lime text-[10px] py-2 px-3 flex items-center gap-1.5"
-                >
-                  <Download size={14} />
-                  <span>EXPORT CSV</span>
-                </button>
-              </div>
+              <select
+                value={selectedRaffleFilter}
+                onChange={e => setSelectedRaffleFilter(e.target.value)}
+                className="w-full sm:w-64 bg-[#181818] border border-white/10 text-white text-xs font-dm p-2.5 rounded-lg outline-none"
+              >
+                <option value="all">All Raffles ({entries.length})</option>
+                {raffles.map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.title}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="bg-white border-4 border-black shadow-pixel-lg overflow-x-auto">
-              <table className="w-full text-left font-mono text-xs">
-                <thead className="bg-black text-lime font-pixel text-[10px] uppercase border-b-3 border-black">
-                  <tr>
-                    <th className="p-3">ENTRY ID</th>
-                    <th className="p-3">WALLET ADDRESS</th>
-                    <th className="p-3">TWITTER / X</th>
-                    <th className="p-3">RAFFLE</th>
-                    <th className="p-3">HOLDER STATUS</th>
-                    <th className="p-3">BALANCE</th>
-                    <th className="p-3">VERIFIED AT</th>
-                    <th className="p-3 text-right">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y-2 divide-black">
-                  {displayedEntries.length === 0 ? (
+            {/* Table */}
+            <div className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-dm text-xs">
+                  <thead className="bg-[#181818] border-b border-white/10 text-gray-400 uppercase font-mono-dm text-[10px]">
                     <tr>
-                      <td colSpan={8} className="p-8 text-center font-pixel text-xs text-gray-700">
-                        NO ENTRIES FOUND MATCHING CRITERIA.
-                      </td>
+                      <th className="py-3.5 px-4">Entry ID</th>
+                      <th className="py-3.5 px-4">Receiving Wallet</th>
+                      <th className="py-3.5 px-4">X Handle</th>
+                      <th className="py-3.5 px-4">Campaign</th>
+                      <th className="py-3.5 px-4">Submitted At</th>
+                      <th className="py-3.5 px-4">Status</th>
                     </tr>
-                  ) : (
-                    displayedEntries.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-gray-100 transition-colors">
-                        <td className="p-3 font-pixel text-[10px] font-bold text-black">
-                          {entry.id}
-                        </td>
-                        <td className="p-3 font-mono font-bold select-all">
-                          {entry.walletAddress}
-                        </td>
-                        <td className="p-3 font-mono font-bold text-black">
-                          {entry.twitterUsername ? `@${entry.twitterUsername.replace('@', '')}` : '—'}
-                        </td>
-                        <td className="p-3 font-mono text-xs">
-                          {raffles.find(r => r.id === entry.raffleId)?.title || entry.raffleId}
-                        </td>
-                        <td className="p-3">
-                          {entry.isHolder ? (
-                            <span className="font-pixel text-[9px] bg-black text-lime px-2 py-0.5 border border-black font-bold">
-                              ✓ VERIFIED HOLDER
-                            </span>
-                          ) : (
-                            <span className="font-pixel text-[9px] bg-red-600 text-white px-2 py-0.5 border border-black font-bold">
-                              ✕ NON-HOLDER
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 font-bold font-mono">
-                          {entry.tokenBalance} NFT
-                        </td>
-                        <td className="p-3 text-gray-700 text-[11px]">
-                          {new Date(entry.verifiedAt).toLocaleString()}
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => handleDeleteEntry(entry.id)}
-                            className="p-1.5 border border-black bg-red-100 hover:bg-red-300 text-red-900"
-                            title="Remove Entry"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-gray-300">
+                    {filteredEntries.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-gray-500">
+                          No entrants found matching your search.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredEntries.map(e => {
+                        const raffle = raffles.find(r => r.id === e.raffleId);
+                        return (
+                          <tr key={e.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-3 px-4 font-mono-dm text-gray-400">{e.id}</td>
+                            <td className="py-3 px-4 font-mono-dm text-white font-medium">{e.walletAddress}</td>
+                            <td className="py-3 px-4 text-[#38bdf8] font-medium">{e.twitterUsername || '—'}</td>
+                            <td className="py-3 px-4 text-gray-200">{raffle?.title || e.raffleId}</td>
+                            <td className="py-3 px-4 text-gray-400 font-mono-dm text-[11px]">
+                              {new Date(e.verifiedAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-mono-dm uppercase font-bold border border-green-500/30">
+                                Confirmed
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* TAB 3: CREATE NEW RAFFLE WITH LOGO & NFT SPECS */}
-        {activeTab === 'create' && !editingRaffle && (
-          <div className="bg-white border-4 border-black p-6 sm:p-8 shadow-pixel-lg max-w-4xl mx-auto">
-            <h2 className="font-pixel text-lg sm:text-xl text-black font-bold uppercase border-b-3 border-black pb-3 mb-6">
-              + CREATE NEW WHITELIST RAFFLE
+        {/* TAB 3: CREATE NEW RAFFLE */}
+        {activeTab === 'create' && (
+          <div className="bg-[#121212] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl max-w-4xl mx-auto">
+            <h2 className="font-syne text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <Plus size={20} className="text-indigo-400" />
+              <span>Create New Web3 Raffle Campaign</span>
             </h2>
 
-            <form onSubmit={handleCreateRaffle} className="space-y-4 font-mono text-xs">
+            <form onSubmit={handleCreateRaffle} className="space-y-6">
+              
+              {/* Basic Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    RAFFLE TITLE:
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Campaign Title *
                   </label>
                   <input
                     type="text"
                     required
                     value={newRaffle.title}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, title: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    onChange={e => setNewRaffle({ ...newRaffle, title: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 focus:border-indigo-500 text-white placeholder:text-gray-600 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
+
                 <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    PROJECT NAME:
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Project Name *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. CULT or FLAMEBOUND"
                     value={newRaffle.project}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, project: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    onChange={e => setNewRaffle({ ...newRaffle, project: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 focus:border-indigo-500 text-white placeholder:text-gray-600 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
               </div>
 
+              {/* Slug & Mint Stage */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    URL Slug (e.g. /r/my-project)
+                  </label>
+                  <input
+                    type="text"
+                    value={newRaffle.slug}
+                    onChange={e => setNewRaffle({ ...newRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                    className="w-full bg-[#181818] border border-white/15 focus:border-indigo-500 text-white placeholder:text-gray-600 rounded-xl p-3 text-sm font-mono-dm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Mint Stage
+                  </label>
+                  <select
+                    value={newRaffle.mintStage}
+                    onChange={e => setNewRaffle({ ...newRaffle, mintStage: e.target.value as any })}
+                    className="w-full bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
+                  >
+                    <option value="GTD">GTD (Guaranteed)</option>
+                    <option value="FCFS">FCFS (First-Come)</option>
+                    <option value="WL">WL (Whitelist)</option>
+                    <option value="CUSTOM">CUSTOM</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Allocation Supply (Spots) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={newRaffle.supply}
+                    onChange={e => setNewRaffle({ ...newRaffle, supply: parseInt(e.target.value) || 10 })}
+                    className="w-full bg-[#181818] border border-white/15 focus:border-indigo-500 text-white rounded-xl p-3 text-sm font-mono-dm outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Mint Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Mint Price (e.g. FREE MINT)
+                  </label>
+                  <input
+                    type="text"
+                    value={newRaffle.mintPrice}
+                    onChange={e => setNewRaffle({ ...newRaffle, mintPrice: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 focus:border-indigo-500 text-white rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Network
+                  </label>
+                  <select
+                    value={newRaffle.network}
+                    onChange={e => setNewRaffle({ ...newRaffle, network: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
+                  >
+                    <option value="ETHEREUM">Ethereum</option>
+                    <option value="APECHAIN">ApeChain</option>
+                    <option value="BASE">Base</option>
+                    <option value="ARBITRUM">Arbitrum</option>
+                    <option value="SOLANA">Solana</option>
+                    <option value="CUSTOM">Custom</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    End Date & Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={newRaffle.endDate}
+                    onChange={e => setNewRaffle({ ...newRaffle, endDate: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Descriptions */}
               <div>
-                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                  SUBTITLE / SLOGAN:
+                <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                  Subtitle
                 </label>
                 <input
                   type="text"
-                  required
                   value={newRaffle.subtitle}
-                  onChange={(e) => setNewRaffle({ ...newRaffle, subtitle: e.target.value })}
-                  className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                  onChange={e => setNewRaffle({ ...newRaffle, subtitle: e.target.value })}
+                  className="w-full bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
                 />
               </div>
 
-              {/* Short URL / Slug for X Sharing */}
               <div>
-                <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                  CUSTOM SHORT URL SLUG (FOR CLEAN TWITTER / X SHARING):
+                <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                  Full Description
                 </label>
-                <div className="flex items-center">
-                  <span className="bg-black text-lime font-mono text-xs px-3 py-2.5 border-2 border-r-0 border-black font-bold shrink-0">
-                    flamebound.site/r/
-                  </span>
+                <textarea
+                  rows={3}
+                  value={newRaffle.description}
+                  onChange={e => setNewRaffle({ ...newRaffle, description: e.target.value })}
+                  className="w-full bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
+                />
+              </div>
+
+              {/* Social URLs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    𝕏 Follow URL
+                  </label>
                   <input
-                    type="text"
-                    placeholder="e.g. cult, genesis, phase1 (optional)"
-                    value={newRaffle.slug}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    className="flex-1 min-w-0 bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
+                    type="url"
+                    value={newRaffle.followUrl}
+                    onChange={e => setNewRaffle({ ...newRaffle, followUrl: e.target.value })}
+                    placeholder="https://x.com/username"
+                    className="w-full bg-[#181818] border border-white/15 text-white placeholder:text-gray-600 rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    𝕏 Like & RT Tweet URL
+                  </label>
+                  <input
+                    type="url"
+                    value={newRaffle.engageUrl}
+                    onChange={e => setNewRaffle({ ...newRaffle, engageUrl: e.target.value })}
+                    placeholder="https://x.com/username/status/..."
+                    className="w-full bg-[#181818] border border-white/15 text-white placeholder:text-gray-600 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
               </div>
 
-              {/* Eligibility & Mint Stage Rules */}
-              <div className="bg-black text-lime border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
-                <div className="font-pixel text-[10px] uppercase font-bold text-white border-b border-lime/30 pb-1.5 flex items-center justify-between">
-                  <span>[MINT STAGE & ELIGIBILITY RULES]</span>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Mint Stage Selector */}
-                  <div>
-                    <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                      MINT STAGE TYPE (GTD / FCFS / WL / CUSTOM):
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'GTD' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.mintStage === 'GTD'
-                            ? 'bg-lime text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [GTD] GUARANTEED
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'FCFS', entryMethod: 'fcfs' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.mintStage === 'FCFS'
-                            ? 'bg-amber-400 text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [FCFS] FIRST-COME
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'WL' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.mintStage === 'WL'
-                            ? 'bg-white text-black shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [WL] WHITELIST
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewRaffle({ ...newRaffle, mintStage: 'CUSTOM' })}
-                        className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                          newRaffle.mintStage === 'CUSTOM'
-                            ? 'bg-purple-600 text-white shadow-pixel-xs'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        [CUSTOM] SPECIAL
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/20">
-                    {/* Eligibility Selector */}
-                    <div>
-                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                        ELIGIBILITY REQUIREMENT:
-                      </label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'minters_only' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            newRaffle.eligibility === 'minters_only'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          MINTERS ONLY
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'holders_only' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            newRaffle.eligibility === 'holders_only'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          HOLDERS ONLY
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setNewRaffle({ ...newRaffle, eligibility: 'public' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            newRaffle.eligibility === 'public'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          OPEN TO ALL
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Entry Method Selector */}
-                    <div>
-                      <label className="block font-pixel text-[9px] uppercase text-white mb-1.5 font-bold">
-                        ENTRY / ALLOCATION METHOD:
-                      </label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'raffle' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            newRaffle.entryMethod === 'raffle'
-                              ? 'bg-lime text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          RANDOM DRAW
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setNewRaffle({ ...newRaffle, entryMethod: 'fcfs', mintStage: 'FCFS' })}
-                          className={`p-2 font-pixel text-[9px] border-2 border-black font-bold uppercase transition-all ${
-                            newRaffle.entryMethod === 'fcfs'
-                              ? 'bg-amber-400 text-black shadow-pixel-xs'
-                              : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          FCFS (INSTANT)
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Task Custom URLs */}
-              <div className="bg-gray-50 border-3 border-black p-4 space-y-3">
-                <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1">
-                  [CUSTOM TASK URLS & SOCIAL LINKS]
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      FOLLOW TASK URL:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://twitter.com/FlameboundNFT"
-                      value={newRaffle.followUrl}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, followUrl: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      COMMENT / ENGAGE TASK URL:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="https://twitter.com/FlameboundNFT/status/..."
-                      value={newRaffle.engageUrl}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, engageUrl: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* CUSTOM TASKS BUILDER (DISCORD, TELEGRAM, RETWEET, CUSTOM LINKS) */}
-              <div className="bg-gray-50 border-3 border-black p-3.5 sm:p-4 space-y-3 shadow-pixel-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/30 pb-2 gap-2">
-                  <div>
-                    <span className="font-pixel text-[10px] uppercase font-bold text-black block">
-                      ⚡ CUSTOM ENTRY TASKS (OPTIONAL):
-                    </span>
-                    <span className="font-mono text-[11px] text-gray-700">
-                      Add extra community requirements (Discord, Telegram, Retweets, Links)
-                    </span>
-                  </div>
-
-                  {/* Preset Buttons */}
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('create', { title: 'Join Official Discord Server', type: 'discord', actionLabel: '[JOIN DISCORD]', url: 'https://discord.gg/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Discord
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('create', { title: 'Join Telegram Community', type: 'telegram', actionLabel: '[JOIN TELEGRAM]', url: 'https://t.me/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Telegram
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('create', { title: 'Like & Retweet Announcement', type: 'twitter', actionLabel: '[RETWEET POST]', url: 'https://x.com/' })}
-                      className="font-pixel text-[8px] bg-black text-lime px-2 py-1 border border-black hover:bg-lime hover:text-black font-bold uppercase transition-colors"
-                    >
-                      + Retweet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => addCustomTask('create')}
-                      className="font-pixel text-[8px] bg-white text-black px-2 py-1 border border-black hover:bg-lime font-bold uppercase transition-colors"
-                    >
-                      + Add Task
-                    </button>
-                  </div>
-                </div>
-
-                {/* Task List Rows */}
-                {(!newRaffle.customTasks || newRaffle.customTasks.length === 0) ? (
-                  <div className="p-3 bg-white/60 border-2 border-dashed border-black/40 text-center font-mono text-xs text-gray-600">
-                    No custom tasks added. Click any button above (+ Discord, + Telegram, + Retweet) to add custom tasks.
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {newRaffle.customTasks.map((task, idx) => (
-                      <div key={task.id || idx} className="bg-white border-2 border-black p-3 space-y-2 shadow-pixel-xs">
-                        <div className="flex items-center justify-between border-b border-black/20 pb-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-pixel text-[9px] bg-black text-lime px-1.5 py-0.5 font-bold">
-                              TASK #{idx + 1}
-                            </span>
-                            <span className="font-pixel text-[9px] uppercase font-bold text-black">
-                              {task.type?.toUpperCase() || 'CUSTOM'} TASK
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <label className="flex items-center gap-1 font-mono text-[11px] font-bold cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={task.required ?? true}
-                                onChange={(e) => updateCustomTask('create', idx, 'required', e.target.checked)}
-                                className="accent-black"
-                              />
-                              <span>Mandatory</span>
-                            </label>
-
-                            <button
-                              type="button"
-                              onClick={() => removeCustomTask('create', idx)}
-                              className="p-1 text-red-700 hover:bg-red-100 border border-red-400 font-pixel text-[8px] flex items-center gap-0.5"
-                            >
-                              <Trash2 size={11} />
-                              <span>REMOVE</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <div>
-                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                              TASK TITLE:
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="e.g. Join Official Discord"
-                              value={task.title}
-                              onChange={(e) => updateCustomTask('create', idx, 'title', e.target.value)}
-                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                              ACTION URL / LINK:
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="https://..."
-                              value={task.url}
-                              onChange={(e) => updateCustomTask('create', idx, 'url', e.target.value)}
-                              className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <div>
-                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                                BUTTON LABEL:
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="[JOIN DISCORD]"
-                                value={task.actionLabel || ''}
-                                onChange={(e) => updateCustomTask('create', idx, 'actionLabel', e.target.value)}
-                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block font-pixel text-[8px] uppercase text-gray-700 mb-0.5 font-bold">
-                                TYPE:
-                              </label>
-                              <select
-                                value={task.type || 'link'}
-                                onChange={(e) => updateCustomTask('create', idx, 'type', e.target.value as any)}
-                                className="w-full bg-gray-50 border border-black p-1.5 font-mono text-xs text-black font-bold"
-                              >
-                                <option value="discord">DISCORD</option>
-                                <option value="telegram">TELEGRAM</option>
-                                <option value="twitter">TWITTER / X</option>
-                                <option value="youtube">YOUTUBE</option>
-                                <option value="website">WEBSITE</option>
-                                <option value="link">CUSTOM LINK</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* NFT Collection Specifications */}
-              <div className="bg-gray-50 border-3 border-black p-4 space-y-3">
-                <div className="font-pixel text-[10px] uppercase font-bold text-black border-b border-black/30 pb-1">
-                  ⚡ NFT COLLECTION SPECIFICATIONS:
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      WL SPOTS SUPPLY:
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min={1}
-                      value={newRaffle.supply}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, supply: Number(e.target.value) })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      TOTAL NFT SUPPLY:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 1,000 NFTs"
-                      value={newRaffle.nftTotalSupply}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, nftTotalSupply: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      MINT PRICE:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 0.0001 ETH"
-                      value={newRaffle.mintPrice}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, mintPrice: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      MINT DATE:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 15 SEP 2026"
-                      value={newRaffle.mintDate}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, mintDate: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      MAX MINT PER WL WALLET:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 1 PER WL"
-                      value={newRaffle.maxMintPerWallet}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, maxMintPerWallet: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-pixel text-[8px] uppercase text-black mb-1 font-bold">
-                      EXTRA NOTES / GUARANTEE:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Guaranteed Phase 1 Allocation"
-                      value={newRaffle.notes}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, notes: e.target.value })}
-                      className="w-full bg-white border-2 border-black p-2 font-mono text-xs text-black font-bold"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Logo and Artwork Upload */}
+              {/* Media Upload */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    UPLOAD PROJECT LOGO / AVATAR:
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Logo Image URL
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Paste Logo URL or Upload File"
                       value={newRaffle.logoUrl}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, logoUrl: e.target.value })}
-                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
+                      onChange={e => setNewRaffle({ ...newRaffle, logoUrl: e.target.value })}
+                      className="flex-1 bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
                     />
                     <input
                       type="file"
                       ref={logoFileRef}
                       className="hidden"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'logo')}
+                      onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logo')}
                     />
                     <button
                       type="button"
                       onClick={() => logoFileRef.current?.click()}
-                      disabled={uploadingLogo}
-                      className="pixel-btn text-[10px] py-2 px-3 flex items-center gap-1"
+                      className="px-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-medium border border-white/10"
                     >
-                      <Upload size={12} />
-                      <span>{uploadingLogo ? '...' : 'UPLOAD'}</span>
+                      {uploadingLogo ? '...' : 'Upload'}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    UPLOAD BANNER / NFT ARTWORK:
+                  <label className="block text-xs font-mono-dm uppercase text-gray-300 font-medium mb-1.5">
+                    Banner Artwork URL
                   </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Paste Banner URL or Upload File"
                       value={newRaffle.bannerUrl}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, bannerUrl: e.target.value, artworkType: 'custom' })}
-                      className="flex-1 bg-gray-100 border-2 border-black p-2 text-xs font-mono"
+                      onChange={e => setNewRaffle({ ...newRaffle, bannerUrl: e.target.value })}
+                      className="flex-1 bg-[#181818] border border-white/15 text-white rounded-xl p-3 text-sm outline-none"
                     />
                     <input
                       type="file"
                       ref={bannerFileRef}
                       className="hidden"
                       accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'banner')}
+                      onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'banner')}
                     />
                     <button
                       type="button"
                       onClick={() => bannerFileRef.current?.click()}
-                      disabled={uploadingBanner}
-                      className="pixel-btn text-[10px] py-2 px-3 flex items-center gap-1"
+                      className="px-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-medium border border-white/10"
                     >
-                      <Upload size={12} />
-                      <span>{uploadingBanner ? '...' : 'UPLOAD'}</span>
+                      {uploadingBanner ? '...' : 'Upload'}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Network and Custom Network */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    NETWORK:
-                  </label>
-                  <select
-                    value={newRaffle.network}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, network: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  >
-                    <option value="ROBINHOOD NETWORK">ROBINHOOD NETWORK</option>
-                    <option value="ETHEREUM">ETHEREUM</option>
-                    <option value="BASE">BASE</option>
-                    <option value="SEPOLIA">SEPOLIA</option>
-                    <option value="POLYGON">POLYGON</option>
-                    <option value="ARBITRUM">ARBITRUM</option>
-                    <option value="CUSTOM">CUSTOM NETWORK</option>
-                  </select>
-                </div>
-
-                {newRaffle.network === 'CUSTOM' ? (
-                  <div>
-                    <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                      CUSTOM NETWORK NAME:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. MONAD or BERACHAIN"
-                      value={newRaffle.customNetwork}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, customNetwork: e.target.value })}
-                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                      NFT CONTRACT ADDRESS (FOR HOLDER CHECK):
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newRaffle.contractAddress}
-                      onChange={(e) => setNewRaffle({ ...newRaffle, contractAddress: e.target.value })}
-                      className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    ARTWORK FALLBACK:
-                  </label>
-                  <select
-                    value={newRaffle.artworkType}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, artworkType: e.target.value as any })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  >
-                    <option value="genesis">GENESIS SKULL</option>
-                    <option value="cyber_beast">CYBER BEAST</option>
-                    <option value="founders_pass">FOUNDERS PASS</option>
-                    <option value="custom">CUSTOM UPLOAD</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-pixel text-[10px] uppercase text-black mb-1 font-bold">
-                    RAFFLE END TIME (DEADLINE):
-                  </label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={newRaffle.endDate}
-                    onChange={(e) => setNewRaffle({ ...newRaffle, endDate: e.target.value })}
-                    className="w-full bg-gray-100 border-2 border-black p-2.5 font-mono text-xs text-black outline-none font-bold"
-                  />
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    <span className="font-pixel text-[8px] text-gray-700 font-bold self-center mr-1">QUICK SET:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
-                      }}
-                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                    >
-                      +1 Day
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
-                      }}
-                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                    >
-                      +3 Days
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-                        setNewRaffle({ ...newRaffle, endDate: formatDateTimeLocal(d.toISOString()) });
-                      }}
-                      className="pixel-btn text-[8px] py-1 px-1.5 font-bold"
-                    >
-                      +7 Days
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t-3 border-black flex gap-3">
+              {/* Submit Button */}
+              <div className="pt-4">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="pixel-btn text-xs py-3.5 px-6 shadow-pixel"
+                  className="w-full bg-white text-black font-dm font-bold text-sm py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-xl flex items-center justify-center gap-2"
                 >
-                  {loading ? 'CREATING...' : '[PUBLISH LIVE RAFFLE]'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('raffles')}
-                  className="pixel-btn-white text-xs py-3.5 px-6"
-                >
-                  CANCEL
+                  <Plus size={18} />
+                  <span>Publish Raffle Campaign</span>
                 </button>
               </div>
+
             </form>
           </div>
         )}
-      </div>
+
+        {/* MODAL: EDIT RAFFLE */}
+        {editingRaffle && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#121212] border border-white/15 rounded-2xl p-6 sm:p-8 max-w-2xl w-full my-8 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <h3 className="font-syne text-lg font-bold text-white">
+                  Edit Raffle: {editingRaffle.title}
+                </h3>
+                <button
+                  onClick={() => setEditingRaffle(null)}
+                  className="p-1 text-gray-400 hover:text-white rounded-lg"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateRaffle} className="space-y-4 font-dm text-xs">
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editingRaffle.title}
+                    onChange={e => setEditingRaffle({ ...editingRaffle, title: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                      Supply (Spots)
+                    </label>
+                    <input
+                      type="number"
+                      value={editingRaffle.supply}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, supply: parseInt(e.target.value) || 10 })}
+                      className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm font-mono-dm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={editingRaffle.status}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, status: e.target.value as any })}
+                      className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm"
+                    >
+                      <option value="live">Live (Active)</option>
+                      <option value="ending_soon">Ending Soon</option>
+                      <option value="closed">Closed</option>
+                      <option value="winners_drawn">Winners Drawn</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                    End Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={new Date(editingRaffle.endDate).toISOString().slice(0, 16)}
+                    onChange={e => setEditingRaffle({ ...editingRaffle, endDate: new Date(e.target.value).toISOString() })}
+                    className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm font-mono-dm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                    𝕏 Follow URL
+                  </label>
+                  <input
+                    type="url"
+                    value={editingRaffle.followUrl || ''}
+                    onChange={e => setEditingRaffle({ ...editingRaffle, followUrl: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-300 font-medium mb-1">
+                    𝕏 Like & RT URL
+                  </label>
+                  <input
+                    type="url"
+                    value={editingRaffle.engageUrl || ''}
+                    onChange={e => setEditingRaffle({ ...editingRaffle, engageUrl: e.target.value })}
+                    className="w-full bg-[#181818] border border-white/15 text-white p-3 rounded-lg outline-none text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRaffle(null)}
+                    className="px-5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </main>
     </div>
   );
 }
-

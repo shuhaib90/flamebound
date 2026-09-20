@@ -27,8 +27,8 @@ export function HowItWorks() {
     },
     {
       num: '04',
-      title: 'Provable Fair Draw',
-      desc: 'Transparent drawings select winners and instantly issue verified digital tickets on-chain.',
+      title: 'Win Whitelist Spots',
+      desc: 'Selected winners are published on the Winners archive and submitted for mint day access.',
       icon: Trophy,
     },
   ];
@@ -46,7 +46,7 @@ export function HowItWorks() {
                 How DOTSET Works
               </h2>
               <p className="font-dm text-xs text-[#8a8a9a]">
-                Transparent, open, and provably fair whitelist distribution
+                Transparent, open whitelist raffle and quest distribution
               </p>
             </div>
           </div>

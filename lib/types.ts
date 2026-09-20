@@ -14,7 +14,7 @@ export interface EntryTask {
   id: string;
   title: string;
   description: string;
-  type: 'follow' | 'engage' | 'wallet' | 'holder_check' | 'custom';
+  type: 'follow' | 'engage' | 'wallet' | 'custom';
   buttonLabel: string;
   targetUrl?: string;
   required: boolean;
@@ -38,20 +38,18 @@ export interface Raffle {
   mintDate?: string; // e.g. "15 SEP 2026 — 18:00 UTC"
   maxMintPerWallet?: string | number; // e.g. "1 PER WL"
   
-  // Rules & Allocation Mode
-  eligibility?: 'minters_only' | 'holders_only' | 'public'; // default 'minters_only'
+  // Allocation Mode
   entryMethod?: 'raffle' | 'fcfs'; // default 'raffle'
   
   totalEntries: number;
   startDate: string; // ISO string
   endDate: string; // ISO string e.g. "2026-08-25T23:59:00Z"
-  network: string; // e.g. "ETHEREUM", "ROBINHOOD NETWORK", "BASE", "SEPOLIA", "POLYGON", "CUSTOM"
+  network: string; // e.g. "ETHEREUM", "APECHAIN", "BASE", "SOLANA", "ARBITRUM", "CUSTOM"
   customNetwork?: string;
-  contractAddress: string; // Contract address for Flamebound NFTs
-  requiredTokenCount: number; // default 1
+  contractAddress?: string;
   
   // Visual Media
-  artworkType: 'genesis' | 'cyber_beast' | 'founders_pass' | 'relic' | 'custom';
+  artworkType?: 'genesis' | 'cyber_beast' | 'founders_pass' | 'relic' | 'custom';
   bannerUrl?: string; // Custom uploaded artwork image
   logoUrl?: string; // Custom uploaded project logo
   
@@ -75,10 +73,8 @@ export interface Winner {
   wallet: string;
   shortWallet: string;
   entryNumber: string;
+  twitterUsername?: string;
   drawnAt: string;
-  multiplier?: string;
-  tokenBalance?: number;
-  isGuaranteed?: boolean;
   txUrl?: string;
 }
 
@@ -88,41 +84,39 @@ export interface RaffleEntry {
   walletAddress: string;
   shortAddress: string;
   twitterUsername?: string;
-  taskStatus: Record<string, any>;
-  isHolder: boolean;
-  tokenBalance: number;
+  taskStatus?: Record<string, any>;
+  isHolder?: boolean;
+  tokenBalance?: number;
   verifiedAt: string;
   status: 'confirmed' | 'disqualified';
-  network: string;
+  network?: string;
   contractAddress?: string;
   metadata?: {
     userAgent?: string;
     ipHash?: string;
-    holderVerifiedVia?: string;
-    eligibility?: string;
     entryMethod?: string;
     isFcfsWinner?: boolean;
     [key: string]: any;
   };
 }
 
-export interface HolderVerificationResult {
-  isHolder: boolean;
-  walletAddress: string;
-  contractAddress: string;
-  network: string;
-  tokenBalance: number;
-  tokenIds?: string[];
-  verifiedOnChain: boolean;
-  timestamp: string;
-  message: string;
-  error?: string;
-}
-
 export interface AdminStats {
   totalRaffles: number;
   activeRaffles: number;
   totalEntries: number;
-  totalVerifiedHolders: number;
   totalWinnersSelected: number;
 }
+
+export interface HolderVerificationResult {
+  isHolder: boolean;
+  walletAddress: string;
+  contractAddress?: string;
+  network?: string;
+  tokenBalance?: number;
+  tokenIds?: string[];
+  verifiedOnChain?: boolean;
+  timestamp?: string;
+  message?: string;
+  error?: string;
+}
+

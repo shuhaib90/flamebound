@@ -534,37 +534,30 @@ export function DotsetHero() {
             className={`dotset-reveal-subtitle ${isShadowActive ? 'is-shadow-active' : ''}`}
           >
             <span className="dotset-reveal-subtitle-link">
-              <strong className="dotset-reveal-focus font-bold">Discover</strong> the drops
+              <strong className="dotset-reveal-focus font-bold">Discover</strong> early drops
             </span>
             <span className="dotset-reveal-subtitle-link">
-              <strong className="dotset-reveal-focus font-bold">Enter</strong> the quests
+              <strong className="dotset-reveal-focus font-bold">Enter</strong> social quests
             </span>
             <span className="dotset-reveal-subtitle-link">
-              <strong className="dotset-reveal-focus font-bold">Claim</strong> the allocation
+              <strong className="dotset-reveal-focus font-bold">Win</strong> whitelist spots
             </span>
           </p>
 
-          {/* Quick Action CTA Buttons */}
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-3.5 mt-8 sm:mt-10 z-20">
+          {/* Quick Action CTA Button */}
+          <div className="pointer-events-auto flex items-center justify-center mt-8 sm:mt-10 z-20">
             <a
               href="#active-raffles"
-              className="btn-primary-cq shadow-2xl"
+              className="btn-primary-cq shadow-2xl px-6 py-3 text-sm font-semibold"
             >
-              <span>Explore Raffles</span>
-              <ArrowRight size={15} />
+              <span>Explore Active Raffles</span>
+              <ArrowRight size={16} />
             </a>
-
-            <Link
-              href="/request-collab"
-              className="btn-outline-cq"
-            >
-              <span>Submit Collab</span>
-            </Link>
           </div>
 
           {/* Floating Stats Badges */}
-          <div className="pointer-events-auto grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mt-8 sm:mt-12 max-w-3xl w-full mx-auto px-4 z-20">
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20">
+          <div className="pointer-events-auto grid grid-cols-3 gap-2.5 sm:gap-4 mt-8 sm:mt-12 max-w-2xl w-full mx-auto px-4 z-20">
+            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
               <div className="flex justify-center text-[#a5b4fc] mb-1">
                 <Flame size={16} />
               </div>
@@ -576,7 +569,7 @@ export function DotsetHero() {
               </div>
             </div>
 
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20">
+            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
               <div className="flex justify-center text-[#38bdf8] mb-1">
                 <Users size={16} />
               </div>
@@ -588,7 +581,7 @@ export function DotsetHero() {
               </div>
             </div>
 
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20">
+            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
               <div className="flex justify-center text-[#4ade80] mb-1">
                 <ShieldCheck size={16} />
               </div>
@@ -597,18 +590,6 @@ export function DotsetHero() {
               </div>
               <div className="font-mono-dm text-[10px] text-[#8a8a9a] uppercase mt-0.5">
                 Spots Available
-              </div>
-            </div>
-
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20">
-              <div className="flex justify-center text-[#fb923c] mb-1">
-                <Trophy size={16} />
-              </div>
-              <div className="font-grotesk text-lg sm:text-xl font-bold text-white">
-                FAIR
-              </div>
-              <div className="font-mono-dm text-[10px] text-[#8a8a9a] uppercase mt-0.5">
-                Provable Draws
               </div>
             </div>
           </div>

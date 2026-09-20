@@ -200,18 +200,18 @@ export default function SingleRafflePage() {
   };
 
   const handleFollowPartner = () => {
-    const target = raffle?.followUrl || raffle?.twitterUrl || 'https://x.com/FlameboundNft';
+    const target = raffle?.followUrl || raffle?.twitterUrl || 'https://x.com/dotsetxyz';
     window.open(target, '_blank');
     setTasks(prev => ({ ...prev, followPartner: true }));
   };
 
   const handleFollowDotset = () => {
-    window.open('https://x.com/FlameboundNft', '_blank');
+    window.open('https://x.com/dotsetxyz', '_blank');
     setTasks(prev => ({ ...prev, followDotset: true }));
   };
 
   const handleEngageTask = () => {
-    const target = raffle?.engageUrl || raffle?.twitterUrl || 'https://x.com/FlameboundNft';
+    const target = raffle?.engageUrl || raffle?.twitterUrl || 'https://x.com/dotsetxyz';
     window.open(target, '_blank');
     setTasks(prev => ({ ...prev, engage: true }));
   };

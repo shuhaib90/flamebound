@@ -7,11 +7,9 @@ import { Footer } from '@/components/Footer';
 import { 
   ArrowLeft, 
   ShieldCheck, 
-  ExternalLink, 
   Trophy, 
   Sparkles,
   ArrowRight,
-  Send,
   Zap,
   CheckCircle2
 } from 'lucide-react';
@@ -32,27 +30,19 @@ export default function HowItWorksPage() {
             <ArrowLeft size={14} />
             <span>All Raffles</span>
           </Link>
-
-          <Link
-            href="/request-collab"
-            className="btn-primary-cq text-xs py-2 px-3.5 flex items-center gap-1.5"
-          >
-            <Send size={12} />
-            <span>Request Collab</span>
-          </Link>
         </div>
 
         {/* Hero Section */}
         <div className="cq-card p-6 sm:p-10 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4f52c8]/20 border border-[#a5b4fc]/30 text-[#a5b4fc] font-mono-dm text-xs">
             <Sparkles size={12} />
-            <span>Fair Allocation Protocol</span>
+            <span>Web3 Quest Protocol</span>
           </div>
           <h1 className="font-syne text-2xl sm:text-4xl font-bold text-white tracking-tight">
             How DOTSET Raffles & Quests Work
           </h1>
           <p className="font-dm text-sm sm:text-base text-[#8a8a9a] leading-relaxed max-w-3xl">
-            DOTSET connects Web3 enthusiasts with emerging crypto collections and ecosystems. We host provably fair whitelist raffles, first-come first-served drops, and exclusive community allocations without complicated roadblocks.
+            DOTSET connects Web3 enthusiasts with emerging crypto collections and ecosystems. We host whitelist raffles, first-come first-served drops, and exclusive community allocations without complicated roadblocks.
           </p>
         </div>
 
@@ -74,7 +64,7 @@ export default function HowItWorksPage() {
               </h3>
 
               <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
-                Winning tickets in GTD campaigns secure 100% guaranteed mint spots during phase 1, ensuring you can mint before public access.
+                Winning tickets in GTD campaigns secure guaranteed mint spots during phase 1, ensuring you can mint before public access.
               </p>
             </div>
 
@@ -112,22 +102,22 @@ export default function HowItWorksPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
                 <span className="font-mono-dm text-xs px-2.5 py-0.5 rounded bg-[#4ade80]/20 text-[#4ade80] font-semibold border border-[#4ade80]/30">
-                  Lottery WL
+                  WL Raffle
                 </span>
                 <Trophy size={18} className="text-[#4ade80]" />
               </div>
               
               <h3 className="font-syne text-base font-bold text-white">
-                Provable Random Draw
+                Randomized Selection
               </h3>
 
               <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
-                Open lottery draws distribute available whitelist spots across all verified registered entrants using provably fair on-chain random selection.
+                Open lottery draws distribute available whitelist spots across verified registered entrants when the countdown closes.
               </p>
             </div>
 
             <div className="pt-3 border-t border-white/[0.06] font-mono-dm text-[10px] text-[#555566]">
-              Provably Fair Drawing
+              Random Selection
             </div>
           </div>
 
@@ -144,16 +134,16 @@ export default function HowItWorksPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-dm text-xs">
             <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
-              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">01. Connect & Set X Handle</span>
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">01. Set X Handle & Wallet</span>
               <p className="text-[#8a8a9a] leading-relaxed">
-                Enter your X (Twitter) username and receiving EVM wallet address to establish your verifiable ticket receipt.
+                Enter your X (Twitter) handle and receiving EVM wallet address to establish your verifiable ticket receipt.
               </p>
             </div>
 
             <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
-              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">02. Complete Social Actions</span>
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">02. Complete Social Quests</span>
               <p className="text-[#8a8a9a] leading-relaxed">
-                Follow target project channels, engage with the campaign post, and join partner communities.
+                Follow target project channels, engage with the campaign tweet, and complete any custom community tasks.
               </p>
             </div>
 
@@ -165,9 +155,9 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="space-y-2 p-4 rounded-lg bg-[#111111] border border-white/[0.06]">
-              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">04. Winner Publication & Mint</span>
+              <span className="font-mono-dm text-xs font-bold text-[#a5b4fc]">04. Winner Publication</span>
               <p className="text-[#8a8a9a] leading-relaxed">
-                When the countdown closes, selected winners are published on the Winners archive and whitelisted directly for mint day.
+                When the timer expires, drawn winners are published on the Winners archive and submitted directly for whitelist minting.
               </p>
             </div>
           </div>

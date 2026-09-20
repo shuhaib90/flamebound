@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Raffle, RaffleEntry, Winner, AdminStats } from './types';
-import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from './blockchain';
+import { formatAddress } from './blockchain';
 import { supabase } from './supabase';
 
 const DB_FILE = path.join(process.cwd(), 'data', 'flamebound_db.json');
@@ -13,36 +13,35 @@ interface DatabaseSchema {
 
 const DEFAULT_RAFFLES: Raffle[] = [
   {
-    id: 'raffle-fb-genesis-01',
-    title: 'FLAMEBOUND GENESIS WL',
-    project: 'FLAMEBOUND',
+    id: 'raffle-dotset-genesis-01',
+    title: 'DOTSET GENESIS WL',
+    project: 'DOTSET',
     type: 'WL RAFFLE',
-    subtitle: 'Win a guaranteed Flamebound Genesis whitelist spot.',
-    description: 'The official whitelist raffle for the upcoming Flamebound Genesis collection. Verify your Flamebound NFT mints on-chain to enter.',
+    mintStage: 'GTD',
+    subtitle: 'Win an exclusive guaranteed Dotset Genesis whitelist spot.',
+    description: 'The official whitelist allocation for the upcoming Dotset Genesis mint. Complete social quests to enter.',
     status: 'live',
     supply: 50,
     nftTotalSupply: '1,000 NFTs',
-    mintPrice: '0.0001 ETH',
-    mintDate: '15 SEP 2026 — 18:00 UTC',
+    mintPrice: 'FREE MINT',
+    mintDate: 'TBA',
     maxMintPerWallet: '1 PER WL',
     totalEntries: 0,
     startDate: '2026-08-01T00:00:00.000Z',
-    endDate: '2026-09-14T23:59:00.000Z',
-    network: 'ROBINHOOD NETWORK',
-    contractAddress: FLAMEBOUND_PRIMARY_CONTRACT,
-    requiredTokenCount: 1,
-    eligibility: 'minters_only',
+    endDate: '2026-10-14T23:59:00.000Z',
+    network: 'ETHEREUM',
     entryMethod: 'raffle',
     artworkType: 'genesis',
-    logoUrl: '/images/flamebound-logo.png',
-    bannerUrl: '/images/flamebound-logo.png',
-    followUrl: 'https://x.com/FlameboundNft',
-    engageUrl: 'https://x.com/FlameboundNft',
-    twitterUrl: 'https://x.com/FlameboundNft',
+    logoUrl: '/images/dotset-logo.png',
+    bannerUrl: '/images/dotset-logo.png',
+    followUrl: 'https://x.com/dotsetxyz',
+    engageUrl: 'https://x.com/dotsetxyz',
+    twitterUrl: 'https://x.com/dotsetxyz',
     discordUrl: 'https://discord.com',
-    mintUrl: 'https://opensea.io/collection/flamebound-259045050',
-    notes: 'Phase 1 Guaranteed Whitelist Mint',
+    mintUrl: '',
+    notes: 'Official Dotset Allocation',
     tasks: [],
+    customTasks: [],
     winners: [],
     createdAt: '2026-08-01T00:00:00.000Z',
   },
@@ -56,7 +55,7 @@ function mapDbRowToRaffle(row: any): Raffle {
     id: row.id,
     slug: row.slug || row.id,
     title: row.title,
-    project: row.project || 'FLAMEBOUND',
+    project: row.project || 'DOTSET',
     type: row.type || 'WL RAFFLE',
     mintStage: (row.mint_stage as any) || (row.entry_method === 'fcfs' ? 'FCFS' : 'GTD'),
     subtitle: row.subtitle || '',
@@ -70,20 +69,17 @@ function mapDbRowToRaffle(row: any): Raffle {
     totalEntries: row.total_entries || 0,
     startDate: row.start_date,
     endDate: row.end_date,
-    network: row.network || 'ROBINHOOD NETWORK',
+    network: row.network || 'ETHEREUM',
     customNetwork: row.custom_network,
-    contractAddress: row.contract_address || FLAMEBOUND_PRIMARY_CONTRACT,
-    requiredTokenCount: row.required_token_count || 1,
-    eligibility: row.eligibility || 'minters_only',
     entryMethod: row.entry_method || 'raffle',
     artworkType: row.artwork_type || 'genesis',
-    logoUrl: row.logo_url || '/images/flamebound-logo.png',
-    bannerUrl: row.banner_url || '/images/flamebound-logo.png',
-    followUrl: row.follow_url || 'https://x.com/FlameboundNft',
-    engageUrl: row.engage_url || 'https://x.com/FlameboundNft',
-    twitterUrl: row.twitter_url || 'https://x.com/FlameboundNft',
+    logoUrl: row.logo_url || '/images/dotset-logo.png',
+    bannerUrl: row.banner_url || '/images/dotset-logo.png',
+    followUrl: row.follow_url || 'https://x.com/dotsetxyz',
+    engageUrl: row.engage_url || 'https://x.com/dotsetxyz',
+    twitterUrl: row.twitter_url || 'https://x.com/dotsetxyz',
     discordUrl: row.discord_url || 'https://discord.com',
-    mintUrl: row.mint_url || 'https://opensea.io/collection/flamebound-259045050',
+    mintUrl: row.mint_url || '',
     notes: row.notes || '',
     customTasks: Array.isArray(row.custom_tasks) 
       ? row.custom_tasks 
@@ -161,126 +157,90 @@ export async function getRaffleByIdAsync(idOrSlug: string): Promise<Raffle | nul
       .from('flamebound_raffles')
       .select('*')
       .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
-      .limit(1)
-      .maybeSingle();
+      .single();
 
     if (error || !data) {
-      return getRaffleById(idOrSlug) || null;
+      return getRaffleById(idOrSlug);
     }
     return mapDbRowToRaffle(data);
   } catch (err) {
-    return getRaffleById(idOrSlug) || null;
+    return getRaffleById(idOrSlug);
   }
 }
 
-export function getRaffleById(idOrSlug: string): Raffle | undefined {
+export function getRaffleById(idOrSlug: string): Raffle | null {
   const db = ensureDb();
-  return db.raffles.find(r => r.id === idOrSlug || r.slug === idOrSlug);
+  const raffle = db.raffles.find(r => r.id === idOrSlug || r.slug === idOrSlug);
+  return raffle || null;
 }
 
-export async function createRaffleAsync(raffleData: Partial<Raffle>): Promise<Raffle> {
-  const id = `raffle-${Date.now()}`;
-  const cleanSlug = (raffleData.slug || raffleData.project || raffleData.title || 'drop')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  const mintStage = raffleData.mintStage || (raffleData.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
-
-  const row = {
-    id,
-    slug: cleanSlug || id,
-    title: raffleData.title || 'Untitled Whitelist Raffle',
-    project: raffleData.project || 'FLAMEBOUND',
-    type: raffleData.type || 'WL RAFFLE',
-    mint_stage: mintStage,
-    subtitle: raffleData.subtitle || '',
-    description: raffleData.description || '',
-    status: raffleData.status || 'live',
-    supply: raffleData.supply || 50,
-    nft_total_supply: raffleData.nftTotalSupply || '1,000 NFTs',
-    mint_price: raffleData.mintPrice || 'FREE',
-    mint_date: raffleData.mintDate || 'TBA',
-    max_mint_per_wallet: raffleData.maxMintPerWallet || '1 PER WL',
-    total_entries: 0,
-    start_date: raffleData.startDate || new Date().toISOString(),
-    end_date: raffleData.endDate || new Date(Date.now() + 7 * 86400000).toISOString(),
-    network: raffleData.network || 'ROBINHOOD NETWORK',
-    custom_network: raffleData.customNetwork || null,
-    contract_address: raffleData.contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
-    required_token_count: raffleData.requiredTokenCount || 1,
-    eligibility: raffleData.eligibility || 'minters_only',
-    entry_method: raffleData.entryMethod || 'raffle',
-    artwork_type: raffleData.artworkType || 'custom',
-    banner_url: raffleData.bannerUrl || null,
-    logo_url: raffleData.logoUrl || '/images/flamebound-logo.png',
-    follow_url: raffleData.followUrl || 'https://x.com/FlameboundNft',
-    engage_url: raffleData.engageUrl || 'https://x.com/FlameboundNft',
-    twitter_url: raffleData.twitterUrl || 'https://x.com/FlameboundNft',
-    discord_url: raffleData.discordUrl || 'https://discord.com',
-    mint_url: raffleData.mintUrl || 'https://opensea.io/collection/flamebound-259045050',
-    notes: raffleData.notes || '',
-    custom_tasks: raffleData.customTasks || [],
+export async function createRaffleAsync(data: Omit<Raffle, 'id' | 'totalEntries' | 'winners' | 'createdAt'>): Promise<Raffle> {
+  const newRaffle: Raffle = {
+    ...data,
+    id: `raffle-${Date.now()}`,
+    slug: data.slug || `raffle-${Date.now()}`,
+    totalEntries: 0,
     winners: [],
+    createdAt: new Date().toISOString(),
   };
 
   try {
-    await supabase.from('flamebound_raffles').insert(row);
+    const { data: inserted, error } = await supabase
+      .from('flamebound_raffles')
+      .insert({
+        id: newRaffle.id,
+        slug: newRaffle.slug,
+        title: newRaffle.title,
+        project: newRaffle.project,
+        type: newRaffle.type,
+        mint_stage: newRaffle.mintStage || (newRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD'),
+        subtitle: newRaffle.subtitle,
+        description: newRaffle.description,
+        status: newRaffle.status,
+        supply: newRaffle.supply,
+        nft_total_supply: newRaffle.nftTotalSupply,
+        mint_price: newRaffle.mintPrice,
+        mint_date: newRaffle.mintDate,
+        max_mint_per_wallet: newRaffle.maxMintPerWallet,
+        total_entries: 0,
+        start_date: newRaffle.startDate,
+        end_date: newRaffle.endDate,
+        network: newRaffle.network,
+        custom_network: newRaffle.customNetwork,
+        entry_method: newRaffle.entryMethod || 'raffle',
+        artwork_type: newRaffle.artworkType || 'genesis',
+        logo_url: newRaffle.logoUrl,
+        banner_url: newRaffle.bannerUrl,
+        follow_url: newRaffle.followUrl,
+        engage_url: newRaffle.engageUrl,
+        twitter_url: newRaffle.twitterUrl,
+        discord_url: newRaffle.discordUrl,
+        mint_url: newRaffle.mintUrl,
+        notes: newRaffle.notes,
+        custom_tasks: newRaffle.customTasks || [],
+        winners: [],
+      })
+      .select()
+      .single();
+
+    if (!error && inserted) {
+      createRaffle(data);
+      return mapDbRowToRaffle(inserted);
+    }
   } catch (err) {
-    console.error('Supabase create error:', err);
+    console.error('Supabase create raffle error:', err);
   }
 
-  // Also sync local
-  return createRaffle({ ...raffleData, slug: cleanSlug || id, mintStage });
+  return createRaffle(data);
 }
 
-export function createRaffle(raffleData: Partial<Raffle>): Raffle {
+export function createRaffle(data: Omit<Raffle, 'id' | 'totalEntries' | 'winners' | 'createdAt'>): Raffle {
   const db = ensureDb();
-  const id = `raffle-${Date.now()}`;
-  const cleanSlug = (raffleData.slug || raffleData.project || raffleData.title || 'drop')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  const mintStage = raffleData.mintStage || (raffleData.entryMethod === 'fcfs' ? 'FCFS' : 'GTD');
-
   const newRaffle: Raffle = {
-    id,
-    slug: cleanSlug || id,
-    title: raffleData.title || 'Untitled Whitelist Raffle',
-    project: raffleData.project || 'FLAMEBOUND',
-    type: raffleData.type || 'WL RAFFLE',
-    mintStage,
-    subtitle: raffleData.subtitle || '',
-    description: raffleData.description || '',
-    status: raffleData.status || 'live',
-    supply: raffleData.supply || 50,
-    nftTotalSupply: raffleData.nftTotalSupply || '1,000 NFTs',
-    mintPrice: raffleData.mintPrice || 'FREE',
-    mintDate: raffleData.mintDate || 'TBA',
-    maxMintPerWallet: raffleData.maxMintPerWallet || '1 PER WL',
+    ...data,
+    id: `raffle-${Date.now()}`,
+    slug: data.slug || `raffle-${Date.now()}`,
     totalEntries: 0,
-    startDate: raffleData.startDate || new Date().toISOString(),
-    endDate: raffleData.endDate || new Date(Date.now() + 7 * 86400000).toISOString(),
-    network: raffleData.network || 'ROBINHOOD NETWORK',
-    customNetwork: raffleData.customNetwork,
-    contractAddress: raffleData.contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
-    requiredTokenCount: raffleData.requiredTokenCount || 1,
-    eligibility: raffleData.eligibility || 'minters_only',
-    entryMethod: raffleData.entryMethod || 'raffle',
-    artworkType: raffleData.artworkType || 'custom',
-    bannerUrl: raffleData.bannerUrl,
-    logoUrl: raffleData.logoUrl || '/images/flamebound-logo.png',
-    followUrl: raffleData.followUrl || 'https://x.com/FlameboundNft',
-    engageUrl: raffleData.engageUrl || 'https://x.com/FlameboundNft',
-    twitterUrl: raffleData.twitterUrl || 'https://x.com/FlameboundNft',
-    discordUrl: raffleData.discordUrl || 'https://discord.com',
-    mintUrl: raffleData.mintUrl || 'https://opensea.io/collection/flamebound-259045050',
-    notes: raffleData.notes || '',
-    tasks: raffleData.tasks || [],
-    customTasks: raffleData.customTasks || [],
     winners: [],
     createdAt: new Date().toISOString(),
   };
@@ -291,38 +251,56 @@ export function createRaffle(raffleData: Partial<Raffle>): Raffle {
 }
 
 export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): Promise<Raffle | null> {
-  const rowUpdates: any = { updated_at: new Date().toISOString() };
-  if (updates.slug !== undefined) rowUpdates.slug = updates.slug;
-  if (updates.mintStage !== undefined) rowUpdates.mint_stage = updates.mintStage;
-  if (updates.title) rowUpdates.title = updates.title;
-  if (updates.project) rowUpdates.project = updates.project;
-  if (updates.type) rowUpdates.type = updates.type;
-  if (updates.subtitle !== undefined) rowUpdates.subtitle = updates.subtitle;
-  if (updates.description !== undefined) rowUpdates.description = updates.description;
-  if (updates.status) rowUpdates.status = updates.status;
-  if (updates.supply !== undefined) rowUpdates.supply = updates.supply;
-  if (updates.nftTotalSupply !== undefined) rowUpdates.nft_total_supply = updates.nftTotalSupply;
-  if (updates.mintPrice !== undefined) rowUpdates.mint_price = updates.mintPrice;
-  if (updates.mintDate !== undefined) rowUpdates.mint_date = updates.mintDate;
-  if (updates.maxMintPerWallet !== undefined) rowUpdates.max_mint_per_wallet = updates.maxMintPerWallet;
-  if (updates.network) rowUpdates.network = updates.network;
-  if (updates.customNetwork !== undefined) rowUpdates.custom_network = updates.customNetwork;
-  if (updates.contractAddress) rowUpdates.contract_address = updates.contractAddress;
-  if (updates.eligibility !== undefined) rowUpdates.eligibility = updates.eligibility;
-  if (updates.entryMethod !== undefined) rowUpdates.entry_method = updates.entryMethod;
-  if (updates.bannerUrl !== undefined) rowUpdates.banner_url = updates.bannerUrl;
-  if (updates.logoUrl !== undefined) rowUpdates.logo_url = updates.logoUrl;
-  if (updates.followUrl !== undefined) rowUpdates.follow_url = updates.followUrl;
-  if (updates.engageUrl !== undefined) rowUpdates.engage_url = updates.engageUrl;
-  if (updates.endDate) rowUpdates.end_date = updates.endDate;
-  if (updates.notes !== undefined) rowUpdates.notes = updates.notes;
-  if (updates.customTasks !== undefined) rowUpdates.custom_tasks = updates.customTasks;
-  if (updates.winners !== undefined) rowUpdates.winners = updates.winners;
+  const dbUpdates: any = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (updates.title !== undefined) dbUpdates.title = updates.title;
+  if (updates.project !== undefined) dbUpdates.project = updates.project;
+  if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+  if (updates.type !== undefined) dbUpdates.type = updates.type;
+  if (updates.mintStage !== undefined) dbUpdates.mint_stage = updates.mintStage;
+  if (updates.subtitle !== undefined) dbUpdates.subtitle = updates.subtitle;
+  if (updates.description !== undefined) dbUpdates.description = updates.description;
+  if (updates.status !== undefined) dbUpdates.status = updates.status;
+  if (updates.supply !== undefined) dbUpdates.supply = updates.supply;
+  if (updates.nftTotalSupply !== undefined) dbUpdates.nft_total_supply = updates.nftTotalSupply;
+  if (updates.mintPrice !== undefined) dbUpdates.mint_price = updates.mintPrice;
+  if (updates.mintDate !== undefined) dbUpdates.mint_date = updates.mintDate;
+  if (updates.maxMintPerWallet !== undefined) dbUpdates.max_mint_per_wallet = updates.maxMintPerWallet;
+  if (updates.totalEntries !== undefined) dbUpdates.total_entries = updates.totalEntries;
+  if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate;
+  if (updates.endDate !== undefined) dbUpdates.end_date = updates.endDate;
+  if (updates.network !== undefined) dbUpdates.network = updates.network;
+  if (updates.customNetwork !== undefined) dbUpdates.custom_network = updates.customNetwork;
+  if (updates.entryMethod !== undefined) dbUpdates.entry_method = updates.entryMethod;
+  if (updates.artworkType !== undefined) dbUpdates.artwork_type = updates.artworkType;
+  if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl;
+  if (updates.bannerUrl !== undefined) dbUpdates.banner_url = updates.bannerUrl;
+  if (updates.followUrl !== undefined) dbUpdates.follow_url = updates.followUrl;
+  if (updates.engageUrl !== undefined) dbUpdates.engage_url = updates.engageUrl;
+  if (updates.twitterUrl !== undefined) dbUpdates.twitter_url = updates.twitterUrl;
+  if (updates.discordUrl !== undefined) dbUpdates.discord_url = updates.discordUrl;
+  if (updates.mintUrl !== undefined) dbUpdates.mint_url = updates.mintUrl;
+  if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+  if (updates.customTasks !== undefined) dbUpdates.custom_tasks = updates.customTasks;
+  if (updates.winners !== undefined) dbUpdates.winners = updates.winners;
+  if (updates.winnerTxHash !== undefined) dbUpdates.winner_tx_hash = updates.winnerTxHash;
 
   try {
-    await supabase.from('flamebound_raffles').update(rowUpdates).eq('id', id);
+    const { data, error } = await supabase
+      .from('flamebound_raffles')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (!error && data) {
+      updateRaffle(id, updates);
+      return mapDbRowToRaffle(data);
+    }
   } catch (err) {
-    console.error('Supabase update error:', err);
+    console.error('Supabase update raffle error:', err);
   }
 
   return updateRaffle(id, updates);
@@ -333,52 +311,66 @@ export function updateRaffle(id: string, updates: Partial<Raffle>): Raffle | nul
   const index = db.raffles.findIndex(r => r.id === id);
   if (index === -1) return null;
 
-  db.raffles[index] = { ...db.raffles[index], ...updates };
+  db.raffles[index] = {
+    ...db.raffles[index],
+    ...updates,
+  };
+
   writeDb(db);
   return db.raffles[index];
 }
 
 export async function deleteRaffleAsync(id: string): Promise<boolean> {
   try {
+    await supabase.from('flamebound_entries').delete().eq('raffle_id', id);
     await supabase.from('flamebound_raffles').delete().eq('id', id);
   } catch (err) {
-    console.error('Supabase delete error:', err);
+    console.error('Supabase delete raffle error:', err);
   }
   return deleteRaffle(id);
 }
 
 export function deleteRaffle(id: string): boolean {
   const db = ensureDb();
-  const initialLen = db.raffles.length;
-  db.raffles = db.raffles.filter(r => r.id !== id);
+  const index = db.raffles.findIndex(r => r.id === id);
+  if (index === -1) return false;
+
+  db.raffles.splice(index, 1);
   db.entries = db.entries.filter(e => e.raffleId !== id);
   writeDb(db);
-  return db.raffles.length < initialLen;
+  return true;
 }
+
+// ============================================================================
+// ENTRIES CRUD & VERIFICATION
+// ============================================================================
 
 export async function getEntriesAsync(raffleId?: string): Promise<RaffleEntry[]> {
   try {
-    let query = supabase.from('flamebound_entries').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('flamebound_entries').select('*').order('verified_at', { ascending: false });
     if (raffleId) {
       query = query.eq('raffle_id', raffleId);
     }
     const { data, error } = await query;
+
     if (error || !data || data.length === 0) {
       return getEntries(raffleId);
     }
-    return data.map((e: any) => ({
-      id: e.id,
-      raffleId: e.raffle_id,
-      walletAddress: e.wallet_address,
-      shortAddress: formatAddress(e.wallet_address),
-      twitterUsername: e.twitter_username || '',
-      taskStatus: e.task_status || {},
-      isHolder: e.is_verified_holder,
-      tokenBalance: e.token_balance || 1,
-      contractAddress: e.contract_address,
-      network: e.network,
-      verifiedAt: e.verified_at,
-      status: 'confirmed' as const,
+
+    return data.map((row: any) => ({
+      id: row.id,
+      raffleId: row.raffle_id,
+      walletAddress: row.wallet_address,
+      shortAddress: row.short_address || formatAddress(row.wallet_address),
+      twitterUsername: row.twitter_username,
+      taskStatus: row.task_status || {},
+      isHolder: !!row.is_holder,
+      tokenBalance: row.token_balance || 0,
+      verifiedAt: row.verified_at,
+      status: row.status || 'confirmed',
+      network: row.network || 'ETHEREUM',
+      contractAddress: row.contract_address,
+      metadata: row.metadata || {},
     }));
   } catch (err) {
     return getEntries(raffleId);
@@ -393,7 +385,7 @@ export function getEntries(raffleId?: string): RaffleEntry[] {
   return db.entries;
 }
 
-export async function getEntryByWalletAsync(raffleId: string, walletAddress: string): Promise<RaffleEntry | null> {
+export async function checkExistingEntryAsync(raffleId: string, walletAddress: string): Promise<RaffleEntry | null> {
   const normalized = walletAddress.toLowerCase();
   try {
     const { data, error } = await supabase
@@ -403,99 +395,135 @@ export async function getEntryByWalletAsync(raffleId: string, walletAddress: str
       .ilike('wallet_address', normalized)
       .maybeSingle();
 
-    if (data) {
+    if (!error && data) {
       return {
         id: data.id,
         raffleId: data.raffle_id,
         walletAddress: data.wallet_address,
-        shortAddress: formatAddress(data.wallet_address),
-        twitterUsername: data.twitter_username || '',
+        shortAddress: data.short_address || formatAddress(data.wallet_address),
+        twitterUsername: data.twitter_username,
         taskStatus: data.task_status || {},
-        isHolder: data.is_verified_holder,
-        tokenBalance: data.token_balance || 1,
-        contractAddress: data.contract_address,
-        network: data.network,
+        isHolder: !!data.is_holder,
+        tokenBalance: data.token_balance || 0,
         verifiedAt: data.verified_at,
-        status: 'confirmed' as const,
+        status: data.status || 'confirmed',
+        network: data.network || 'ETHEREUM',
+        contractAddress: data.contract_address,
+        metadata: data.metadata || {},
       };
     }
   } catch (err) {
-    console.error('Error fetching entry from Supabase:', err);
+    // fallback
   }
 
-  return getEntryByWallet(raffleId, walletAddress) || null;
+  return checkExistingEntry(raffleId, walletAddress);
 }
 
-export function getEntryByWallet(raffleId: string, walletAddress: string): RaffleEntry | undefined {
+export function checkExistingEntry(raffleId: string, walletAddress: string): RaffleEntry | null {
   const db = ensureDb();
   const normalized = walletAddress.toLowerCase();
-  return db.entries.find(
+  const entry = db.entries.find(
     e => e.raffleId === raffleId && e.walletAddress.toLowerCase() === normalized
   );
+  return entry || null;
 }
 
-export async function createEntryAsync(entryData: Omit<RaffleEntry, 'id' | 'shortAddress' | 'verifiedAt'>): Promise<RaffleEntry> {
-  const randomDigits = Math.floor(100000 + Math.random() * 900000);
-  const entryId = `FB-${randomDigits}`;
-  const now = new Date().toISOString();
+export const getEntryByWalletAsync = checkExistingEntryAsync;
+export const getEntryByWallet = checkExistingEntry;
 
-  const row = {
-    id: entryId,
-    raffle_id: entryData.raffleId,
-    wallet_address: entryData.walletAddress,
-    twitter_username: entryData.twitterUsername || null,
-    task_status: entryData.taskStatus || {},
-    is_verified_holder: entryData.isHolder ?? true,
-    token_balance: entryData.tokenBalance || 1,
-    contract_address: entryData.contractAddress,
-    network: entryData.network,
-    verified_at: now,
+export async function deleteEntryAsync(id: string): Promise<boolean> {
+  try {
+    await supabase.from('flamebound_entries').delete().eq('id', id);
+  } catch (err) {
+    console.error('Supabase delete entry error:', err);
+  }
+  return deleteEntry(id);
+}
+
+export function deleteEntry(id: string): boolean {
+  const db = ensureDb();
+  const index = db.entries.findIndex(e => e.id === id);
+  if (index === -1) return false;
+  db.entries.splice(index, 1);
+  writeDb(db);
+  return true;
+}
+
+export async function createEntryAsync(entryData: {
+  raffleId: string;
+  walletAddress: string;
+  twitterUsername?: string;
+  taskStatus?: Record<string, any>;
+  network?: string;
+  userAgent?: string;
+  ipHash?: string;
+}): Promise<RaffleEntry> {
+  const existing = await checkExistingEntryAsync(entryData.raffleId, entryData.walletAddress);
+  if (existing) {
+    return existing;
+  }
+
+  const raffle = await getRaffleByIdAsync(entryData.raffleId);
+  if (!raffle) {
+    throw new Error('Raffle not found');
+  }
+
+  const isFcfs = raffle.entryMethod === 'fcfs';
+  const entryCount = await getEntriesAsync(entryData.raffleId);
+  const isFcfsWinner = isFcfs && (entryCount.length < (raffle.supply || 10));
+
+  const newEntry: RaffleEntry = {
+    id: `DS-${Math.floor(100000 + Math.random() * 900000)}`,
+    raffleId: entryData.raffleId,
+    walletAddress: entryData.walletAddress,
+    shortAddress: formatAddress(entryData.walletAddress),
+    twitterUsername: entryData.twitterUsername || '',
+    taskStatus: entryData.taskStatus || {},
+    isHolder: true,
+    tokenBalance: 1,
+    verifiedAt: new Date().toISOString(),
+    status: 'confirmed',
+    network: entryData.network || raffle.network || 'ETHEREUM',
+    metadata: {
+      userAgent: entryData.userAgent,
+      ipHash: entryData.ipHash,
+      entryMethod: raffle.entryMethod || 'raffle',
+      isFcfsWinner: isFcfsWinner,
+    },
   };
 
   try {
-    await supabase.from('flamebound_entries').insert(row);
-    // Increment total entries on Supabase raffle
-    const { data: currentRaffle } = await supabase
-      .from('flamebound_raffles')
-      .select('total_entries')
-      .eq('id', entryData.raffleId)
-      .single();
-    
-    if (currentRaffle) {
-      await supabase
-        .from('flamebound_raffles')
-        .update({ total_entries: (currentRaffle.total_entries || 0) + 1 })
-        .eq('id', entryData.raffleId);
-    }
+    await supabase.from('flamebound_entries').insert({
+      id: newEntry.id,
+      raffle_id: newEntry.raffleId,
+      wallet_address: newEntry.walletAddress,
+      short_address: newEntry.shortAddress,
+      twitter_username: newEntry.twitterUsername,
+      task_status: newEntry.taskStatus,
+      is_holder: true,
+      token_balance: 1,
+      verified_at: newEntry.verifiedAt,
+      status: newEntry.status,
+      network: newEntry.network,
+      metadata: newEntry.metadata,
+    });
+
+    await supabase.from('flamebound_raffles').update({
+      total_entries: (raffle.totalEntries || 0) + 1,
+    }).eq('id', entryData.raffleId);
   } catch (err) {
-    console.error('Supabase entry creation error:', err);
+    console.error('Supabase create entry error:', err);
   }
 
-  // Also sync local
-  return createEntry(entryData);
+  createEntryLocal(newEntry);
+  return newEntry;
 }
 
-export function createEntry(entryData: Omit<RaffleEntry, 'id' | 'shortAddress' | 'verifiedAt'>): RaffleEntry {
+function createEntryLocal(newEntry: RaffleEntry): RaffleEntry {
   const db = ensureDb();
+  db.entries.push(newEntry);
 
-  const existing = getEntryByWallet(entryData.raffleId, entryData.walletAddress);
-  if (existing) {
-    throw new Error('DUPLICATE_ENTRY: This wallet has already entered this raffle.');
-  }
-
-  const randomDigits = Math.floor(100000 + Math.random() * 900000);
-  const entryId = `FB-${randomDigits}`;
-
-  const newEntry: RaffleEntry = {
-    ...entryData,
-    id: entryId,
-    shortAddress: formatAddress(entryData.walletAddress),
-    verifiedAt: new Date().toISOString(),
-  };
-
-  db.entries.unshift(newEntry);
-
-  const raffle = db.raffles.find(r => r.id === entryData.raffleId);
+  const raffle = db.raffles.find(r => r.id === newEntry.raffleId);
   if (raffle) {
     raffle.totalEntries = (raffle.totalEntries || 0) + 1;
   }
@@ -504,111 +532,51 @@ export function createEntry(entryData: Omit<RaffleEntry, 'id' | 'shortAddress' |
   return newEntry;
 }
 
-export function deleteEntry(id: string): boolean {
-  const db = ensureDb();
-  const initialLen = db.entries.length;
-  db.entries = db.entries.filter(e => e.id !== id);
-  writeDb(db);
-  return db.entries.length < initialLen;
-}
+// ============================================================================
+// DRAW WINNERS
+// ============================================================================
 
 export async function drawRaffleWinnersAsync(raffleId: string, customCount?: number): Promise<{ raffle: Raffle; winners: Winner[] }> {
-  // 1. Fetch live raffle from Supabase or fallback
   const raffle = await getRaffleByIdAsync(raffleId);
   if (!raffle) {
     throw new Error('Raffle not found');
   }
 
-  // 2. Fetch live entries from Supabase or fallback
   const allEntries = await getEntriesAsync(raffleId);
-  if (!allEntries || allEntries.length === 0) {
-    throw new Error(`No entries have been submitted for "${raffle.title}" yet. Entrants must enter before winners can be drawn.`);
-  }
-
-  // 3. Filter eligible entries based on raffle eligibility type
-  const eligibleEntries = allEntries.filter(e => {
-    if (e.status !== 'confirmed') return false;
-    if (raffle.eligibility === 'holders_only') {
-      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
-    }
-    if (raffle.eligibility === 'minters_only') {
-      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
-    }
-    return true; // public: open to all
-  });
-
+  const eligibleEntries = allEntries.filter(e => e.status === 'confirmed');
+  
   if (eligibleEntries.length === 0) {
-    const requirement = raffle.eligibility === 'holders_only' 
-      ? 'Flamebound NFT Holders' 
-      : raffle.eligibility === 'minters_only' 
-      ? 'Flamebound NFT Minters' 
-      : 'Valid Public Entrants';
-    throw new Error(`No eligible entries found matching ${requirement}.`);
+    throw new Error(`No confirmed entries found for "${raffle.title}" yet.`);
   }
 
   const totalSlots = customCount || raffle.supply || 10;
   const availableSlots = Math.min(totalSlots, eligibleEntries.length);
 
-  // 4. Separate Guaranteed Winners (Holders of 100+ Flamebound NFTs)
-  const guaranteedPool = eligibleEntries.filter(e => (e.tokenBalance || 0) >= 100);
-  const remainingPool = eligibleEntries.filter(e => (e.tokenBalance || 0) < 100);
-
-  const selectedWinners: { entry: RaffleEntry; isGuaranteed: boolean; multiplierText: string }[] = [];
-
-  // Add guaranteed winners first (up to availableSlots)
-  for (const gEntry of guaranteedPool) {
-    if (selectedWinners.length >= availableSlots) break;
-    selectedWinners.push({
-      entry: gEntry,
-      isGuaranteed: true,
-      multiplierText: '100% GUARANTEED WIN',
-    });
-  }
-
-  // 5. Weighted Draw for remaining slots using tokenBalance as tickets (weight = max(1, tokenBalance))
-  const pool = [...remainingPool];
-  while (selectedWinners.length < availableSlots && pool.length > 0) {
-    const totalWeight = pool.reduce((sum, item) => sum + Math.max(1, item.tokenBalance || 1), 0);
-    
-    let randomPoint = Math.random() * totalWeight;
-    let selectedIndex = 0;
-
-    for (let i = 0; i < pool.length; i++) {
-      const itemWeight = Math.max(1, pool[i].tokenBalance || 1);
-      if (randomPoint < itemWeight) {
-        selectedIndex = i;
-        break;
-      }
-      randomPoint -= itemWeight;
+  // If FCFS, sort by verifiedAt time ascending; otherwise shuffle randomly
+  let pool = [...eligibleEntries];
+  if (raffle.entryMethod === 'fcfs') {
+    pool.sort((a, b) => new Date(a.verifiedAt).getTime() - new Date(b.verifiedAt).getTime());
+  } else {
+    // Fisher-Yates random shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-
-    const winnerEntry = pool[selectedIndex];
-    const weight = Math.max(1, winnerEntry.tokenBalance || 1);
-    selectedWinners.push({
-      entry: winnerEntry,
-      isGuaranteed: false,
-      multiplierText: `${weight}x BOOST`,
-    });
-
-    // Remove from pool to prevent duplicate winner selection
-    pool.splice(selectedIndex, 1);
   }
 
+  const selectedEntries = pool.slice(0, availableSlots);
   const mockTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
-  const winners: Winner[] = selectedWinners.map((w, index) => ({
+  const winners: Winner[] = selectedEntries.map((e, index) => ({
     rank: index + 1,
-    wallet: w.entry.walletAddress,
-    shortWallet: w.entry.shortAddress,
-    entryNumber: w.entry.id,
-    multiplier: w.multiplierText,
-    tokenBalance: w.entry.tokenBalance || 0,
-    isGuaranteed: w.isGuaranteed,
+    wallet: e.walletAddress,
+    shortWallet: e.shortAddress || formatAddress(e.walletAddress),
+    twitterUsername: e.twitterUsername || '',
+    entryNumber: e.id,
     drawnAt: new Date().toISOString(),
     txUrl: `https://etherscan.io/tx/${mockTxHash}`,
   }));
 
-  // Update Supabase
   try {
     await supabase.from('flamebound_raffles').update({
       status: 'winners_drawn',
@@ -620,7 +588,6 @@ export async function drawRaffleWinnersAsync(raffleId: string, customCount?: num
     console.error('Supabase draw update error:', err);
   }
 
-  // Also sync local
   raffle.status = 'winners_drawn';
   raffle.winners = winners;
   raffle.winnerTxHash = mockTxHash;
@@ -640,80 +607,33 @@ export function drawRaffleWinners(raffleId: string, customCount?: number): { raf
     throw new Error('Raffle not found');
   }
 
-  // Filter eligible entries based on raffle eligibility type
-  const eligibleEntries = db.entries.filter(e => {
-    if (e.raffleId !== raffleId || e.status !== 'confirmed') return false;
-    if (raffle.eligibility === 'holders_only') {
-      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
-    }
-    if (raffle.eligibility === 'minters_only') {
-      return e.isHolder || (e.tokenBalance && e.tokenBalance >= 1);
-    }
-    return true; // public: open to all
-  });
-
+  const eligibleEntries = db.entries.filter(e => e.raffleId === raffleId && e.status === 'confirmed');
   if (eligibleEntries.length === 0) {
-    throw new Error(`No eligible entries found for this raffle.`);
+    throw new Error('No confirmed entries found for this raffle.');
   }
 
   const totalSlots = customCount || raffle.supply || 10;
   const availableSlots = Math.min(totalSlots, eligibleEntries.length);
 
-  // 1. Separate Guaranteed Winners (Holders of 100+ Flamebound NFTs)
-  const guaranteedPool = eligibleEntries.filter(e => (e.tokenBalance || 0) >= 100);
-  const remainingPool = eligibleEntries.filter(e => (e.tokenBalance || 0) < 100);
-
-  const selectedWinners: { entry: RaffleEntry; isGuaranteed: boolean; multiplierText: string }[] = [];
-
-  // Add guaranteed winners first (up to availableSlots)
-  for (const gEntry of guaranteedPool) {
-    if (selectedWinners.length >= availableSlots) break;
-    selectedWinners.push({
-      entry: gEntry,
-      isGuaranteed: true,
-      multiplierText: '100% GUARANTEED WIN',
-    });
-  }
-
-  // 2. Weighted Draw for remaining slots using tokenBalance as tickets (weight = max(1, tokenBalance))
-  const pool = [...remainingPool];
-  while (selectedWinners.length < availableSlots && pool.length > 0) {
-    const totalWeight = pool.reduce((sum, item) => sum + Math.max(1, item.tokenBalance || 1), 0);
-    
-    let randomPoint = Math.random() * totalWeight;
-    let selectedIndex = 0;
-
-    for (let i = 0; i < pool.length; i++) {
-      const itemWeight = Math.max(1, pool[i].tokenBalance || 1);
-      if (randomPoint < itemWeight) {
-        selectedIndex = i;
-        break;
-      }
-      randomPoint -= itemWeight;
+  let pool = [...eligibleEntries];
+  if (raffle.entryMethod === 'fcfs') {
+    pool.sort((a, b) => new Date(a.verifiedAt).getTime() - new Date(b.verifiedAt).getTime());
+  } else {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-
-    const winnerEntry = pool[selectedIndex];
-    const weight = Math.max(1, winnerEntry.tokenBalance || 1);
-    selectedWinners.push({
-      entry: winnerEntry,
-      isGuaranteed: false,
-      multiplierText: `${weight}x BOOST`,
-    });
-
-    // Remove from pool to prevent duplicate winner selection
-    pool.splice(selectedIndex, 1);
   }
 
+  const selectedEntries = pool.slice(0, availableSlots);
   const mockTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
-  const winners: Winner[] = selectedWinners.map((w, index) => ({
+  const winners: Winner[] = selectedEntries.map((e, index) => ({
     rank: index + 1,
-    wallet: w.entry.walletAddress,
-    shortWallet: w.entry.shortAddress,
-    entryNumber: w.entry.id,
-    multiplier: w.multiplierText,
-    tokenBalance: w.entry.tokenBalance || 0,
-    isGuaranteed: w.isGuaranteed,
+    wallet: e.walletAddress,
+    shortWallet: e.shortAddress || formatAddress(e.walletAddress),
+    twitterUsername: e.twitterUsername || '',
+    entryNumber: e.id,
     drawnAt: new Date().toISOString(),
     txUrl: `https://etherscan.io/tx/${mockTxHash}`,
   }));
@@ -731,14 +651,12 @@ export async function getAdminStatsAsync(): Promise<AdminStats> {
     const raffles = await getRafflesAsync();
     const entries = await getEntriesAsync();
     const activeRaffles = raffles.filter(r => r.status === 'live' || r.status === 'ending_soon').length;
-    const verifiedHolders = entries.filter(e => e.isHolder).length;
     const totalWinners = raffles.reduce((acc, r) => acc + (r.winners?.length || 0), 0);
 
     return {
       totalRaffles: raffles.length,
       activeRaffles,
       totalEntries: entries.length,
-      totalVerifiedHolders: verifiedHolders,
       totalWinnersSelected: totalWinners,
     };
   } catch (err) {
@@ -749,14 +667,12 @@ export async function getAdminStatsAsync(): Promise<AdminStats> {
 export function getAdminStats(): AdminStats {
   const db = ensureDb();
   const activeRaffles = db.raffles.filter(r => r.status === 'live' || r.status === 'ending_soon').length;
-  const verifiedHolders = db.entries.filter(e => e.isHolder).length;
   const totalWinners = db.raffles.reduce((acc, r) => acc + (r.winners?.length || 0), 0);
 
   return {
     totalRaffles: db.raffles.length,
     activeRaffles,
     totalEntries: db.entries.length,
-    totalVerifiedHolders: verifiedHolders,
     totalWinnersSelected: totalWinners,
   };
 }
@@ -783,8 +699,7 @@ export async function resetDatabaseAsync(): Promise<void> {
         start_date: r.startDate,
         end_date: r.endDate,
         network: r.network,
-        contract_address: r.contractAddress,
-        required_token_count: r.requiredTokenCount,
+        entry_method: r.entryMethod || 'raffle',
         artwork_type: r.artworkType,
         logo_url: r.logoUrl,
         banner_url: r.bannerUrl,

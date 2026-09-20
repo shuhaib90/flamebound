@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useWallet } from '@/lib/wallet-context';
-import { ExternalLink, Heart } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 export function Footer() {
   const { isAdmin } = useWallet();
@@ -24,12 +24,12 @@ export function Footer() {
                   className="w-full h-full object-contain"
                 />
               </div>
-              <span className="font-syne text-lg text-white font-bold tracking-tight">
-                DOTSET
+              <span className="font-dotlirium text-lg text-white tracking-wider lowercase">
+                dotset
               </span>
             </div>
             <p className="font-dm text-xs text-[#8a8a9a] max-w-sm leading-relaxed">
-              Open Web3 quest and whitelist raffle directory connecting crypto communities with verified early projects.
+              Open Web3 quest and whitelist raffle directory connecting crypto communities with verified early project allocations.
             </p>
           </div>
 
@@ -40,14 +40,9 @@ export function Footer() {
             </div>
             <ul className="space-y-2">
               <li>
-                <a href="#active-raffles" className="hover:text-white transition-colors">
+                <a href="/#active-raffles" className="hover:text-white transition-colors">
                   Live Raffles
                 </a>
-              </li>
-              <li>
-                <Link href="/request-collab" className="hover:text-white transition-colors">
-                  Request Collab
-                </Link>
               </li>
               <li>
                 <Link href="/how-it-works" className="hover:text-white transition-colors">
@@ -55,17 +50,15 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#winners" className="hover:text-white transition-colors">
+                <a href="/#winners" className="hover:text-white transition-colors">
                   Winners Archive
                 </a>
               </li>
-              {isAdmin && (
-                <li>
-                  <Link href="/admin" className="text-[#a5b4fc] hover:underline">
-                    Admin Dashboard
-                  </Link>
-                </li>
-              )}
+              <li>
+                <Link href="/admin" className="text-[#a5b4fc] hover:underline">
+                  Admin Controller
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -77,12 +70,12 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://x.com/FlameboundNft"
+                  href="https://x.com/dotsetxyz"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
-                  <span>X (Twitter)</span>
+                  <span>𝕏 (Twitter)</span>
                   <ExternalLink size={11} />
                 </a>
               </li>
@@ -94,17 +87,6 @@ export function Footer() {
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
                   <span>Discord</span>
-                  <ExternalLink size={11} />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://opensea.io/collection/flamebound-259045050"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 hover:text-white transition-colors"
-                >
-                  <span>OpenSea</span>
                   <ExternalLink size={11} />
                 </a>
               </li>
