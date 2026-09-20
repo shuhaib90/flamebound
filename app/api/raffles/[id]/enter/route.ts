@@ -1,18 +1,29 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { getRaffleByIdAsync, createEntryAsync, getEntryByWalletAsync } from '@/lib/db';
-import { verifyFlameboundHolder } from '@/lib/blockchain';
+import { isValidEvmAddress } from '@/lib/blockchain';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
     const body = await req.json();
-    const { walletAddress, taskStatus } = body;
+    const { walletAddress, twitterUsername, taskStatus } = body;
 
-    if (!walletAddress) {
+    const cleanWallet = (walletAddress || '').trim().toLowerCase();
+    const cleanTwitter = (twitterUsername || '').trim().replace(/^@/, '');
+
+    if (!cleanWallet) {
       return NextResponse.json({
         success: false,
         error: 'WALLET_REQUIRED',
-        message: 'A valid wallet address is required.'
+        message: 'Please enter a valid EVM wallet address to receive your whitelist spot.'
+      }, { status: 400 });
+    }
+
+    if (!cleanTwitter) {
+      return NextResponse.json({
+        success: false,
+        error: 'TWITTER_REQUIRED',
+        message: 'Please enter your X / Twitter handle to participate.'
       }, { status: 400 });
     }
 
@@ -30,13 +41,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 400 });
     }
 
-    // 2. Prevent duplicate entries on database
-    const existing = await getEntryByWalletAsync(id, walletAddress);
+    // 2. Prevent duplicate entries
+    const existing = await getEntryByWalletAsync(id, cleanWallet);
     if (existing) {
       return NextResponse.json({
         success: true,
         isExisting: true,
-        message: 'Your wallet has already entered this raffle.',
+        message: 'This wallet has already entered this raffle.',
         entry: existing
       }, { status: 200 });
     }
@@ -51,43 +62,18 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 400 });
     }
 
-    // 4. DYNAMIC ELIGIBILITY & MULTIPLIER CHECK (MINTERS ONLY / HOLDERS ONLY / PUBLIC)
-    const eligibility = raffle.eligibility || 'minters_only';
-    
-    // Always check on-chain Flamebound NFT holdings to determine holder balance & multiplier
-    const verification = await verifyFlameboundHolder(
-      walletAddress,
-      raffle.contractAddress,
-      raffle.network
-    );
-
-    if (eligibility !== 'public' && !verification.isHolder) {
-      const roleName = eligibility === 'minters_only' ? 'Flamebound minter' : 'Flamebound NFT holder';
-      return NextResponse.json({
-        success: false,
-        error: 'ELIGIBILITY_CHECK_FAILED',
-        message: `Your wallet is not a verified ${roleName}. You cannot enter this ${roleName}-only whitelist.`,
-        verification
-      }, { status: 403 });
-    }
-
-    // Determine multiplier weight
-    const tokenBalance = verification.tokenBalance || 0;
-    const isHolder = verification.isHolder || tokenBalance > 0;
-
-    // 5. Create and persist verified entry into Supabase + Local
+    // 4. Create and persist open verified entry
     const entry = await createEntryAsync({
       raffleId: id,
-      walletAddress: verification.walletAddress,
-      twitterUsername: body.twitterUsername || '',
+      walletAddress: cleanWallet,
+      twitterUsername: cleanTwitter,
       taskStatus: taskStatus || {},
-      isHolder: isHolder,
-      tokenBalance: tokenBalance,
+      isHolder: true,
+      tokenBalance: 1,
       status: 'confirmed',
       contractAddress: raffle.contractAddress,
       network: raffle.customNetwork || raffle.network,
       metadata: {
-        eligibility,
         entryMethod: raffle.entryMethod || 'raffle',
         isFcfsWinner: isFcfs,
       }
@@ -97,17 +83,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       success: true,
       message: isFcfs 
         ? '★ CONGRATULATIONS! Your FCFS Whitelist Spot has been instantly confirmed! ★' 
-        : 'Raffle entry successfully verified and confirmed.',
-      entry,
-      verification,
-      isFcfsWinner: isFcfs,
+        : 'Raffle entry successfully submitted and confirmed!',
+      entry
     }, { status: 201 });
-  } catch (error: any) {
-    console.error('Enter raffle error:', error);
+
+  } catch (error) {
+    console.error('API /raffles/[id]/enter error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'INTERNAL_ERROR',
-      message: error.message
+      error: 'SERVER_ERROR',
+      message: 'Failed to submit raffle entry. Please try again.'
     }, { status: 500 });
   }
 }

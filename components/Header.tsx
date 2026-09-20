@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -42,6 +42,12 @@ export function Header() {
                 className="px-3 py-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-all"
               >
                 [RAFFLES]
+              </Link>
+              <Link 
+                href="/request-collab" 
+                className="px-3 py-2 border-2 border-transparent hover:border-black hover:bg-black hover:text-white transition-all"
+              >
+                [REQUEST COLLAB]
               </Link>
               <Link 
                 href="/how-it-works" 
@@ -183,6 +189,13 @@ export function Header() {
               className="block p-2.5 border-2 border-black bg-white hover:bg-black hover:text-white"
             >
               [RAFFLES]
+            </Link>
+            <Link
+              href="/request-collab"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block p-2.5 border-2 border-black bg-white hover:bg-black hover:text-white"
+            >
+              [REQUEST COLLAB]
             </Link>
             <Link
               href="/how-it-works"
