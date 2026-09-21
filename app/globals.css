@@ -252,14 +252,14 @@ body {
   text-transform: lowercase;
   transform-origin: 50%;
   will-change: opacity, filter, transform;
-  text-shadow: 4px 4px #e3f2fd, 8px 8px #90caf9, 12px 12px #2196f3, 16px 16px #0d47a1;
+  text-shadow: 4px 4px #dbeafe, 8px 8px #93c5fd, 12px 12px #3b82f6, 16px 16px #1e3a8a;
   line-height: 1;
 }
 
 .dotset-reveal-subtitle {
   width: min(100%, calc(var(--dotset-name-font-size) * 3.175));
   max-width: 100%;
-  color: var(--color-brand-primary);
+  color: #000000;
   letter-spacing: 0.01em;
   will-change: opacity, filter, transform;
   justify-content: center;
@@ -280,7 +280,7 @@ body {
 .dotset-reveal-subtitle-link {
   z-index: 1;
   white-space: nowrap;
-  color: #293681;
+  color: #000000;
   opacity: 0;
   text-shadow: 0 0 transparent;
   border-radius: 9999px;
@@ -316,7 +316,7 @@ body {
   }
   5%, 28.333% {
     opacity: 1;
-    text-shadow: 2px 2px #e3f2fd, 4px 4px #90caf9, 6px 6px #2196f3, 8px 8px #0d47a1;
+    text-shadow: 2px 2px #dbeafe, 4px 4px #93c5fd, 6px 6px #3b82f6, 8px 8px #1e3a8a;
   }
   38.333%, 100% {
     opacity: 0;

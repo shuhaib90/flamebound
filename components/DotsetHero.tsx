@@ -31,7 +31,7 @@ export function DotsetHero() {
     // --- THREE.JS SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#ffffff');
-    scene.fog = new THREE.FogExp2('#ffffff', 0.003);
+    scene.fog = new THREE.FogExp2('#ffffff', 0.002);
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
     camera.position.set(80, 50, 100);
@@ -51,11 +51,11 @@ export function DotsetHero() {
     renderer.domElement.style.touchAction = 'pan-y';
 
     const colorPalette = [
+      new THREE.Color('#1e3a8a'),
       new THREE.Color('#293681'),
-      new THREE.Color('#4274d9'),
-      new THREE.Color('#95ccdd'),
-      new THREE.Color('#38bdf8'),
-      new THREE.Color('#0d47a1'),
+      new THREE.Color('#2563eb'),
+      new THREE.Color('#0284c7'),
+      new THREE.Color('#4338ca'),
     ];
 
     const getBasePointSize = () => (container.clientWidth < 768 ? 4.5 : 3.5);
@@ -89,7 +89,7 @@ export function DotsetHero() {
     const starMat = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
-        uPointSize: { value: getBasePointSize() * 0.8 },
+        uPointSize: { value: getBasePointSize() * 0.9 },
       },
       vertexShader: `
         uniform float uTime;
@@ -104,13 +104,13 @@ export function DotsetHero() {
 
         void main() {
           vColor = color;
-          float distFromCenter = mod(travelOffset + uTime * 15.0 * length(direction), 600.0);
+          float distFromCenter = mod(travelOffset + uTime * 18.0 * length(direction), 600.0);
           vec3 particlePosition = normalize(direction) * distFromCenter;
-          vOpacity = smoothstep(0.0, 100.0, distFromCenter) * smoothstep(600.0, 400.0, distFromCenter) * 0.6;
+          vOpacity = smoothstep(0.0, 80.0, distFromCenter) * smoothstep(600.0, 400.0, distFromCenter) * 0.75;
 
           vec4 mvPosition = modelViewMatrix * vec4(particlePosition, 1.0);
           gl_Position = projectionMatrix * mvPosition;
-          gl_PointSize = uPointSize * (200.0 / -mvPosition.z);
+          gl_PointSize = uPointSize * (220.0 / -mvPosition.z);
         }
       `,
       fragmentShader: `
@@ -119,13 +119,15 @@ export function DotsetHero() {
 
         void main() {
           vec2 coord = gl_PointCoord - vec2(0.5);
-          if (length(coord) > 0.5) discard;
-          gl_FragColor = vec4(vColor, vOpacity);
+          float dist = length(coord);
+          if (dist > 0.5) discard;
+          float alpha = smoothstep(0.5, 0.1, dist) * vOpacity;
+          gl_FragColor = vec4(vColor, alpha);
         }
       `,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     });
 
     scene.add(new THREE.Points(starGeo, starMat));
@@ -235,7 +237,7 @@ export function DotsetHero() {
 
           vec4 mvPosition = modelViewMatrix * vec4(morphedPos, 1.0);
           gl_Position = projectionMatrix * mvPosition;
-          gl_PointSize = uPointSize * (150.0 / -mvPosition.z);
+          gl_PointSize = uPointSize * (170.0 / -mvPosition.z);
         }
       `,
       fragmentShader: `
@@ -243,13 +245,15 @@ export function DotsetHero() {
 
         void main() {
           vec2 coord = gl_PointCoord - vec2(0.5);
-          if (length(coord) > 0.5) discard;
-          gl_FragColor = vec4(vColor, 0.85);
+          float dist = length(coord);
+          if (dist > 0.5) discard;
+          float alpha = smoothstep(0.5, 0.05, dist) * 0.92;
+          gl_FragColor = vec4(vColor, alpha);
         }
       `,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     });
 
     scene.add(new THREE.Points(morphGeo, morphMat));
@@ -263,8 +267,12 @@ export function DotsetHero() {
     let textMat: THREE.ShaderMaterial | null = null;
     let textTimeline: gsap.core.Timeline | null = null;
     let isDisposed = false;
+    let particlesBuilt = false;
 
     const buildTextParticles = () => {
+      if (particlesBuilt || isDisposed) return;
+      particlesBuilt = true;
+
       const width = container.clientWidth;
       const height = container.clientHeight;
       const offscreenCanvas = document.createElement('canvas');
@@ -280,7 +288,7 @@ export function DotsetHero() {
       const centerY = titleRect.top - contRect.top + titleRect.height / 2;
 
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#000000';
       ctx.font = `${compStyle.fontWeight} ${compStyle.fontSize} ${compStyle.fontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -293,17 +301,17 @@ export function DotsetHero() {
       const delayList: number[] = [];
 
       const layerOffsets = [
-        { offset: 16, color: colorPalette[4], delay: 0 },
-        { offset: 12, color: colorPalette[3], delay: 0.035 },
-        { offset: 8, color: colorPalette[2], delay: 0.07 },
-        { offset: 4, color: colorPalette[1], delay: 0.105 },
-        { offset: 0, color: new THREE.Color('#ffffff'), delay: 0.14 },
+        { offset: 16, color: new THREE.Color('#1e3a8a'), delay: 0 },
+        { offset: 12, color: new THREE.Color('#2563eb'), delay: 0.035 },
+        { offset: 8, color: new THREE.Color('#38bdf8'), delay: 0.07 },
+        { offset: 4, color: new THREE.Color('#293681'), delay: 0.105 },
+        { offset: 0, color: new THREE.Color('#000000'), delay: 0.14 },
       ];
 
       for (let y = 0; y < height; y += step) {
         for (let x = 0; x < width; x += step) {
           const idx = (y * width + x) * 4;
-          if (imgData[idx + 3] > 128) {
+          if (imgData[idx + 3] > 64) {
             layerOffsets.forEach((layer) => {
               targetPosList.push(x - width / 2 + layer.offset, height / 2 - y - layer.offset, 0);
               colorList.push(layer.color.r, layer.color.g, layer.color.b);
@@ -312,6 +320,8 @@ export function DotsetHero() {
           }
         }
       }
+
+      if (targetPosList.length === 0) return;
 
       const numParticles = targetPosList.length / 3;
       const initialPositions = new Float32Array(numParticles * 3);
@@ -363,12 +373,15 @@ export function DotsetHero() {
 
           void main() {
             vec2 coord = gl_PointCoord - vec2(0.5);
-            if (length(coord) > 0.5) discard;
-            gl_FragColor = vec4(vColor, uOpacity);
+            float dist = length(coord);
+            if (dist > 0.5) discard;
+            float alpha = smoothstep(0.5, 0.1, dist) * uOpacity;
+            gl_FragColor = vec4(vColor, alpha);
           }
         `,
         transparent: true,
         depthWrite: false,
+        blending: THREE.NormalBlending,
       });
 
       textScene.add(new THREE.Points(textGeo, textMat));
@@ -381,22 +394,29 @@ export function DotsetHero() {
       }
 
       textTimeline = gsap.timeline({ delay: 0.15 })
-        .to(textMat.uniforms.uProgress, { value: 1, duration: 3.2, ease: 'power3.inOut' })
-        .to(titleRef.current, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.7, ease: 'power2.out' }, '-=0.4')
-        .to(textMat.uniforms.uOpacity, { value: 0, duration: 1.7, ease: 'power2.inOut' }, '<')
-        .to(textMat.uniforms.uPointSize, { value: particleSize * 0.65, duration: 1.7, ease: 'power2.inOut' }, '<')
+        .to(textMat.uniforms.uProgress, { value: 1, duration: 3.0, ease: 'power3.inOut' })
+        .to(titleRef.current, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.5, ease: 'power2.out' }, '-=0.4')
+        .to(textMat.uniforms.uOpacity, { value: 0, duration: 1.5, ease: 'power2.inOut' }, '<')
+        .to(textMat.uniforms.uPointSize, { value: particleSize * 0.65, duration: 1.5, ease: 'power2.inOut' }, '<')
         .to(subtitleRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out', onStart: () => setIsShadowActive(true) }, '<0.15');
     };
 
-    // Wait for DotLirium font before sampling offscreen text
-    document.fonts.load('12vw "DotLirium"').then(() => {
-      if (!isDisposed) buildTextParticles();
-    }).catch(() => {
-      if (!isDisposed && titleRef.current) {
-        gsap.set(titleRef.current, { opacity: 1 });
-        setIsShadowActive(true);
-      }
-    });
+    // Load DotLirium font before sampling offscreen text
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(() => {
+        if (!isDisposed) buildTextParticles();
+      }).catch(() => {
+        if (!isDisposed) buildTextParticles();
+      });
+      // Fallback timeout to ensure particles build even if font event delays
+      setTimeout(() => {
+        if (!isDisposed && !particlesBuilt) buildTextParticles();
+      }, 500);
+    } else {
+      setTimeout(() => {
+        if (!isDisposed) buildTextParticles();
+      }, 300);
+    }
 
     // --- 4. MORPH TRANSITION CYCLING ---
     let stateIdx = 0;
@@ -510,7 +530,7 @@ export function DotsetHero() {
   }, []);
 
   return (
-    <section className="relative min-h-[92vh] sm:min-h-screen w-full flex items-center justify-center overflow-hidden select-none bg-[#080808]">
+    <section className="relative min-h-[92vh] sm:min-h-screen w-full flex items-center justify-center overflow-hidden select-none bg-white">
       
       {/* 3D WebGL Canvas Scene */}
       <div ref={containerRef} className="dotset-reveal-scene" />
