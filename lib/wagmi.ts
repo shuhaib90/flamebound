@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { http, defineChain } from 'viem';
@@ -27,7 +27,7 @@ export function isAdminWallet(address?: string | null): boolean {
 }
 
 export const wagmiConfig = getDefaultConfig({
-  appName: 'FLAMEBOUND Whitelist Raffles',
+  appName: 'DOTSET Whitelist Raffles',
   projectId: '3fcc6bba6f1de962d911bb5b5c3dba68', // Public WalletConnect project ID
   chains: [mainnet, robinhoodChain, base, sepolia, polygon, arbitrum],
   transports: {

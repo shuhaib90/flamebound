@@ -44,13 +44,13 @@ export function PixelArtwork({ type = 'genesis', bannerUrl, logoUrl, size = 180,
       >
         <div className="w-28 h-28 max-h-[140px] flex items-center justify-center group-hover:scale-110 transition-transform">
           <img
-            src="/images/flamebound-logo.png"
-            alt="Flamebound Genesis"
+            src="/images/dotset-logo.png"
+            alt="DOTSET Genesis"
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="mt-2 bg-lime text-black font-pixel text-[9px] px-2 py-0.5 border-2 border-black font-bold">
-          ★ FLAMEBOUND GENESIS ★
+        <div className="mt-2 bg-[#293681] text-white font-pixel text-[9px] px-2 py-0.5 border-2 border-[#293681] font-bold">
+          ★ DOTSET GENESIS ★
         </div>
       </div>
     );

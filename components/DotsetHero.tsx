@@ -5,7 +5,7 @@ import Link from 'next/link';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import gsap from 'gsap';
-import { ArrowDown, ArrowRight, Flame, Users, ShieldCheck, Trophy } from 'lucide-react';
+import { ArrowDown, ArrowRight, Sparkles, Users, ShieldCheck, Trophy } from 'lucide-react';
 
 const NUM_MORPH_POINTS = 100000;
 const NUM_STAR_POINTS = 800;
@@ -559,7 +559,7 @@ export function DotsetHero() {
           <div className="pointer-events-auto grid grid-cols-3 gap-2.5 sm:gap-4 mt-8 sm:mt-12 max-w-2xl w-full mx-auto px-4 z-20">
             <div className="bg-white/90 backdrop-blur-md border border-gray-200 p-3 sm:p-4 rounded-xl shadow-md transition-all hover:border-[#293681] text-center">
               <div className="flex justify-center text-[#293681] mb-1">
-                <Flame size={16} />
+                <Sparkles size={16} />
               </div>
               <div className="font-grotesk text-lg sm:text-xl font-bold text-gray-900">
                 LIVE

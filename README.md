@@ -1,27 +1,23 @@
-﻿# 🔥 FLAMEBOUND — Web3 Whitelist Raffle Platform
+# ⚡ DOTSET — Web3 Quest & Whitelist Raffle Platform
 
-**FLAMEBOUND** is an NFT Whitelist Raffle portal built with a bold retro arcade cyberpunk aesthetic. It enables live whitelist raffles, partner allocations, and real-time on-chain holder eligibility checks.
+**DOTSET** is an open Web3 Quest & Raffle platform designed with a clean white and navy aesthetic. It enables live whitelist raffles, partner allocations, automated social quest verification, and winner draws.
 
 ---
 
 ## ✨ Features
 
-- **⚡ Solid Neon Aesthetic**: Cyberpunk high-contrast lime green and solid black pixel/arcade styling.
-- **👛 RainbowKit 2 + Wagmi + Viem**: Seamless EVM wallet connection.
-- **🔥 On-Chain Holder Verification**: Directly queries the official Flamebound NFT contract (`0xad11f08a3a1e15756abcf565269d3c32b6d464b9`) across multiple EVM chains (Ethereum, Robinhood, Base, Polygon, Arbitrum).
+- **🌐 Modern Clean Aesthetic**: Crisp white background with deep navy (`#293681`) and electric blue (`#4274d9`) design system.
+- **👛 EVM & Solana Support**: Supports EVM chains (Ethereum, ApeChain, Base, Arbitrum) and Solana wallet addresses.
 - **🗄️ Supabase PostgreSQL Backend**: Live cloud database synchronization with Row-Level Security (RLS).
-- **🎟️ User Profile Passport**: Displays verified NFT holdings, holder tier badges (`Elder Flame Whale`, `Titan`, `Inferno Lord`, `Keeper`), entered raffles, and won whitelists.
-- **🛠️ Admin Dashboard**: Full raffle lifecycle control (create, edit, delete, cryptographically draw winners, export entries to CSV).
-- **🔗 Deep Linking & Instant Share**: One-click deep link copying (`?raffle=id`) and pre-filled Twitter / X sharing.
+- **🛠️ Admin Dashboard**: Password-protected (`monk9090`) raffle lifecycle controller (create, edit, delete, cryptographically draw winners, export entrant data directly to CSV).
+- **🔗 Deep Linking & Instant Share**: One-click URL copying and pre-filled Twitter / X share intents.
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone & Install Dependencies
+### 1. Install Dependencies
 ```bash
-git clone https://github.com/shuhaib90/flamebound.git
-cd flamebound
 npm install
 ```
 
@@ -45,8 +41,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📜 Smart Contract & Network Info
-- **Primary NFT Contract**: `0xad11f08a3a1e15756abcf565269d3c32b6d464b9`
-- **Admin Wallet**: `0x8B7a0A0CA2B05319d27E70Df91D106bfe8fF05fb`
-- **Official Collection**: [OpenSea](https://opensea.io/collection/flamebound-259045050)
-- **Official Twitter / X**: [@FlameboundNft](https://x.com/FlameboundNft)
+## 📜 Network Info
+- **Official Twitter / X**: [@dotsetxyz](https://x.com/dotsetxyz)

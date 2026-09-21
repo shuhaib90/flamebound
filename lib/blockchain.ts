@@ -11,21 +11,19 @@ const erc721Abi = parseAbi([
 ]);
 
 // Official live DOTSET NFT deployment configurations
-export const FLAMEBOUND_PRIMARY_CONTRACT = '0xad11f08a3a1e15756abcf565269d3c32b6d464b9';
-export const DOTSET_PRIMARY_CONTRACT = FLAMEBOUND_PRIMARY_CONTRACT;
-export const FLAMEBOUND_PRIMARY_RPC = 'https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY';
-export const DOTSET_PRIMARY_RPC = FLAMEBOUND_PRIMARY_RPC;
+export const DOTSET_PRIMARY_CONTRACT = '0xad11f08a3a1e15756abcf565269d3c32b6d464b9';
+export const DOTSET_PRIMARY_RPC = 'https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY';
 
 // Clean test holders registry with valid EIP-55 checksummed addresses
 export const KNOWN_TEST_HOLDERS: Record<string, { balance: number; tokenIds: string[]; name: string }> = {
-  // Official Admin Wallet (Titan Whale - 100 Flamebound NFTs -> 100% Guaranteed Win)
+  // Official Admin Wallet (Titan Whale - 100 DOTSET NFTs -> 100% Guaranteed Win)
   '0x8b7a0a0ca2b05319d27e70df91d106bfe8ff05fb': { balance: 100, tokenIds: ['#0001', '#0002', '#0050', '#0100'], name: 'Admin / Titan Whale' },
-  // Whale 50x (Holder - 50 Flamebound NFTs -> 50x Win Multiplier)
-  '0x72a4b693240212351239012390123901239091f2': { balance: 50, tokenIds: ['#0012', '#0089', '#0412', '#0991'], name: 'Flamebound Whale (50x)' },
-  // OG 10x (Holder - 10 Flamebound NFTs -> 10x Win Multiplier)
-  '0xa81c4345689012345678901234567890123433d9': { balance: 10, tokenIds: ['#0104', '#0773', '#0882'], name: 'Flamebound OG (10x)' },
-  // Beast Master (Holder - 1 Flamebound NFT -> 1x Win Multiplier)
-  '0x19fd72aa123456789012345678901234567872aa': { balance: 1, tokenIds: ['#0552'], name: 'Flamebound Pioneer (1x)' },
+  // Whale 50x (Holder - 50 DOTSET NFTs -> 50x Win Multiplier)
+  '0x72a4b693240212351239012390123901239091f2': { balance: 50, tokenIds: ['#0012', '#0089', '#0412', '#0991'], name: 'DOTSET Whale (50x)' },
+  // OG 10x (Holder - 10 DOTSET NFTs -> 10x Win Multiplier)
+  '0xa81c4345689012345678901234567890123433d9': { balance: 10, tokenIds: ['#0104', '#0773', '#0882'], name: 'DOTSET OG (10x)' },
+  // Pioneer (Holder - 1 DOTSET NFT -> 1x Win Multiplier)
+  '0x19fd72aa123456789012345678901234567872aa': { balance: 1, tokenIds: ['#0552'], name: 'DOTSET Pioneer (1x)' },
   // Non-Holder for testing rejection/public (0 NFTs -> 1x Base)
   '0x999999cf1046e68e36e1aa2e0e07105eddd1f08e': { balance: 0, tokenIds: [], name: 'Public User (0 NFTs / 1x Base)' },
 };
@@ -45,9 +43,9 @@ export function isValidEvmAddress(address: string): boolean {
 }
 
 /**
- * Verify Flamebound NFT Holder status against on-chain contract or custom RPC.
+ * Verify DOTSET NFT Holder status against on-chain contract or custom RPC.
  */
-export async function verifyFlameboundHolder(
+export async function verifyDotsetHolder(
   walletAddress: string,
   contractAddress?: string,
   network = 'ETHEREUM'
@@ -59,7 +57,7 @@ export async function verifyFlameboundHolder(
     return {
       isHolder: false,
       walletAddress: walletAddress || '',
-      contractAddress: contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
+      contractAddress: contractAddress || DOTSET_PRIMARY_CONTRACT,
       network,
       tokenBalance: 0,
       verifiedOnChain: false,
@@ -72,13 +70,13 @@ export async function verifyFlameboundHolder(
   const normalizedWallet = walletAddress.toLowerCase();
   const targetContract = contractAddress && isValidEvmAddress(contractAddress)
     ? contractAddress.toLowerCase()
-    : FLAMEBOUND_PRIMARY_CONTRACT.toLowerCase();
+    : DOTSET_PRIMARY_CONTRACT.toLowerCase();
 
   // 2. Direct On-Chain RPC Query via Alchemy
   try {
     const client = createPublicClient({
       chain: mainnet,
-      transport: http(FLAMEBOUND_PRIMARY_RPC, { timeout: 6000, retryCount: 2 }),
+      transport: http(DOTSET_PRIMARY_RPC, { timeout: 6000, retryCount: 2 }),
     });
 
     const balanceBigInt = await client.readContract({
@@ -98,7 +96,7 @@ export async function verifyFlameboundHolder(
         tokenBalance: balance,
         verifiedOnChain: true,
         timestamp,
-        message: `✓ FLAMEBOUND MINTER VERIFIED ON-CHAIN! (${balance} NFT minted)`
+        message: `✓ DOTSET MINTER VERIFIED ON-CHAIN! (${balance} NFT minted)`
       };
     }
   } catch (err: any) {
@@ -113,14 +111,14 @@ export async function verifyFlameboundHolder(
       isHolder,
       walletAddress: walletAddress,
       contractAddress: targetContract,
-      network: 'ROBINHOOD NETWORK / FLAMEBOUND',
+      network: 'ROBINHOOD NETWORK / DOTSET',
       tokenBalance: knownHolder.balance,
       tokenIds: knownHolder.tokenIds,
       verifiedOnChain: true,
       timestamp,
       message: isHolder 
-        ? `✓ FLAMEBOUND MINTER VERIFIED. (${knownHolder.balance} NFT minted)`
-        : `✕ NO FLAMEBOUND MINTS FOUND. Balance: 0.`
+        ? `✓ DOTSET MINTER VERIFIED. (${knownHolder.balance} NFT minted)`
+        : `✕ NO DOTSET MINTS FOUND. Balance: 0.`
     };
   }
 
@@ -133,6 +131,6 @@ export async function verifyFlameboundHolder(
     tokenBalance: 0,
     verifiedOnChain: true,
     timestamp,
-    message: `✕ NO FLAMEBOUND MINTS FOUND (Balance: 0). Contract: ${formatAddress(targetContract)}`
+    message: `✕ NO DOTSET MINTS FOUND (Balance: 0). Contract: ${formatAddress(targetContract)}`
   };
 }

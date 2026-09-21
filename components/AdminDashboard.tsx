@@ -12,7 +12,6 @@ import {
   Trophy, 
   Users, 
   Layers, 
-  Flame, 
   ArrowLeft, 
   Copy, 
   RefreshCw, 

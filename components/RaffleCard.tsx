@@ -13,7 +13,6 @@ import {
   Clock, 
   Users, 
   Edit3,
-  Flame,
   CheckCircle2
 } from 'lucide-react';
 
@@ -65,7 +64,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/r/${raffleSlug}`;
     }
-    return `https://flamebound.site/r/${raffleSlug}`;
+    return `https://dotset.xyz/r/${raffleSlug}`;
   };
 
   const handleShare = (e: React.MouseEvent) => {

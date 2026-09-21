@@ -1,11 +1,10 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Raffle, HolderVerificationResult } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { formatAddress, DOTSET_PRIMARY_CONTRACT } from '@/lib/blockchain';
-import { PixelFlame } from './PixelFlame';
 import confetti from 'canvas-confetti';
 import { 
   X, 
@@ -14,7 +13,7 @@ import {
   CheckCircle, 
   Copy, 
   Check, 
-  Flame, 
+  Sparkles, 
   MessageSquare, 
   Twitter, 
   Wallet,
@@ -85,7 +84,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
     const checkExistingEntry = async () => {
       if (address) {
         // 1. Instant local cache restore
-        const cached = localStorage.getItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`);
+        const cached = localStorage.getItem(`dotset_entry_${raffle.id}_${address.toLowerCase()}`);
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
@@ -105,7 +104,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
             setEntryReceipt(data.userEntry);
             if (data.userEntry.twitterUsername) setTwitterHandle(data.userEntry.twitterUsername);
             setTasks({ handleLinked: true, followPartner: true, followDOTSET: true, engage: true, wallet: true, holderCheck: true });
-            localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.userEntry));
+            localStorage.setItem(`dotset_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.userEntry));
           }
         } catch (e) {}
       }
@@ -204,7 +203,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
       if (data.entry) {
         setEntryReceipt(data.entry);
         if (address) {
-          localStorage.setItem(`flamebound_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.entry));
+          localStorage.setItem(`dotset_entry_${raffle.id}_${address.toLowerCase()}`, JSON.stringify(data.entry));
         }
       }
 
@@ -242,7 +241,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
             {raffle.logoUrl ? (
               <img src={raffle.logoUrl} alt={projectName} className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             ) : (
-              <img src="/images/flamebound-logo.png" alt="DOTSET" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
+              <img src="/images/dotset-logo.png" alt="DOTSET" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0 drop-shadow-sm" />
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -567,7 +566,7 @@ export function RaffleModal({ raffle, isOpen, onClose, onSuccess }: RaffleModalP
                   tasks.holderCheck ? 'bg-gray-100' : 'bg-white'
                 }`}>
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                    <Flame size={14} className="text-black shrink-0" />
+                    <Sparkles size={14} className="text-black shrink-0" />
                     <span className="font-pixel text-[9px] sm:text-[11px] font-bold text-black uppercase truncate">
                       {holderStatus && holderStatus.isHolder 
                         ? `VERIFIED MINTER (${holderStatus.tokenBalance} NFT)`

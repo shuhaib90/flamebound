@@ -285,7 +285,7 @@ export default function SingleRafflePage() {
 
   const getShortUrl = () => {
     if (typeof window !== 'undefined') return window.location.href;
-    return `https://flamebound.site/raffle/${raffleId}`;
+    return `https://dotset.xyz/raffle/${raffleId}`;
   };
 
   const handleShare = () => {

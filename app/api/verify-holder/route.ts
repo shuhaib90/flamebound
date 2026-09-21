@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyFlameboundHolder } from '@/lib/blockchain';
+import { verifyDotsetHolder } from '@/lib/blockchain';
 import { getRaffleById } from '@/lib/db';
 
 export async function POST(req: Request) {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     // Call blockchain verification engine
-    const verification = await verifyFlameboundHolder(walletAddress, targetContract, targetNetwork);
+    const verification = await verifyDotsetHolder(walletAddress, targetContract, targetNetwork);
 
     return NextResponse.json({
       success: true,

@@ -8,7 +8,7 @@ import { HowItWorks } from '@/components/HowItWorks';
 import { WinnersSection } from '@/components/WinnersSection';
 import { Footer } from '@/components/Footer';
 import { Raffle } from '@/lib/types';
-import { Sparkles, Search, Flame } from 'lucide-react';
+import { Sparkles, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function HomePage() {

@@ -1,4 +1,4 @@
-﻿export interface MultiplierTier {
+export interface MultiplierTier {
   multiplier: number;
   multiplierLabel: string;
   tierName: string;
@@ -9,7 +9,7 @@
 }
 
 /**
- * Returns the win multiplier tier and benefits for a given Flamebound NFT balance.
+ * Returns the win multiplier tier and benefits for a given DOTSET NFT balance.
  * 
  * Rules:
  * - Hold 100+ NFTs: 100% Guaranteed Win allocation in every draw / 100x+ weight
@@ -28,7 +28,7 @@ export function getHolderMultiplier(balance: number = 0): MultiplierTier {
       badgeColor: 'bg-lime text-black border-black',
       isGuaranteed: true,
       tierRank: 'TITAN_WHALE',
-      description: 'Holding 100+ Flamebound NFTs grants 100% guaranteed allocation pass in every raffle draw!',
+      description: 'Holding 100+ DOTSET NFTs grants 100% guaranteed allocation pass in every raffle draw!',
     };
   }
 
@@ -63,6 +63,6 @@ export function getHolderMultiplier(balance: number = 0): MultiplierTier {
     badgeColor: 'bg-gray-100 text-gray-800 border-gray-400',
     isGuaranteed: false,
     tierRank: 'PUBLIC',
-    description: 'Holding 0 Flamebound NFTs grants standard 1x entry. Hold Flamebound NFTs to boost odds up to 50x or 100% Guaranteed Win!',
+    description: 'Holding 0 DOTSET NFTs grants standard 1x entry. Hold DOTSET NFTs to boost odds up to 50x or 100% Guaranteed Win!',
   };
 }

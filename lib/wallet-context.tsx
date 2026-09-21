@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAccount, useDisconnect, useChainId } from 'wagmi';
-import { formatAddress, FLAMEBOUND_PRIMARY_CONTRACT } from './blockchain';
+import { formatAddress, DOTSET_PRIMARY_CONTRACT } from './blockchain';
 import { HolderVerificationResult } from './types';
 import { ADMIN_WALLET, isAdminWallet } from './wagmi';
 
@@ -56,7 +56,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           walletAddress: address,
-          contractAddress: contractAddress || FLAMEBOUND_PRIMARY_CONTRACT,
+          contractAddress: contractAddress || DOTSET_PRIMARY_CONTRACT,
           network: chainNetwork || 'ROBINHOOD NETWORK',
         }),
       });

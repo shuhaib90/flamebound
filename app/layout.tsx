@@ -22,8 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#080808] text-[#f0f0f0] antialiased selection:bg-[#4f52c8] selection:text-white min-h-screen flex flex-col font-dm relative">
-        {/* Ambient Grid and Glow matching CloudQuest */}
+      <body className="bg-white text-gray-900 antialiased selection:bg-[#4274d9] selection:text-white min-h-screen flex flex-col font-dm relative">
+        {/* Ambient Grid and Glow */}
         <div className="amb-grid" />
         <div className="amb-glow" />
         
