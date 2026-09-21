@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Raffle } from '@/lib/types';
-import { Trophy, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Trophy, CheckCircle2 } from 'lucide-react';
 
 export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
   const closedOrDrawnRaffles = raffles.filter(
@@ -69,8 +69,8 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
               {/* Winners Grid */}
               {raffle.winners && raffle.winners.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-dm text-[#4ade80]">
-                    <Sparkles size={14} />
+                  <div className="flex items-center gap-2 text-xs font-dm text-[#f0f0f0]">
+                    <Trophy size={14} className="text-[#a5b4fc]" />
                     <span className="font-medium">Selected Whitelist Wallets ({raffle.winners.length})</span>
                   </div>
 

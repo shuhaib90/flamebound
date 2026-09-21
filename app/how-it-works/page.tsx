@@ -8,7 +8,6 @@ import {
   ArrowLeft, 
   ShieldCheck, 
   Trophy, 
-  Sparkles,
   ArrowRight,
   Zap,
   CheckCircle2
@@ -35,7 +34,6 @@ export default function HowItWorksPage() {
         {/* Hero Section */}
         <div className="cq-card p-6 sm:p-10 space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4f52c8]/20 border border-[#a5b4fc]/30 text-[#a5b4fc] font-mono-dm text-xs">
-            <Sparkles size={12} />
             <span>Web3 Quest Protocol</span>
           </div>
           <h1 className="font-syne text-2xl sm:text-4xl font-bold text-white tracking-tight">

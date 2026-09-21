@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@/lib/wallet-context';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export function Header() {
   const { isAdmin } = useWallet();
@@ -43,14 +43,6 @@ export function Header() {
             >
               Winners
             </Link>
-
-            <Link
-              href="/admin"
-              className="px-3 py-1.5 rounded-md text-[#a5b4fc] bg-[#4f52c8]/20 border border-[#a5b4fc]/30 text-xs font-mono-dm flex items-center gap-1.5 ml-2 hover:bg-[#4f52c8]/30 transition-colors"
-            >
-              <Sparkles size={12} />
-              <span>Admin</span>
-            </Link>
           </nav>
 
           {/* Right Action: Live Pulse Badge & Explore Action */}
@@ -70,12 +62,6 @@ export function Header() {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
-            <Link
-              href="/admin"
-              className="px-2.5 py-1 rounded-md text-[#a5b4fc] bg-[#4f52c8]/20 border border-[#a5b4fc]/30 text-xs font-mono-dm"
-            >
-              Admin
-            </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white"
@@ -111,13 +97,6 @@ export function Header() {
             className="block p-2.5 rounded-lg text-[#8a8a9a] hover:text-white hover:bg-white/[0.05]"
           >
             Winners
-          </Link>
-          <Link
-            href="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block p-2.5 rounded-lg text-[#a5b4fc] bg-[#4f52c8]/20 border border-[#a5b4fc]/30 font-mono-dm text-xs"
-          >
-            Admin Controller
           </Link>
         </div>
       )}

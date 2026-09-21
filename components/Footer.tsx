@@ -49,11 +49,6 @@ export function Footer() {
                   Winners Archive
                 </a>
               </li>
-              <li>
-                <Link href="/admin" className="text-[#a5b4fc] hover:underline">
-                  Admin Controller
-                </Link>
-              </li>
             </ul>
           </div>
 

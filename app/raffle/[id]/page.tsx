@@ -22,7 +22,6 @@ import {
   AtSign, 
   Send, 
   Globe, 
-  Sparkles,
   ShieldAlert,
   ArrowRight
 } from 'lucide-react';
@@ -432,8 +431,8 @@ export default function SingleRafflePage() {
                   </div>
 
                   {raffle.notes && (
-                    <div className="bg-[#4f52c8]/10 border border-[#a5b4fc]/20 p-3 rounded-lg font-dm text-xs text-[#a5b4fc] flex items-center gap-2">
-                      <Sparkles size={16} className="shrink-0" />
+                    <div className="bg-white/[0.03] border border-white/[0.08] p-3 rounded-lg font-dm text-xs text-[#a5b4fc] flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#a5b4fc] shrink-0" />
                       <span>{raffle.notes}</span>
                     </div>
                   )}

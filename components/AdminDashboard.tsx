@@ -61,10 +61,20 @@ interface NewRaffleForm {
 }
 
 export function AdminDashboard() {
-  const { address, isConnected, isAdmin } = useWallet();
+  const { address, isConnected } = useWallet();
   const [passcode, setPasscode] = useState('');
   const [sessionAuth, setSessionAuth] = useState(false);
   const [authError, setAuthError] = useState('');
+
+  // Check persisted session
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('dotset_admin_authed');
+      if (stored === 'true') {
+        setSessionAuth(true);
+      }
+    }
+  }, []);
 
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [entries, setEntries] = useState<RaffleEntry[]>([]);
@@ -113,15 +123,26 @@ export function AdminDashboard() {
     customTasks: [],
   });
 
-  const isAuthenticated = isAdmin || sessionAuth;
+  const isAuthenticated = sessionAuth;
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === '1234' || passcode.toLowerCase() === 'admin' || passcode === 'dotset2026') {
+    if (passcode === 'monk9090') {
       setSessionAuth(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('dotset_admin_authed', 'true');
+      }
       setAuthError('');
     } else {
-      setAuthError('Incorrect passcode. Please try again.');
+      setAuthError('Incorrect admin password. Please try again.');
+    }
+  };
+
+  const handleLock = () => {
+    setSessionAuth(false);
+    setPasscode('');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('dotset_admin_authed');
     }
   };
 
@@ -345,20 +366,20 @@ export function AdminDashboard() {
               Admin Controller
             </h1>
             <p className="font-dm text-sm text-gray-400">
-              Enter your admin PIN or connect authorized admin wallet.
+              Enter password to manage raffles and export entries.
             </p>
           </div>
 
           <form onSubmit={handleUnlock} className="space-y-4">
             <div>
               <label className="block font-mono-dm text-xs uppercase tracking-wider text-gray-300 mb-1.5 font-medium">
-                Admin Passcode
+                Admin Password
               </label>
               <input
                 type="password"
                 value={passcode}
                 onChange={e => setPasscode(e.target.value)}
-                placeholder="Enter passcode..."
+                placeholder="Enter password..."
                 className="w-full bg-[#161616] border border-white/20 focus:border-white/50 focus:ring-1 focus:ring-white/50 text-white placeholder:text-gray-600 rounded-xl p-3.5 text-sm font-mono-dm outline-none transition-all"
                 autoFocus
               />
@@ -435,6 +456,14 @@ export function AdminDashboard() {
             title="Refresh Data"
           >
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={handleLock}
+            className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-mono-dm transition-colors flex items-center gap-1.5"
+            title="Lock Dashboard Session"
+          >
+            <Lock size={13} />
+            <span>Lock</span>
           </button>
         </div>
       </header>

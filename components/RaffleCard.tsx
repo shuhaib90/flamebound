@@ -11,7 +11,6 @@ import {
   Twitter, 
   Check, 
   Clock, 
-  Sparkles, 
   Users, 
   Edit3,
   Flame,
@@ -168,12 +167,6 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             )}
           </div>
 
-          {/* CloudQuest Reward Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#4ade80]/10 border border-[#4ade80]/20 text-[#4ade80] font-mono-dm text-xs font-medium">
-            <Sparkles size={12} />
-            <span>{raffle.supply} WL Spots • {raffle.mintPrice || 'Free Mint'}</span>
-          </div>
-
           {/* 3-Column Stats Row */}
           <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/[0.06] font-dm text-xs">
             <div>
@@ -217,7 +210,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
       </div>
 
       {/* Action Footer */}
-      <div className="p-4 sm:p-5 pt-0 space-y-2">
+      <div className="p-4 sm:p-5 pt-0">
         <div className="flex gap-2">
           {/* Main Enter Button */}
           <Link
@@ -256,17 +249,6 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             <Twitter size={14} />
           </button>
         </div>
-
-        {/* Admin Edit Button */}
-        {isAdmin && onEdit && (
-          <button
-            onClick={() => onEdit(raffle)}
-            className="w-full py-1.5 rounded bg-white/[0.04] hover:bg-white/[0.08] text-[#8a8a9a] hover:text-white border border-white/[0.08] text-xs font-mono-dm flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <Edit3 size={11} />
-            <span>Admin Edit</span>
-          </button>
-        )}
       </div>
 
     </div>
