@@ -7,6 +7,7 @@ import { Raffle, CustomTask } from '@/lib/types';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { PixelArtwork } from '@/components/PixelArtworks';
+import { ChainBadge } from '@/components/ChainBadge';
 import { useWallet } from '@/lib/wallet-context';
 import confetti from 'canvas-confetti';
 import { 
@@ -23,7 +24,8 @@ import {
   Send, 
   Globe, 
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  Youtube
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
@@ -410,8 +412,14 @@ export default function SingleRafflePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-transparent" />
                   
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md border border-gray-200 px-2.5 py-1 rounded text-gray-800 font-mono-dm text-[10px] font-semibold shadow-sm">
-                    {raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}
+                  {/* Top-Right: Network Badge */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <ChainBadge
+                      network={raffle.network}
+                      customNetwork={raffle.customNetwork}
+                      customNetworkLogoUrl={raffle.customNetworkLogoUrl}
+                      size="sm"
+                    />
                   </div>
                   <div className="absolute top-3 left-3 px-2.5 py-1 rounded font-mono-dm text-[10px] font-bold bg-[#293681] text-white shadow-sm">
                     Stage: {mintStage}
@@ -669,7 +677,9 @@ export default function SingleRafflePage() {
                         <div className="flex items-center justify-between gap-1.5 mb-2">
                           <div className="flex items-center gap-1.5 font-dm text-xs font-semibold text-gray-900">
                             <Wallet size={14} className="text-gray-500" />
-                            <span>Receiving EVM Wallet Address</span>
+                            <span>
+                              {raffle.walletAddressLabel || (raffle.network === 'SOLANA' ? 'Receiving Solana Wallet Address' : 'Receiving EVM Wallet Address')}
+                            </span>
                           </div>
                           {address && (
                             <button
@@ -688,7 +698,7 @@ export default function SingleRafflePage() {
                         <form onSubmit={handleSaveWallet} className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="0x... (Whitelist receiver)"
+                            placeholder={raffle.walletAddressPlaceholder || (raffle.network === 'SOLANA' ? 'Enter Solana Wallet Address...' : '0x... (Whitelist receiver)')}
                             value={walletInput}
                             onChange={(e) => {
                               setWalletInput(e.target.value);
@@ -816,6 +826,8 @@ export default function SingleRafflePage() {
                                 <Send size={14} className="text-[#38bdf8] shrink-0" />
                               ) : ct.type === 'twitter' ? (
                                 <Twitter size={14} className="text-[#38bdf8] shrink-0" />
+                              ) : ct.type === 'youtube' ? (
+                                <Youtube size={14} className="text-[#ef4444] shrink-0" />
                               ) : (
                                 <Globe size={14} className="text-[#16a34a] shrink-0" />
                               )}

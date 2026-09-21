@@ -44,8 +44,11 @@ export interface Raffle {
   totalEntries: number;
   startDate: string; // ISO string
   endDate: string; // ISO string e.g. "2026-08-25T23:59:00Z"
-  network: string; // e.g. "ETHEREUM", "APECHAIN", "BASE", "SOLANA", "ARBITRUM", "CUSTOM"
+  network: string; // e.g. "ETHEREUM", "APECHAIN", "BASE", "POLYGON", "ROBINHOOD", "SOLANA", "ARBITRUM", "CUSTOM"
   customNetwork?: string;
+  customNetworkLogoUrl?: string; // Custom network/chain logo image URL
+  walletAddressLabel?: string; // Custom editable wallet input label (e.g. "Receiving EVM Wallet Address")
+  walletAddressPlaceholder?: string; // Custom editable wallet placeholder
   contractAddress?: string;
   
   // Visual Media

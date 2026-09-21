@@ -70,7 +70,10 @@ function mapDbRowToRaffle(row: any): Raffle {
     startDate: row.start_date,
     endDate: row.end_date,
     network: row.network || 'ETHEREUM',
-    customNetwork: row.custom_network,
+    customNetwork: row.custom_network || row.customNetwork,
+    customNetworkLogoUrl: row.custom_network_logo_url || row.customNetworkLogoUrl,
+    walletAddressLabel: row.wallet_address_label || row.walletAddressLabel,
+    walletAddressPlaceholder: row.wallet_address_placeholder || row.walletAddressPlaceholder,
     entryMethod: row.entry_method || 'raffle',
     artworkType: row.artwork_type || 'genesis',
     logoUrl: row.logo_url || '/images/dotset-logo.png',
@@ -83,9 +86,9 @@ function mapDbRowToRaffle(row: any): Raffle {
     notes: row.notes || '',
     customTasks: Array.isArray(row.custom_tasks) 
       ? row.custom_tasks 
-      : (typeof row.custom_tasks === 'string' ? (() => { try { return JSON.parse(row.custom_tasks); } catch { return []; } })() : []),
+      : (typeof row.custom_tasks === 'string' ? (() => { try { return JSON.parse(row.custom_tasks); } catch { return []; } })() : (Array.isArray(row.customTasks) ? row.customTasks : [])),
     winners: Array.isArray(row.winners) ? row.winners : [],
-    createdAt: row.created_at || new Date().toISOString(),
+    createdAt: row.created_at || row.createdAt || new Date().toISOString(),
   };
 }
 
@@ -207,6 +210,9 @@ export async function createRaffleAsync(data: Omit<Raffle, 'id' | 'totalEntries'
         end_date: newRaffle.endDate,
         network: newRaffle.network,
         custom_network: newRaffle.customNetwork,
+        custom_network_logo_url: newRaffle.customNetworkLogoUrl,
+        wallet_address_label: newRaffle.walletAddressLabel,
+        wallet_address_placeholder: newRaffle.walletAddressPlaceholder,
         entry_method: newRaffle.entryMethod || 'raffle',
         artwork_type: newRaffle.artworkType || 'genesis',
         logo_url: newRaffle.logoUrl,
@@ -273,6 +279,9 @@ export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): P
   if (updates.endDate !== undefined) dbUpdates.end_date = updates.endDate;
   if (updates.network !== undefined) dbUpdates.network = updates.network;
   if (updates.customNetwork !== undefined) dbUpdates.custom_network = updates.customNetwork;
+  if (updates.customNetworkLogoUrl !== undefined) dbUpdates.custom_network_logo_url = updates.customNetworkLogoUrl;
+  if (updates.walletAddressLabel !== undefined) dbUpdates.wallet_address_label = updates.walletAddressLabel;
+  if (updates.walletAddressPlaceholder !== undefined) dbUpdates.wallet_address_placeholder = updates.walletAddressPlaceholder;
   if (updates.entryMethod !== undefined) dbUpdates.entry_method = updates.entryMethod;
   if (updates.artworkType !== undefined) dbUpdates.artwork_type = updates.artworkType;
   if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl;

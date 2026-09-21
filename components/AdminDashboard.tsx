@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Raffle, RaffleEntry, AdminStats, CustomTask } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
+import { ChainBadge, ChainLogo } from '@/components/ChainBadge';
 import { 
   ShieldCheck, 
   Plus, 
@@ -28,7 +29,9 @@ import {
   Search,
   Lock,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Youtube,
+  MessageSquare
 } from 'lucide-react';
 
 interface NewRaffleForm {
@@ -46,6 +49,9 @@ interface NewRaffleForm {
   maxMintPerWallet: string;
   network: string;
   customNetwork: string;
+  customNetworkLogoUrl: string;
+  walletAddressLabel: string;
+  walletAddressPlaceholder: string;
   logoUrl: string;
   bannerUrl: string;
   followUrl: string;
@@ -86,13 +92,43 @@ export function AdminDashboard() {
 
   const logoFileRef = useRef<HTMLInputElement>(null);
   const bannerFileRef = useRef<HTMLInputElement>(null);
+  const chainLogoFileRef = useRef<HTMLInputElement>(null);
   const editLogoFileRef = useRef<HTMLInputElement>(null);
   const editBannerFileRef = useRef<HTMLInputElement>(null);
+  const editChainLogoFileRef = useRef<HTMLInputElement>(null);
+
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingChainLogo, setUploadingChainLogo] = useState(false);
 
   const [editingRaffle, setEditingRaffle] = useState<Raffle | null>(null);
   const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
+
+  // New task builder state for create form
+  const [taskInput, setTaskInput] = useState<{
+    title: string;
+    url: string;
+    actionLabel: string;
+    type: 'twitter' | 'telegram' | 'discord' | 'youtube' | 'website' | 'custom';
+  }>({
+    title: '',
+    url: '',
+    actionLabel: 'Join',
+    type: 'telegram',
+  });
+
+  // Task builder state for edit modal
+  const [editTaskInput, setEditTaskInput] = useState<{
+    title: string;
+    url: string;
+    actionLabel: string;
+    type: 'twitter' | 'telegram' | 'discord' | 'youtube' | 'website' | 'custom';
+  }>({
+    title: '',
+    url: '',
+    actionLabel: 'Join',
+    type: 'telegram',
+  });
 
   const [newRaffle, setNewRaffle] = useState<NewRaffleForm>({
     title: 'DOTSET PARTNER WL',
@@ -109,6 +145,9 @@ export function AdminDashboard() {
     maxMintPerWallet: '1 PER WL',
     network: 'ETHEREUM',
     customNetwork: '',
+    customNetworkLogoUrl: '',
+    walletAddressLabel: 'Receiving EVM Wallet Address',
+    walletAddressPlaceholder: '0x... (Whitelist receiver)',
     logoUrl: '/images/dotset-logo.png',
     bannerUrl: '/images/dotset-logo.png',
     followUrl: 'https://x.com/dotsetxyz',
@@ -176,12 +215,13 @@ export function AdminDashboard() {
     }
   }, [isAuthenticated]);
 
-  const handleImageUpload = async (file: File, type: 'logo' | 'banner', isEdit = false) => {
+  const handleImageUpload = async (file: File, type: 'logo' | 'banner' | 'chain_logo', isEdit = false) => {
     const formData = new FormData();
     formData.append('file', file);
 
     if (type === 'logo') setUploadingLogo(true);
-    else setUploadingBanner(true);
+    else if (type === 'banner') setUploadingBanner(true);
+    else setUploadingChainLogo(true);
 
     try {
       const res = await fetch('/api/upload', {
@@ -193,10 +233,12 @@ export function AdminDashboard() {
       if (data.success && data.url) {
         if (isEdit && editingRaffle) {
           if (type === 'logo') setEditingRaffle({ ...editingRaffle, logoUrl: data.url });
-          else setEditingRaffle({ ...editingRaffle, bannerUrl: data.url });
+          else if (type === 'banner') setEditingRaffle({ ...editingRaffle, bannerUrl: data.url });
+          else setEditingRaffle({ ...editingRaffle, customNetworkLogoUrl: data.url });
         } else {
           if (type === 'logo') setNewRaffle({ ...newRaffle, logoUrl: data.url });
-          else setNewRaffle({ ...newRaffle, bannerUrl: data.url });
+          else if (type === 'banner') setNewRaffle({ ...newRaffle, bannerUrl: data.url });
+          else setNewRaffle({ ...newRaffle, customNetworkLogoUrl: data.url });
         }
       } else {
         alert(data.error || 'Failed to upload image');
@@ -205,7 +247,103 @@ export function AdminDashboard() {
       alert('Error uploading image');
     } finally {
       if (type === 'logo') setUploadingLogo(false);
-      else setUploadingBanner(false);
+      else if (type === 'banner') setUploadingBanner(false);
+      else setUploadingChainLogo(false);
+    }
+  };
+
+  const handleNetworkChange = (network: string, isEdit = false) => {
+    let defaultLabel = 'Receiving EVM Wallet Address';
+    let defaultPlaceholder = '0x... (Whitelist receiver)';
+    if (network === 'SOLANA') {
+      defaultLabel = 'Receiving Solana Wallet Address';
+      defaultPlaceholder = 'Enter Solana Address (e.g. 7xKX...)';
+    } else if (network === 'POLYGON') {
+      defaultLabel = 'Receiving Polygon (EVM) Wallet Address';
+      defaultPlaceholder = '0x... (Polygon Address)';
+    } else if (network === 'APECHAIN') {
+      defaultLabel = 'Receiving ApeChain Wallet Address';
+      defaultPlaceholder = '0x... (ApeChain Address)';
+    } else if (network === 'BASE') {
+      defaultLabel = 'Receiving Base (EVM) Wallet Address';
+      defaultPlaceholder = '0x... (Base Address)';
+    } else if (network === 'ARBITRUM') {
+      defaultLabel = 'Receiving Arbitrum Wallet Address';
+      defaultPlaceholder = '0x... (Arbitrum Address)';
+    } else if (network === 'ROBINHOOD') {
+      defaultLabel = 'Receiving Robinhood Chain Address';
+      defaultPlaceholder = '0x... (Robinhood Address)';
+    }
+
+    if (isEdit && editingRaffle) {
+      setEditingRaffle({
+        ...editingRaffle,
+        network,
+        walletAddressLabel: editingRaffle.walletAddressLabel || defaultLabel,
+        walletAddressPlaceholder: editingRaffle.walletAddressPlaceholder || defaultPlaceholder,
+      });
+    } else {
+      setNewRaffle({
+        ...newRaffle,
+        network,
+        walletAddressLabel: defaultLabel,
+        walletAddressPlaceholder: defaultPlaceholder,
+      });
+    }
+  };
+
+  const handleAddCustomTask = (isEdit = false) => {
+    if (isEdit) {
+      if (!editTaskInput.title.trim() || !editTaskInput.url.trim()) {
+        alert('Please enter task title and link URL');
+        return;
+      }
+      if (!editingRaffle) return;
+      const newTask: CustomTask = {
+        id: `task-${Date.now()}`,
+        title: editTaskInput.title.trim(),
+        url: editTaskInput.url.trim(),
+        actionLabel: editTaskInput.actionLabel.trim() || 'Visit',
+        type: editTaskInput.type,
+        required: true,
+      };
+      setEditingRaffle({
+        ...editingRaffle,
+        customTasks: [...(editingRaffle.customTasks || []), newTask],
+      });
+      setEditTaskInput({ title: '', url: '', actionLabel: 'Join', type: 'telegram' });
+    } else {
+      if (!taskInput.title.trim() || !taskInput.url.trim()) {
+        alert('Please enter task title and link URL');
+        return;
+      }
+      const newTask: CustomTask = {
+        id: `task-${Date.now()}`,
+        title: taskInput.title.trim(),
+        url: taskInput.url.trim(),
+        actionLabel: taskInput.actionLabel.trim() || 'Join',
+        type: taskInput.type,
+        required: true,
+      };
+      setNewRaffle({
+        ...newRaffle,
+        customTasks: [...newRaffle.customTasks, newTask],
+      });
+      setTaskInput({ title: '', url: '', actionLabel: 'Join', type: 'telegram' });
+    }
+  };
+
+  const handleRemoveCustomTask = (taskId: string, isEdit = false) => {
+    if (isEdit && editingRaffle) {
+      setEditingRaffle({
+        ...editingRaffle,
+        customTasks: (editingRaffle.customTasks || []).filter(t => t.id !== taskId),
+      });
+    } else {
+      setNewRaffle({
+        ...newRaffle,
+        customTasks: newRaffle.customTasks.filter(t => t.id !== taskId),
+      });
     }
   };
 
@@ -579,9 +717,17 @@ export function AdminDashboard() {
                           ● {r.status}
                         </span>
 
-                        <span className="px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-mono-dm text-gray-700 font-medium uppercase">
-                          {r.mintStage || (r.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <ChainBadge
+                            network={r.network}
+                            customNetwork={r.customNetwork}
+                            customNetworkLogoUrl={r.customNetworkLogoUrl}
+                            size="sm"
+                          />
+                          <span className="px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-mono-dm text-gray-700 font-medium uppercase">
+                            {r.mintStage || (r.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Title & Project */}
@@ -833,7 +979,7 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Mint Details */}
+              {/* Mint Details & Chain Configuration */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
@@ -848,20 +994,23 @@ export function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
-                    Network
+                  <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5 flex items-center justify-between">
+                    <span>Blockchain Network</span>
+                    <ChainLogo network={newRaffle.network} customNetworkLogoUrl={newRaffle.customNetworkLogoUrl} size={15} />
                   </label>
                   <select
                     value={newRaffle.network}
-                    onChange={e => setNewRaffle({ ...newRaffle, network: e.target.value })}
+                    onChange={e => handleNetworkChange(e.target.value, false)}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-sm outline-none"
                   >
-                    <option value="ETHEREUM">Ethereum</option>
-                    <option value="APECHAIN">ApeChain</option>
+                    <option value="ETHEREUM">Ethereum (ETH)</option>
                     <option value="BASE">Base</option>
+                    <option value="POLYGON">Polygon</option>
+                    <option value="ROBINHOOD">Robinhood Chain</option>
+                    <option value="APECHAIN">ApeChain</option>
                     <option value="ARBITRUM">Arbitrum</option>
                     <option value="SOLANA">Solana</option>
-                    <option value="CUSTOM">Custom</option>
+                    <option value="CUSTOM">Custom Chain</option>
                   </select>
                 </div>
 
@@ -876,6 +1025,94 @@ export function AdminDashboard() {
                     onChange={e => setNewRaffle({ ...newRaffle, endDate: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-sm outline-none"
                   />
+                </div>
+              </div>
+
+              {/* Custom Chain & Logo Options */}
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                <div className="font-mono-dm text-xs uppercase font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Layers size={14} className="text-[#293681]" />
+                  <span>Chain & Logo Customization</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono-dm uppercase text-gray-500 font-medium mb-1">
+                      Custom Chain Display Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Monad Testnet, Sui, Berachain"
+                      value={newRaffle.customNetwork}
+                      onChange={e => setNewRaffle({ ...newRaffle, customNetwork: e.target.value })}
+                      className="w-full bg-white border border-gray-200 focus:border-[#293681] text-gray-900 rounded-lg p-2.5 text-xs outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono-dm uppercase text-gray-500 font-medium mb-1">
+                      Custom Chain Logo (URL or Upload)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="https://.../chain-logo.png"
+                        value={newRaffle.customNetworkLogoUrl}
+                        onChange={e => setNewRaffle({ ...newRaffle, customNetworkLogoUrl: e.target.value })}
+                        className="flex-1 bg-white border border-gray-200 focus:border-[#293681] text-gray-900 rounded-lg p-2.5 text-xs outline-none"
+                      />
+                      <input
+                        type="file"
+                        ref={chainLogoFileRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'chain_logo', false)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => chainLogoFileRef.current?.click()}
+                        className="px-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-xs font-medium"
+                      >
+                        {uploadingChainLogo ? '...' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editable Wallet Address Dropbox / Input Settings */}
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                <div className="font-mono-dm text-xs uppercase font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Wallet size={14} className="text-[#293681]" />
+                  <span>Wallet Input Text Configuration</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono-dm uppercase text-gray-500 font-medium mb-1">
+                      Wallet Input Title / Label (User-Facing)
+                    </label>
+                    <input
+                      type="text"
+                      value={newRaffle.walletAddressLabel}
+                      onChange={e => setNewRaffle({ ...newRaffle, walletAddressLabel: e.target.value })}
+                      placeholder="Receiving EVM Wallet Address"
+                      className="w-full bg-white border border-gray-200 focus:border-[#293681] text-gray-900 rounded-lg p-2.5 text-xs font-dm outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono-dm uppercase text-gray-500 font-medium mb-1">
+                      Wallet Input Placeholder Text
+                    </label>
+                    <input
+                      type="text"
+                      value={newRaffle.walletAddressPlaceholder}
+                      onChange={e => setNewRaffle({ ...newRaffle, walletAddressPlaceholder: e.target.value })}
+                      placeholder="0x... (Whitelist receiver)"
+                      className="w-full bg-white border border-gray-200 focus:border-[#293681] text-gray-900 rounded-lg p-2.5 text-xs font-mono-dm outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -904,7 +1141,7 @@ export function AdminDashboard() {
                 />
               </div>
 
-              {/* Social URLs */}
+              {/* Standard Social URLs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
@@ -930,6 +1167,113 @@ export function AdminDashboard() {
                     placeholder="https://x.com/username/status/..."
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl p-3 text-sm outline-none"
                   />
+                </div>
+              </div>
+
+              {/* CUSTOM SOCIAL TASKS BUILDER */}
+              <div className="p-5 bg-gray-50 border border-gray-200 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-syne text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <Globe size={16} className="text-[#293681]" />
+                    <span>Custom Social Tasks ({newRaffle.customTasks.length})</span>
+                  </div>
+                  <span className="text-[11px] font-dm text-gray-500">
+                    Add custom Telegram, Discord, Twitter, YouTube or Website tasks
+                  </span>
+                </div>
+
+                {/* List of active custom tasks */}
+                {newRaffle.customTasks.length > 0 && (
+                  <div className="space-y-2">
+                    {newRaffle.customTasks.map((t, idx) => (
+                      <div key={t.id || idx} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {t.type === 'twitter' ? <Twitter size={14} className="text-[#38bdf8]" /> :
+                           t.type === 'telegram' ? <Send size={14} className="text-[#229ED9]" /> :
+                           t.type === 'discord' ? <MessageSquare size={14} className="text-[#5865F2]" /> :
+                           t.type === 'youtube' ? <Youtube size={14} className="text-[#FF0000]" /> :
+                           <Globe size={14} className="text-[#293681]" />}
+                          <span className="font-semibold text-gray-900 truncate">{t.title}</span>
+                          <span className="text-gray-400 font-mono-dm text-[10px] truncate max-w-[200px]">({t.url})</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-gray-100 font-mono-dm text-[10px] text-gray-600 font-medium">
+                            {t.actionLabel || 'Visit'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomTask(t.id, false)}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                            title="Remove Task"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Inline Task Adder */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-200">
+                  <div>
+                    <label className="block text-[10px] font-mono-dm uppercase text-gray-500 mb-1">Platform</label>
+                    <select
+                      value={taskInput.type}
+                      onChange={e => setTaskInput({ ...taskInput, type: e.target.value as any })}
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none"
+                    >
+                      <option value="telegram">Telegram</option>
+                      <option value="discord">Discord</option>
+                      <option value="twitter">Twitter / X</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="website">Website / Link</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono-dm uppercase text-gray-500 mb-1">Task Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Join Official Telegram"
+                      value={taskInput.title}
+                      onChange={e => setTaskInput({ ...taskInput, title: e.target.value })}
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono-dm uppercase text-gray-500 mb-1">Destination URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://t.me/..."
+                      value={taskInput.url}
+                      onChange={e => setTaskInput({ ...taskInput, url: e.target.value })}
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono-dm uppercase text-gray-500 mb-1">Action Button</label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        placeholder="Join"
+                        value={taskInput.actionLabel}
+                        onChange={e => setTaskInput({ ...taskInput, actionLabel: e.target.value })}
+                        className="flex-1 bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddCustomTask(false)}
+                        className="px-3 bg-[#293681] text-white rounded-lg text-xs font-semibold hover:bg-[#1f2963]"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1011,7 +1355,7 @@ export function AdminDashboard() {
         {/* MODAL: EDIT RAFFLE */}
         {editingRaffle && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-2xl w-full my-8 shadow-2xl space-y-5 text-gray-900">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-3xl w-full my-8 shadow-2xl space-y-5 text-gray-900 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                 <h3 className="font-syne text-lg font-bold text-gray-900">
                   Edit Raffle: {editingRaffle.title}
@@ -1067,6 +1411,101 @@ export function AdminDashboard() {
                   </div>
                 </div>
 
+                {/* Network & Chain Customization in Edit Modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 flex items-center justify-between">
+                      <span>Blockchain Network</span>
+                      <ChainLogo network={editingRaffle.network} customNetworkLogoUrl={editingRaffle.customNetworkLogoUrl} size={14} />
+                    </label>
+                    <select
+                      value={editingRaffle.network}
+                      onChange={e => handleNetworkChange(e.target.value, true)}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    >
+                      <option value="ETHEREUM">Ethereum (ETH)</option>
+                      <option value="BASE">Base</option>
+                      <option value="POLYGON">Polygon</option>
+                      <option value="ROBINHOOD">Robinhood Chain</option>
+                      <option value="APECHAIN">ApeChain</option>
+                      <option value="ARBITRUM">Arbitrum</option>
+                      <option value="SOLANA">Solana</option>
+                      <option value="CUSTOM">Custom Chain</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Custom Chain Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.customNetwork || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, customNetwork: e.target.value })}
+                      placeholder="e.g. Monad Testnet"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Chain Logo in Edit Modal */}
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                    Custom Chain Logo (URL or Upload)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editingRaffle.customNetworkLogoUrl || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, customNetworkLogoUrl: e.target.value })}
+                      placeholder="https://.../chain-logo.png"
+                      className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs"
+                    />
+                    <input
+                      type="file"
+                      ref={editChainLogoFileRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'chain_logo', true)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => editChainLogoFileRef.current?.click()}
+                      className="px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-medium border border-gray-200"
+                    >
+                      {uploadingChainLogo ? '...' : 'Upload Logo'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Editable Wallet Input Text in Edit Modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-500 font-medium mb-1 text-[10px]">
+                      Wallet Input Label Text
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.walletAddressLabel || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, walletAddressLabel: e.target.value })}
+                      placeholder="Receiving EVM Wallet Address"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-500 font-medium mb-1 text-[10px]">
+                      Wallet Input Placeholder
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.walletAddressPlaceholder || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, walletAddressPlaceholder: e.target.value })}
+                      placeholder="0x... (Whitelist receiver)"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs font-mono-dm"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
                     End Date & Time
@@ -1101,6 +1540,78 @@ export function AdminDashboard() {
                     onChange={e => setEditingRaffle({ ...editingRaffle, engageUrl: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
                   />
+                </div>
+
+                {/* Custom Tasks in Edit Modal */}
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono-dm text-xs font-bold text-gray-800 uppercase">
+                      Custom Social Tasks ({editingRaffle.customTasks?.length || 0})
+                    </span>
+                  </div>
+
+                  {editingRaffle.customTasks && editingRaffle.customTasks.length > 0 && (
+                    <div className="space-y-1.5">
+                      {editingRaffle.customTasks.map((t, idx) => (
+                        <div key={t.id || idx} className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {t.type === 'twitter' ? <Twitter size={13} className="text-[#38bdf8]" /> :
+                             t.type === 'telegram' ? <Send size={13} className="text-[#229ED9]" /> :
+                             t.type === 'discord' ? <MessageSquare size={13} className="text-[#5865F2]" /> :
+                             t.type === 'youtube' ? <Youtube size={13} className="text-[#FF0000]" /> :
+                             <Globe size={13} className="text-[#293681]" />}
+                            <span className="font-semibold text-gray-900 truncate">{t.title}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomTask(t.id, true)}
+                            className="p-1 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-200">
+                    <select
+                      value={editTaskInput.type}
+                      onChange={e => setEditTaskInput({ ...editTaskInput, type: e.target.value as any })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    >
+                      <option value="telegram">Telegram</option>
+                      <option value="discord">Discord</option>
+                      <option value="twitter">Twitter / X</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="website">Website</option>
+                      <option value="custom">Custom</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder="Task Title"
+                      value={editTaskInput.title}
+                      onChange={e => setEditTaskInput({ ...editTaskInput, title: e.target.value })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    />
+
+                    <input
+                      type="url"
+                      placeholder="Destination URL"
+                      value={editTaskInput.url}
+                      onChange={e => setEditTaskInput({ ...editTaskInput, url: e.target.value })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomTask(true)}
+                      className="px-3 py-2 bg-[#293681] text-white rounded-lg text-xs font-semibold hover:bg-[#1f2963]"
+                    >
+                      + Add Task
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 pt-3">

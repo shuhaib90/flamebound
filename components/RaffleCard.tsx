@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Raffle } from '@/lib/types';
 import { PixelArtwork } from './PixelArtworks';
+import { ChainBadge } from './ChainBadge';
 import { useWallet } from '@/lib/wallet-context';
 import { 
   ArrowRight,
@@ -120,10 +121,13 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-transparent" />
 
           {/* Top-Left: Network & Stage Pills */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-            <span className="px-2.5 py-0.5 rounded bg-white/90 backdrop-blur-md border border-gray-200 text-gray-800 font-mono-dm text-[10px] uppercase font-semibold shadow-sm">
-              {raffle.customNetwork || raffle.network || 'ROBINHOOD'}
-            </span>
+          <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
+            <ChainBadge
+              network={raffle.network}
+              customNetwork={raffle.customNetwork}
+              customNetworkLogoUrl={raffle.customNetworkLogoUrl}
+              size="sm"
+            />
             <span className={`px-2 py-0.5 rounded font-mono-dm text-[10px] uppercase font-semibold shadow-sm ${
               mintStage === 'GTD' 
                 ? 'bg-[#293681] text-white border border-[#293681]' 
