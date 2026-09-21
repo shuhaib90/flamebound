@@ -30,8 +30,8 @@ export function DotsetHero() {
 
     // --- THREE.JS SCENE SETUP ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#080808');
-    scene.fog = new THREE.FogExp2('#080808', 0.003);
+    scene.background = new THREE.Color('#ffffff');
+    scene.fog = new THREE.FogExp2('#ffffff', 0.003);
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
     camera.position.set(80, 50, 100);
@@ -51,10 +51,10 @@ export function DotsetHero() {
     renderer.domElement.style.touchAction = 'pan-y';
 
     const colorPalette = [
-      new THREE.Color('#e3f2fd'),
-      new THREE.Color('#90caf9'),
+      new THREE.Color('#293681'),
+      new THREE.Color('#4274d9'),
+      new THREE.Color('#95ccdd'),
       new THREE.Color('#38bdf8'),
-      new THREE.Color('#4f52c8'),
       new THREE.Color('#0d47a1'),
     ];
 
@@ -557,38 +557,38 @@ export function DotsetHero() {
 
           {/* Floating Stats Badges */}
           <div className="pointer-events-auto grid grid-cols-3 gap-2.5 sm:gap-4 mt-8 sm:mt-12 max-w-2xl w-full mx-auto px-4 z-20">
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
-              <div className="flex justify-center text-[#a5b4fc] mb-1">
+            <div className="bg-white/90 backdrop-blur-md border border-gray-200 p-3 sm:p-4 rounded-xl shadow-md transition-all hover:border-[#293681] text-center">
+              <div className="flex justify-center text-[#293681] mb-1">
                 <Flame size={16} />
               </div>
-              <div className="font-grotesk text-lg sm:text-xl font-bold text-white">
+              <div className="font-grotesk text-lg sm:text-xl font-bold text-gray-900">
                 LIVE
               </div>
-              <div className="font-mono-dm text-[10px] text-[#8a8a9a] uppercase mt-0.5">
+              <div className="font-mono-dm text-[10px] text-gray-500 uppercase mt-0.5 font-medium">
                 Active Raffles
               </div>
             </div>
 
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
-              <div className="flex justify-center text-[#38bdf8] mb-1">
+            <div className="bg-white/90 backdrop-blur-md border border-gray-200 p-3 sm:p-4 rounded-xl shadow-md transition-all hover:border-[#293681] text-center">
+              <div className="flex justify-center text-[#4274d9] mb-1">
                 <Users size={16} />
               </div>
-              <div className="font-grotesk text-lg sm:text-xl font-bold text-white">
+              <div className="font-grotesk text-lg sm:text-xl font-bold text-gray-900">
                 100%
               </div>
-              <div className="font-mono-dm text-[10px] text-[#8a8a9a] uppercase mt-0.5">
+              <div className="font-mono-dm text-[10px] text-gray-500 uppercase mt-0.5 font-medium">
                 Open to All
               </div>
             </div>
 
-            <div className="bg-[#0f0f0f]/80 backdrop-blur-md border border-white/[0.08] p-3 sm:p-4 rounded-xl shadow-lg transition-all hover:border-white/20 text-center">
-              <div className="flex justify-center text-[#4ade80] mb-1">
+            <div className="bg-white/90 backdrop-blur-md border border-gray-200 p-3 sm:p-4 rounded-xl shadow-md transition-all hover:border-[#293681] text-center">
+              <div className="flex justify-center text-[#16a34a] mb-1">
                 <ShieldCheck size={16} />
               </div>
-              <div className="font-grotesk text-lg sm:text-xl font-bold text-white">
+              <div className="font-grotesk text-lg sm:text-xl font-bold text-gray-900">
                 GTD / FCFS
               </div>
-              <div className="font-mono-dm text-[10px] text-[#8a8a9a] uppercase mt-0.5">
+              <div className="font-mono-dm text-[10px] text-gray-500 uppercase mt-0.5 font-medium">
                 Spots Available
               </div>
             </div>
@@ -600,10 +600,10 @@ export function DotsetHero() {
       {/* Animated Scroll Down Indicator */}
       <a
         href="#active-raffles"
-        className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 text-[11px] font-mono-dm tracking-widest text-[#8a8a9a] uppercase hover:text-white transition-colors"
+        className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 text-[11px] font-mono-dm tracking-widest text-gray-500 uppercase hover:text-[#293681] transition-colors"
       >
         <span>Scroll Down</span>
-        <ArrowDown size={14} className="animate-bounce text-[#38bdf8]" />
+        <ArrowDown size={14} className="animate-bounce text-[#4274d9]" />
       </a>
 
     </section>

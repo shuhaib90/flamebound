@@ -10,7 +10,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#080808]/90 backdrop-blur-xl border-b border-white/[0.08] select-none h-16 flex items-center">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200 select-none h-16 flex items-center">
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           
@@ -19,27 +19,27 @@ export function Header() {
             <img
               src="/images/dotset-logo.png"
               alt="dotset"
-              className="h-6 sm:h-7 w-auto brightness-0 invert opacity-95 group-hover:opacity-100 transition-opacity object-contain"
+              className="h-6 sm:h-7 w-auto opacity-95 group-hover:opacity-100 transition-opacity object-contain"
             />
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center space-x-1 ml-6 font-dm text-sm font-medium text-[#8a8a9a]">
+          <nav className="hidden md:flex items-center space-x-1 ml-6 font-dm text-sm font-medium text-gray-600">
             <Link 
               href="/#active-raffles" 
-              className="px-3.5 py-1.5 rounded-md hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="px-3.5 py-1.5 rounded-md hover:text-[#293681] hover:bg-gray-100 transition-colors"
             >
               Raffles
             </Link>
             <Link 
               href="/how-it-works" 
-              className="px-3.5 py-1.5 rounded-md hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="px-3.5 py-1.5 rounded-md hover:text-[#293681] hover:bg-gray-100 transition-colors"
             >
               How It Works
             </Link>
             <Link 
               href="/#winners" 
-              className="px-3.5 py-1.5 rounded-md hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="px-3.5 py-1.5 rounded-md hover:text-[#293681] hover:bg-gray-100 transition-colors"
             >
               Winners
             </Link>
@@ -47,8 +47,8 @@ export function Header() {
 
           {/* Right Action: Live Pulse Badge & Explore Action */}
           <div className="hidden md:flex items-center space-x-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] font-mono-dm text-xs text-[#8a8a9a]">
-              <span className="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse" />
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 font-mono-dm text-xs text-gray-600">
+              <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse" />
               <span>Live Allocations</span>
             </div>
 
@@ -64,7 +64,7 @@ export function Header() {
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-white"
+              className="p-2 rounded-lg bg-gray-100 border border-gray-200 text-gray-700"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -76,25 +76,25 @@ export function Header() {
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-[#080808]/95 backdrop-blur-2xl border-b border-white/[0.08] px-4 py-4 space-y-2 font-dm text-sm z-50">
+        <div className="md:hidden absolute top-16 left-0 w-full bg-white/95 backdrop-blur-2xl border-b border-gray-200 px-4 py-4 space-y-2 font-dm text-sm z-50 shadow-lg">
           <Link
             href="/#active-raffles"
             onClick={() => setMobileMenuOpen(false)}
-            className="block p-2.5 rounded-lg text-[#8a8a9a] hover:text-white hover:bg-white/[0.05]"
+            className="block p-2.5 rounded-lg text-gray-600 hover:text-[#293681] hover:bg-gray-50"
           >
             Raffles
           </Link>
           <Link
             href="/how-it-works"
             onClick={() => setMobileMenuOpen(false)}
-            className="block p-2.5 rounded-lg text-[#8a8a9a] hover:text-white hover:bg-white/[0.05]"
+            className="block p-2.5 rounded-lg text-gray-600 hover:text-[#293681] hover:bg-gray-50"
           >
             How It Works
           </Link>
           <Link
             href="/#winners"
             onClick={() => setMobileMenuOpen(false)}
-            className="block p-2.5 rounded-lg text-[#8a8a9a] hover:text-white hover:bg-white/[0.05]"
+            className="block p-2.5 rounded-lg text-gray-600 hover:text-[#293681] hover:bg-gray-50"
           >
             Winners
           </Link>

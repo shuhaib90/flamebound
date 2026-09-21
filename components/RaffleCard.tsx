@@ -108,7 +108,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
         {/* Cover Artwork Banner matching CloudQuest */}
         <Link 
           href={rafflePageUrl} 
-          className="block relative overflow-hidden h-44 sm:h-48 cursor-pointer bg-[#111111]"
+          className="block relative overflow-hidden h-44 sm:h-48 cursor-pointer bg-gray-100"
         >
           <PixelArtwork
             type={raffle.artworkType}
@@ -118,19 +118,19 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           />
           
           {/* Bottom gradient fade */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-transparent" />
 
           {/* Top-Left: Network & Stage Pills */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-            <span className="px-2.5 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10 text-[#f0f0f0] font-mono-dm text-[10px] uppercase font-medium">
+            <span className="px-2.5 py-0.5 rounded bg-white/90 backdrop-blur-md border border-gray-200 text-gray-800 font-mono-dm text-[10px] uppercase font-semibold shadow-sm">
               {raffle.customNetwork || raffle.network || 'ROBINHOOD'}
             </span>
-            <span className={`px-2 py-0.5 rounded font-mono-dm text-[10px] uppercase font-semibold ${
+            <span className={`px-2 py-0.5 rounded font-mono-dm text-[10px] uppercase font-semibold shadow-sm ${
               mintStage === 'GTD' 
-                ? 'bg-[#4f52c8]/40 border border-[#a5b4fc]/30 text-[#a5b4fc]' 
+                ? 'bg-[#293681] text-white border border-[#293681]' 
                 : mintStage === 'FCFS' 
-                ? 'bg-[#fb923c]/20 border border-[#fb923c]/40 text-[#fb923c]' 
-                : 'bg-white/10 border border-white/20 text-white'
+                ? 'bg-[#ea580c] text-white border border-[#ea580c]' 
+                : 'bg-gray-800 text-white'
             }`}>
               {mintStage}
             </span>
@@ -138,12 +138,12 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
 
           {/* Top-Right: Live Status Indicator */}
           <div className="absolute top-3 right-3 z-10">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono-dm text-[10px] font-medium backdrop-blur-md ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono-dm text-[10px] font-semibold backdrop-blur-md shadow-sm ${
               isLive 
-                ? 'bg-[#4ade80]/10 border border-[#4ade80]/30 text-[#4ade80]' 
-                : 'bg-white/5 border border-white/10 text-[#8a8a9a]'
+                ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' 
+                : 'bg-gray-100 border border-gray-200 text-gray-500'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#4ade80] animate-pulse' : 'bg-gray-500'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#16a34a] animate-pulse' : 'bg-gray-400'}`} />
               <span>{isLive ? 'Live' : 'Closed'}</span>
             </span>
           </div>
@@ -155,37 +155,37 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           {/* Project Title & Verified Tag */}
           <div>
             <Link href={rafflePageUrl}>
-              <h3 className="font-syne text-base font-bold text-white group-hover:text-[#a5b4fc] transition-colors flex items-center gap-1.5 line-clamp-1">
+              <h3 className="font-syne text-base font-bold text-gray-900 group-hover:text-[#293681] transition-colors flex items-center gap-1.5 line-clamp-1">
                 <span>{collaboratorTitle}</span>
                 <CheckCircle2 size={14} className="text-[#38bdf8] shrink-0" />
               </h3>
             </Link>
             {raffle.subtitle && (
-              <p className="font-dm text-xs text-[#8a8a9a] line-clamp-1 mt-0.5">
+              <p className="font-dm text-xs text-gray-500 line-clamp-1 mt-0.5">
                 {raffle.subtitle}
               </p>
             )}
           </div>
 
           {/* 3-Column Stats Row */}
-          <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/[0.06] font-dm text-xs">
+          <div className="grid grid-cols-3 gap-2 py-2 border-y border-gray-100 font-dm text-xs">
             <div>
-              <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Ends In</span>
-              <span className="font-mono-dm text-xs text-[#f0f0f0] font-medium mt-0.5 block truncate">
+              <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Ends In</span>
+              <span className="font-mono-dm text-xs text-gray-900 font-medium mt-0.5 block truncate">
                 {formatCountdown()}
               </span>
             </div>
 
             <div>
-              <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Entries</span>
-              <span className="font-mono-dm text-xs text-[#f0f0f0] font-medium mt-0.5 block">
+              <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Entries</span>
+              <span className="font-mono-dm text-xs text-gray-900 font-medium mt-0.5 block">
                 {raffle.totalEntries || 0}
               </span>
             </div>
 
             <div>
-              <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Spots</span>
-              <span className="font-mono-dm text-xs text-[#a5b4fc] font-semibold mt-0.5 block">
+              <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Spots</span>
+              <span className="font-mono-dm text-xs text-[#293681] font-bold mt-0.5 block">
                 {raffle.supply} WL
               </span>
             </div>
@@ -193,15 +193,15 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
 
           {/* CloudQuest Task Chips */}
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] text-[#8a8a9a] font-mono-dm text-[10px]">
+            <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-600 font-mono-dm text-[10px]">
               X Follow
             </span>
             {raffle.engageUrl && (
-              <span className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] text-[#8a8a9a] font-mono-dm text-[10px]">
+              <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-600 font-mono-dm text-[10px]">
                 Like & RT
               </span>
             )}
-            <span className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.06] text-[#8a8a9a] font-mono-dm text-[10px]">
+            <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-600 font-mono-dm text-[10px]">
               Wallet
             </span>
           </div>
@@ -217,8 +217,8 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
             href={rafflePageUrl}
             className={`flex-1 py-2.5 px-4 rounded-lg font-dm text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
               isLive
-                ? 'bg-white text-black hover:bg-gray-200'
-                : 'bg-white/10 text-[#8a8a9a] border border-white/10'
+                ? 'bg-[#293681] text-white hover:bg-[#4274d9] shadow-sm'
+                : 'bg-gray-100 text-gray-400 border border-gray-200'
             }`}
           >
             <span>
@@ -233,17 +233,17 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           <button
             type="button"
             onClick={handleShare}
-            className="p-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#8a8a9a] hover:text-white border border-white/[0.08] transition-colors"
+            className="p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#293681] border border-gray-200 transition-colors"
             title="Copy Link"
           >
-            {copiedShare ? <Check size={14} className="text-[#4ade80]" /> : <Share2 size={14} />}
+            {copiedShare ? <Check size={14} className="text-[#16a34a]" /> : <Share2 size={14} />}
           </button>
 
           {/* Twitter Button */}
           <button
             type="button"
             onClick={handleTwitterShare}
-            className="p-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#8a8a9a] hover:text-white border border-white/[0.08] transition-colors"
+            className="p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#293681] border border-gray-200 transition-colors"
             title="Share on X"
           >
             <Twitter size={14} />

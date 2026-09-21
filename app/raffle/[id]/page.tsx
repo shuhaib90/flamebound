@@ -307,13 +307,13 @@ export default function SingleRafflePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080808] text-[#f0f0f0] selection:bg-[#4f52c8] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-white text-gray-900 selection:bg-[#293681] selection:text-white">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between pb-6 mb-8 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
           <Link
             href="/#active-raffles"
             className="btn-outline-cq text-xs py-2 px-3.5 flex items-center gap-2"
@@ -328,7 +328,7 @@ export default function SingleRafflePage() {
               className="btn-outline-cq text-xs py-2 px-3 flex items-center gap-1.5"
               title="Copy Page Link"
             >
-              {copiedLink ? <Check size={14} className="text-[#4ade80]" /> : <Share2 size={14} />}
+              {copiedLink ? <Check size={14} className="text-[#16a34a]" /> : <Share2 size={14} />}
               <span>{copiedLink ? 'Copied' : 'Share'}</span>
             </button>
 
@@ -344,9 +344,9 @@ export default function SingleRafflePage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-[#0f0f0f] border border-white/[0.08] p-12 rounded-xl text-center space-y-3">
-            <span className="w-5 h-5 border-2 border-[#a5b4fc] border-t-transparent animate-spin inline-block rounded-full" />
-            <p className="font-dm text-sm text-[#8a8a9a]">
+          <div className="bg-white border border-gray-200 p-12 rounded-xl text-center space-y-3 shadow-sm">
+            <span className="w-5 h-5 border-2 border-[#293681] border-t-transparent animate-spin inline-block rounded-full" />
+            <p className="font-dm text-sm text-gray-500">
               Loading campaign details...
             </p>
           </div>
@@ -354,9 +354,9 @@ export default function SingleRafflePage() {
 
         {/* Not Found State */}
         {!loading && !raffle && (
-          <div className="bg-[#0f0f0f] border border-white/[0.08] p-12 rounded-xl text-center space-y-4">
-            <h2 className="font-syne text-lg text-white font-bold">Campaign Not Found</h2>
-            <p className="font-dm text-sm text-[#8a8a9a]">{error || 'This raffle does not exist or has ended.'}</p>
+          <div className="bg-white border border-gray-200 p-12 rounded-xl text-center space-y-4 shadow-sm">
+            <h2 className="font-syne text-lg text-gray-900 font-bold">Campaign Not Found</h2>
+            <p className="font-dm text-sm text-gray-500">{error || 'This raffle does not exist or has ended.'}</p>
             <Link href="/" className="btn-primary-cq text-xs py-2.5 px-5 inline-block">
               Return to Directory
             </Link>
@@ -373,47 +373,47 @@ export default function SingleRafflePage() {
               <div className="cq-card overflow-hidden">
                 
                 {/* Header Bar */}
-                <div className="bg-[#141414] px-4 py-3 flex items-center justify-between border-b border-white/[0.08]">
+                <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-b border-gray-200">
                   <div className="flex items-center gap-2.5 truncate">
                     {raffle.logoUrl ? (
                       <img src={raffle.logoUrl} alt={projectName} className="w-5 h-5 object-contain rounded" />
                     ) : (
                       <img src="/images/dotset-logo.png" alt="DOTSET" className="w-5 h-5 object-contain rounded" />
                     )}
-                    <span className="font-syne text-sm font-bold text-white tracking-wide truncate">
+                    <span className="font-syne text-sm font-bold text-gray-900 tracking-wide truncate">
                       {projectName}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded font-mono-dm text-[10px] uppercase font-semibold bg-[#4f52c8]/30 border border-[#a5b4fc]/30 text-[#a5b4fc]">
+                    <span className="px-2.5 py-0.5 rounded font-mono-dm text-[10px] uppercase font-bold bg-blue-50 border border-blue-200 text-[#293681]">
                       {mintStage}
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-dm text-[10px] ${
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-dm text-[10px] font-semibold ${
                       isLive 
-                        ? 'bg-[#4ade80]/10 border border-[#4ade80]/30 text-[#4ade80]' 
-                        : 'bg-white/5 border border-white/10 text-[#8a8a9a]'
+                        ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' 
+                        : 'bg-gray-100 border border-gray-200 text-gray-500'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#4ade80] animate-pulse' : 'bg-gray-500'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#16a34a] animate-pulse' : 'bg-gray-400'}`} />
                       <span>{isLive ? 'Live' : 'Closed'}</span>
                     </span>
                   </div>
                 </div>
 
                 {/* Big Artwork Banner */}
-                <div className="relative overflow-hidden h-64 sm:h-80 bg-[#111111]">
+                <div className="relative overflow-hidden h-64 sm:h-80 bg-gray-100">
                   <PixelArtwork
                     type={raffle.artworkType}
                     bannerUrl={raffle.bannerUrl}
                     logoUrl={raffle.logoUrl}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-transparent" />
                   
-                  <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded text-[#f0f0f0] font-mono-dm text-[10px] font-medium">
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md border border-gray-200 px-2.5 py-1 rounded text-gray-800 font-mono-dm text-[10px] font-semibold shadow-sm">
                     {raffle.customNetwork || raffle.network || 'ROBINHOOD NETWORK'}
                   </div>
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded font-mono-dm text-[10px] font-medium bg-black/70 backdrop-blur-md border border-white/10 text-[#a5b4fc]">
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded font-mono-dm text-[10px] font-bold bg-[#293681] text-white shadow-sm">
                     Stage: {mintStage}
                   </div>
                 </div>
@@ -421,65 +421,65 @@ export default function SingleRafflePage() {
                 {/* Body Specs */}
                 <div className="p-6 space-y-5">
                   <div>
-                    <h1 className="font-syne text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <h1 className="font-syne text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
                       <span>{raffle.title}</span>
                       <CheckCircle2 size={18} className="text-[#38bdf8] shrink-0" />
                     </h1>
-                    <p className="font-dm text-xs sm:text-sm text-[#8a8a9a] mt-2 leading-relaxed">
+                    <p className="font-dm text-xs sm:text-sm text-gray-500 mt-2 leading-relaxed">
                       {raffle.subtitle || raffle.description}
                     </p>
                   </div>
 
                   {raffle.notes && (
-                    <div className="bg-white/[0.03] border border-white/[0.08] p-3 rounded-lg font-dm text-xs text-[#a5b4fc] flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#a5b4fc] shrink-0" />
+                    <div className="bg-blue-50/60 border border-blue-100 p-3 rounded-lg font-dm text-xs text-[#293681] flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#293681] shrink-0" />
                       <span>{raffle.notes}</span>
                     </div>
                   )}
 
                   {/* Specifications Grid */}
-                  <div className="border border-white/[0.08] rounded-xl overflow-hidden bg-[#111111]">
-                    <div className="bg-white/[0.03] px-4 py-2 font-mono-dm text-[11px] text-[#8a8a9a] uppercase font-semibold border-b border-white/[0.08]">
+                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <div className="bg-gray-50 px-4 py-2 font-mono-dm text-[11px] text-gray-600 uppercase font-semibold border-b border-gray-200">
                       Campaign Details
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 font-dm text-xs border-b border-white/[0.06]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 font-dm text-xs border-b border-gray-100">
                       <div>
-                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Allocation</span>
-                        <span className="font-mono-dm text-sm text-[#a5b4fc] font-bold mt-0.5 block">{raffle.supply} Spots</span>
+                        <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Allocation</span>
+                        <span className="font-mono-dm text-sm text-[#293681] font-bold mt-0.5 block">{raffle.supply} Spots</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Total Supply</span>
-                        <span className="font-mono-dm text-sm text-white font-medium mt-0.5 block">{raffle.nftTotalSupply || 'TBA'}</span>
+                        <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Total Supply</span>
+                        <span className="font-mono-dm text-sm text-gray-900 font-medium mt-0.5 block">{raffle.nftTotalSupply || 'TBA'}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Mint Price</span>
-                        <span className="font-mono-dm text-xs text-[#4ade80] font-semibold mt-0.5 block">{raffle.mintPrice || 'FREE'}</span>
+                        <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Mint Price</span>
+                        <span className="font-mono-dm text-xs text-[#16a34a] font-semibold mt-0.5 block">{raffle.mintPrice || 'FREE'}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-[#555566] font-mono-dm block uppercase">Mint Date</span>
-                        <span className="font-mono-dm text-xs text-white mt-0.5 block truncate">{raffle.mintDate || 'TBA'}</span>
+                        <span className="text-[10px] text-gray-400 font-mono-dm block uppercase font-medium">Mint Date</span>
+                        <span className="font-mono-dm text-xs text-gray-900 mt-0.5 block truncate">{raffle.mintDate || 'TBA'}</span>
                       </div>
                     </div>
 
                     <div className="p-4 space-y-2 font-dm text-xs">
-                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                      <div className="flex justify-between items-center text-gray-600">
                         <span>Stage:</span>
-                        <span className="font-mono-dm text-xs text-white font-semibold">
+                        <span className="font-mono-dm text-xs text-gray-900 font-semibold">
                           {mintStage === 'GTD' ? 'Guaranteed (GTD)' : mintStage === 'FCFS' ? 'First-Come First-Served' : 'Whitelist'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                      <div className="flex justify-between items-center text-gray-600">
                         <span>Max per Winner:</span>
-                        <span className="font-mono-dm text-xs text-white">{raffle.maxMintPerWallet || '1 Spot'}</span>
+                        <span className="font-mono-dm text-xs text-gray-900">{raffle.maxMintPerWallet || '1 Spot'}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#8a8a9a]">
+                      <div className="flex justify-between items-center text-gray-600">
                         <span>Eligibility:</span>
-                        <span className="font-mono-dm text-xs text-[#4ade80]">Open to All Participants</span>
+                        <span className="font-mono-dm text-xs text-[#16a34a] font-medium">Open to All Participants</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#8a8a9a] pt-2 border-t border-white/[0.06]">
+                      <div className="flex justify-between items-center text-gray-600 pt-2 border-t border-gray-100">
                         <span>Total Registered:</span>
-                        <span className="font-mono-dm text-xs text-white font-bold">
+                        <span className="font-mono-dm text-xs text-gray-900 font-bold">
                           {raffle.totalEntries || 0} Entrants
                         </span>
                       </div>
@@ -487,35 +487,35 @@ export default function SingleRafflePage() {
                   </div>
 
                   {/* Countdown Clock */}
-                  <div className="bg-[#111111] p-4 rounded-xl border border-white/[0.08] space-y-3">
-                    <div className="flex items-center justify-between font-mono-dm text-xs text-[#8a8a9a]">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                    <div className="flex items-center justify-between font-mono-dm text-xs text-gray-600">
                       <span>Deadline:</span>
-                      <span className="text-white">
+                      <span className="text-gray-900 font-semibold">
                         {new Date(raffle.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
 
                     {isLive ? (
                       <div className="grid grid-cols-4 gap-2 text-center">
-                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
-                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.days).padStart(2, '0')}</span>
-                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Days</span>
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-gray-900">{String(timeLeft.days).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-gray-400 uppercase font-medium">Days</span>
                         </div>
-                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
-                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
-                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Hours</span>
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-gray-900">{String(timeLeft.hours).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-gray-400 uppercase font-medium">Hours</span>
                         </div>
-                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
-                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Mins</span>
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-gray-900">{String(timeLeft.minutes).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-gray-400 uppercase font-medium">Mins</span>
                         </div>
-                        <div className="bg-[#161616] p-2 rounded-lg border border-white/[0.06]">
-                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-white">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                          <span className="font-mono-dm text-[9px] text-[#555566] uppercase">Secs</span>
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                          <span className="font-grotesk text-lg sm:text-xl font-bold block text-gray-900">{String(timeLeft.seconds).padStart(2, '0')}</span>
+                          <span className="font-mono-dm text-[9px] text-gray-400 uppercase font-medium">Secs</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="font-mono-dm text-xs text-center text-[#f87171] py-2 bg-[#f87171]/10 rounded-lg border border-[#f87171]/20">
+                      <div className="font-mono-dm text-xs text-center text-red-600 py-2 bg-red-50 rounded-lg border border-red-200 font-medium">
                         Campaign Concluded
                       </div>
                     )}
@@ -532,11 +532,11 @@ export default function SingleRafflePage() {
               
               <div className="cq-card p-5 sm:p-6 space-y-4">
                 
-                <div className="border-b border-white/[0.08] pb-3">
-                  <h2 className="font-syne text-base font-bold text-white">
+                <div className="border-b border-gray-200 pb-3">
+                  <h2 className="font-syne text-base font-bold text-gray-900">
                     {raffle.entryMethod === 'fcfs' ? 'Claim FCFS Spot' : 'Enter Whitelist'}
                   </h2>
-                  <p className="font-dm text-xs text-[#8a8a9a] mt-1">
+                  <p className="font-dm text-xs text-gray-500 mt-1">
                     Complete requirements to submit your verified entry.
                   </p>
                 </div>
@@ -544,24 +544,24 @@ export default function SingleRafflePage() {
                 {/* SUCCESS RECEIPT STATE */}
                 {entryReceipt ? (
                   <div className="space-y-4 py-2">
-                    <div className="bg-[#4ade80]/10 border border-[#4ade80]/30 p-5 rounded-xl text-center space-y-2">
-                      <div className="inline-block p-2 bg-[#4ade80]/20 rounded-full text-[#4ade80] mb-1">
+                    <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-xl text-center space-y-2">
+                      <div className="inline-block p-2 bg-emerald-100 rounded-full text-emerald-600 mb-1">
                         <CheckCircle2 size={28} />
                       </div>
-                      <h3 className="font-syne text-sm font-bold text-white">
+                      <h3 className="font-syne text-sm font-bold text-gray-900">
                         {raffle.entryMethod === 'fcfs' ? 'FCFS Spot Confirmed!' : 'Whitelist Entry Confirmed!'}
                       </h3>
-                      <p className="font-dm text-xs text-[#8a8a9a]">
-                        Your registration has been successfully recorded on-chain.
+                      <p className="font-dm text-xs text-gray-600">
+                        Your registration has been successfully recorded.
                       </p>
                     </div>
 
                     {/* Receipt Specs Card */}
-                    <div className="bg-[#141414] border border-white/[0.08] p-4 rounded-xl space-y-2.5 font-dm text-xs">
-                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-                        <span className="text-[#8a8a9a] font-mono-dm text-[11px]">Ticket ID:</span>
+                    <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl space-y-2.5 font-dm text-xs">
+                      <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+                        <span className="text-gray-500 font-mono-dm text-[11px]">Ticket ID:</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono-dm text-xs font-bold text-[#a5b4fc] select-all">
+                          <span className="font-mono-dm text-xs font-bold text-[#293681] select-all">
                             {entryReceipt.id}
                           </span>
                           <button
@@ -570,25 +570,25 @@ export default function SingleRafflePage() {
                               setCopiedReceipt(true);
                               setTimeout(() => setCopiedReceipt(false), 2000);
                             }}
-                            className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+                            className="p-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors"
                             title="Copy Ticket ID"
                           >
-                            {copiedReceipt ? <Check size={12} className="text-[#4ade80]" /> : <Copy size={12} />}
+                            {copiedReceipt ? <Check size={12} className="text-[#16a34a]" /> : <Copy size={12} />}
                           </button>
                         </div>
                       </div>
 
                       <div className="space-y-1.5 pt-1">
                         <div>
-                          <span className="text-[#555566] block font-mono-dm text-[10px] uppercase">Receiving Wallet:</span>
-                          <span className="font-mono-dm text-xs text-white select-all break-all">
+                          <span className="text-gray-400 block font-mono-dm text-[10px] uppercase font-medium">Receiving Wallet:</span>
+                          <span className="font-mono-dm text-xs text-gray-900 select-all break-all font-medium">
                             {entryReceipt.walletAddress}
                           </span>
                         </div>
                         {entryReceipt.twitterUsername && (
                           <div>
-                            <span className="text-[#555566] block font-mono-dm text-[10px] uppercase">X Handle:</span>
-                            <span className="font-mono-dm text-xs text-white">
+                            <span className="text-gray-400 block font-mono-dm text-[10px] uppercase font-medium">X Handle:</span>
+                            <span className="font-mono-dm text-xs text-gray-900 font-medium">
                               @{entryReceipt.twitterUsername.replace('@', '')}
                             </span>
                           </div>
@@ -608,13 +608,13 @@ export default function SingleRafflePage() {
                   <>
                     {/* Progress Bar */}
                     <div className="space-y-1.5">
-                      <div className="flex justify-between items-center font-mono-dm text-[11px] text-[#8a8a9a]">
+                      <div className="flex justify-between items-center font-mono-dm text-[11px] text-gray-500">
                         <span>{completedCount}/{totalTasks} Tasks Completed</span>
-                        <span>{progressPercent}%</span>
+                        <span className="font-semibold text-[#293681]">{progressPercent}%</span>
                       </div>
-                      <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#a5b4fc] rounded-full transition-all duration-300"
+                          className="h-full bg-[#293681] rounded-full transition-all duration-300"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
@@ -622,7 +622,7 @@ export default function SingleRafflePage() {
 
                     {/* Error Notification */}
                     {error && (
-                      <div className="bg-[#f87171]/10 border border-[#f87171]/30 text-[#f87171] p-3 rounded-lg font-dm text-xs flex items-center gap-2">
+                      <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg font-dm text-xs flex items-center gap-2">
                         <ShieldAlert size={16} className="shrink-0" />
                         <div className="flex-1 text-xs">
                           {error}
@@ -634,9 +634,9 @@ export default function SingleRafflePage() {
                     <div className="space-y-2 pt-1">
                       
                       {/* 1. YOUR X HANDLE */}
-                      <div className={`p-3 rounded-lg border transition-colors ${tasks.handleLinked ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
-                        <div className="flex items-center gap-1.5 mb-2 font-dm text-xs font-medium text-white">
-                          <AtSign size={14} className="text-[#8a8a9a]" />
+                      <div className={`p-3 rounded-lg border transition-colors ${tasks.handleLinked ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-1.5 mb-2 font-dm text-xs font-semibold text-gray-900">
+                          <AtSign size={14} className="text-gray-500" />
                           <span>Your X (Twitter) Handle</span>
                         </div>
 
@@ -649,14 +649,14 @@ export default function SingleRafflePage() {
                               setTwitterHandle(e.target.value);
                               setTasks(prev => ({ ...prev, handleLinked: false }));
                             }}
-                            className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-white placeholder-[#555566] outline-none"
+                            className="flex-1 bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-gray-900 placeholder-gray-400 outline-none focus:border-[#293681]"
                           />
                           <button
                             type="submit"
-                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium shrink-0 transition-colors ${
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold shrink-0 transition-colors ${
                               tasks.handleLinked 
-                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30' 
-                                : 'bg-white text-black hover:bg-gray-200'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
+                                : 'bg-[#293681] text-white hover:bg-[#4274d9]'
                             }`}
                           >
                             {tasks.handleLinked ? 'Linked' : 'Set'}
@@ -665,10 +665,10 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 2. RECEIVING WALLET ADDRESS */}
-                      <div className={`p-3 rounded-lg border transition-colors ${tasks.walletProvided ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
+                      <div className={`p-3 rounded-lg border transition-colors ${tasks.walletProvided ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
                         <div className="flex items-center justify-between gap-1.5 mb-2">
-                          <div className="flex items-center gap-1.5 font-dm text-xs font-medium text-white">
-                            <Wallet size={14} className="text-[#8a8a9a]" />
+                          <div className="flex items-center gap-1.5 font-dm text-xs font-semibold text-gray-900">
+                            <Wallet size={14} className="text-gray-500" />
                             <span>Receiving EVM Wallet Address</span>
                           </div>
                           {address && (
@@ -678,7 +678,7 @@ export default function SingleRafflePage() {
                                 setWalletInput(address);
                                 setTasks(prev => ({ ...prev, walletProvided: true }));
                               }}
-                              className="font-mono-dm text-[10px] text-[#a5b4fc] hover:underline"
+                              className="font-mono-dm text-[10px] text-[#293681] font-semibold hover:underline"
                             >
                               [Use Connected]
                             </button>
@@ -694,14 +694,14 @@ export default function SingleRafflePage() {
                               setWalletInput(e.target.value);
                               setTasks(prev => ({ ...prev, walletProvided: false }));
                             }}
-                            className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-white placeholder-[#555566] outline-none"
+                            className="flex-1 bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-gray-900 placeholder-gray-400 outline-none focus:border-[#293681]"
                           />
                           <button
                             type="submit"
-                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium shrink-0 transition-colors ${
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold shrink-0 transition-colors ${
                               tasks.walletProvided 
-                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30' 
-                                : 'bg-white text-black hover:bg-gray-200'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' 
+                                : 'bg-[#293681] text-white hover:bg-[#4274d9]'
                             }`}
                           >
                             {tasks.walletProvided ? 'Set' : 'Confirm'}
@@ -710,8 +710,8 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 3. FOLLOW PARTNER */}
-                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followPartner ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
-                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followPartner ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
                           <Twitter size={14} className="text-[#38bdf8] shrink-0" />
                           <span className="truncate">Follow @{projectName}</span>
                         </div>
@@ -719,10 +719,10 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleFollowPartner}
-                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
                             tasks.followPartner
-                              ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                              : 'bg-white/10 text-white hover:bg-white/20'
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
                           }`}
                         >
                           {tasks.followPartner ? (
@@ -740,8 +740,8 @@ export default function SingleRafflePage() {
                       </div>
 
                       {/* 4. FOLLOW DOTSET */}
-                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
-                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
                           <Twitter size={14} className="text-[#38bdf8] shrink-0" />
                           <span className="truncate">Follow @DOTSET</span>
                         </div>
@@ -749,10 +749,10 @@ export default function SingleRafflePage() {
                         <button
                           type="button"
                           onClick={handleFollowDotset}
-                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
                             tasks.followDotset
-                              ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                              : 'bg-white/10 text-white hover:bg-white/20'
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
                           }`}
                         >
                           {tasks.followDotset ? (
@@ -771,19 +771,19 @@ export default function SingleRafflePage() {
 
                       {/* 5. ENGAGE WITH POST */}
                       {raffle.engageUrl && (
-                        <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.engage ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}>
-                          <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
-                            <MessageSquare size={14} className="text-[#fb923c] shrink-0" />
+                        <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.engage ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                          <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
+                            <MessageSquare size={14} className="text-[#ea580c] shrink-0" />
                             <span className="truncate">Like & Repost Post</span>
                           </div>
 
                           <button
                             type="button"
                             onClick={handleEngageTask}
-                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                            className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
                               tasks.engage
-                                ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                                : 'bg-white/10 text-white hover:bg-white/20'
+                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
                             }`}
                           >
                             {tasks.engage ? (
@@ -807,17 +807,17 @@ export default function SingleRafflePage() {
                         return (
                           <div
                             key={ct.id || idx}
-                            className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${isDone ? 'bg-white/[0.04] border-[#4ade80]/30' : 'bg-[#141414] border-white/[0.08]'}`}
+                            className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${isDone ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}
                           >
-                            <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-medium text-white">
+                            <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
                               {ct.type === 'discord' ? (
-                                <MessageSquare size={14} className="text-[#a5b4fc] shrink-0" />
+                                <MessageSquare size={14} className="text-[#293681] shrink-0" />
                               ) : ct.type === 'telegram' ? (
                                 <Send size={14} className="text-[#38bdf8] shrink-0" />
                               ) : ct.type === 'twitter' ? (
                                 <Twitter size={14} className="text-[#38bdf8] shrink-0" />
                               ) : (
-                                <Globe size={14} className="text-[#4ade80] shrink-0" />
+                                <Globe size={14} className="text-[#16a34a] shrink-0" />
                               )}
                               <span className="truncate">{ct.title}</span>
                             </div>
@@ -828,10 +828,10 @@ export default function SingleRafflePage() {
                                 if (ct.url) window.open(ct.url, '_blank');
                                 setCustomTasksDone(prev => ({ ...prev, [ct.id]: true }));
                               }}
-                              className={`px-3 py-1.5 rounded-md font-dm text-xs font-medium flex items-center gap-1 shrink-0 transition-colors ${
+                              className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
                                 isDone
-                                  ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                                  : 'bg-white/10 text-white hover:bg-white/20'
+                                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                  : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
                               }`}
                             >
                               {isDone ? (
@@ -853,15 +853,15 @@ export default function SingleRafflePage() {
                     </div>
 
                     {/* Submit Whitelist Entry CTA */}
-                    <div className="pt-3 border-t border-white/[0.08]">
+                    <div className="pt-3 border-t border-gray-200">
                       <button
                         type="button"
                         onClick={handleSubmitEntry}
                         disabled={!allTasksCompleted || submitting || !isLive || (raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)}
                         className={`w-full py-3 rounded-lg font-dm text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
                           allTasksCompleted && !submitting && isLive && !(raffle.entryMethod === 'fcfs' && (raffle.totalEntries || 0) >= raffle.supply)
-                            ? 'bg-white text-black hover:bg-gray-200 cursor-pointer shadow-lg' 
-                            : 'bg-white/10 text-[#8a8a9a] border border-white/10 cursor-not-allowed'
+                            ? 'bg-[#293681] text-white hover:bg-[#4274d9] cursor-pointer shadow-md' 
+                            : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                         }`}
                       >
                         {submitting 

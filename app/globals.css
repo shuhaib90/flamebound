@@ -18,24 +18,24 @@
   --color-brand-tertiary: #95ccdd;
   --color-brand-quaternary: #d0e7e6;
   --color-app-background: #ffffff;
-  --bg: #080808;
-  --bg1: #0f0f0f;
-  --bg2: #141414;
-  --sur: rgba(255, 255, 255, 0.04);
-  --sur2: rgba(255, 255, 255, 0.07);
-  --bdr: rgba(255, 255, 255, 0.08);
-  --bdr2: rgba(255, 255, 255, 0.15);
-  --p: #4f52c8;
-  --p2: #a5b4fc;
-  --glow: rgba(79, 82, 200, 0.2);
+  --bg: #ffffff;
+  --bg1: #f9f9fb;
+  --bg2: #f1f5f9;
+  --sur: rgba(41, 54, 129, 0.04);
+  --sur2: rgba(41, 54, 129, 0.08);
+  --bdr: rgba(0, 0, 0, 0.08);
+  --bdr2: rgba(41, 54, 129, 0.2);
+  --p: #293681;
+  --p2: #4274d9;
+  --glow: rgba(41, 54, 129, 0.12);
   --cyan: #38bdf8;
-  --green: #4ade80;
-  --orange: #fb923c;
-  --red: #f87171;
-  --txt: #f0f0f0;
-  --txt2: #8a8a9a;
-  --txt3: #555566;
-  --r: 12px;
+  --green: #16a34a;
+  --orange: #ea580c;
+  --red: #dc2626;
+  --txt: #0a0a0a;
+  --txt2: #4b5563;
+  --txt3: #9ca3af;
+  --r: 14px;
   --r2: 8px;
 }
 
@@ -48,8 +48,8 @@ html {
 }
 
 body {
-  background-color: #080808 !important;
-  color: #f0f0f0 !important;
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -62,19 +62,19 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: #ffffff;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222222;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+  background: #94a3b8;
 }
 
 /* Highlight */
 ::selection {
-  background: #4f52c8;
+  background: #293681;
   color: #ffffff;
 }
 
@@ -99,8 +99,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    linear-gradient(rgba(41,54,129,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(41,54,129,0.03) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%);
 }
@@ -112,7 +112,7 @@ body {
   top: -150px;
   left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse, rgba(79,82,200,0.18) 0%, rgba(56,189,248,0.04) 50%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(66,116,217,0.12) 0%, rgba(149,204,221,0.06) 50%, transparent 70%);
   filter: blur(60px);
   pointer-events: none;
   z-index: 0;
@@ -131,9 +131,9 @@ body {
 
 /* CloudQuest Buttons */
 .btn-primary-cq {
-  background: #f0f0f0;
-  color: #080808;
-  border: 1px solid #f0f0f0;
+  background: #293681;
+  color: #ffffff;
+  border: 1px solid #293681;
   font-family: 'DM Sans', sans-serif;
   font-weight: 600;
   font-size: 0.88rem;
@@ -148,15 +148,16 @@ body {
 }
 
 .btn-primary-cq:hover {
-  background: #ffffff;
+  background: #4274d9;
+  border-color: #4274d9;
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(66, 116, 217, 0.25);
 }
 
 .btn-outline-cq {
-  background: transparent;
-  color: #8a8a9a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  color: #293681;
+  border: 1px solid #e2e8f0;
   font-family: 'DM Sans', sans-serif;
   font-weight: 500;
   font-size: 0.88rem;
@@ -171,25 +172,26 @@ body {
 }
 
 .btn-outline-cq:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f0f0f0;
-  border-color: rgba(255, 255, 255, 0.25);
+  background: #f8fafc;
+  color: #293681;
+  border-color: #293681;
   transform: translateY(-1px);
 }
 
 /* Glass Card */
 .cq-card {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(41, 54, 129, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
   transition: all 0.16s ease;
 }
 
 .cq-card:hover {
-  background: #141414;
-  border-color: rgba(255, 255, 255, 0.16);
+  background: #ffffff;
+  border-color: #293681;
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 30px -4px rgba(41, 54, 129, 0.14);
 }
 
 /* =========================================================
@@ -208,7 +210,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #080808;
+  background-color: #ffffff;
 }
 
 .dotset-reveal-scene,
@@ -243,22 +245,22 @@ body {
 }
 
 .dotset-reveal-title {
-  color: #ffffff;
+  color: #000000;
   font-family: 'DotLirium', sans-serif;
   font-size: var(--dotset-name-font-size);
   letter-spacing: 0.05em;
   text-transform: lowercase;
   transform-origin: 50%;
   will-change: opacity, filter, transform;
-  text-shadow: 4px 4px #4f52c8, 8px 8px #38bdf8, 12px 12px #2196f3, 16px 16px #0d47a1;
+  text-shadow: 4px 4px #e3f2fd, 8px 8px #90caf9, 12px 12px #2196f3, 16px 16px #0d47a1;
   line-height: 1;
 }
 
 .dotset-reveal-subtitle {
   width: min(100%, calc(var(--dotset-name-font-size) * 3.175));
   max-width: 100%;
-  color: #a5b4fc;
-  letter-spacing: 0.02em;
+  color: var(--color-brand-primary);
+  letter-spacing: 0.01em;
   will-change: opacity, filter, transform;
   justify-content: center;
   align-items: center;
@@ -272,20 +274,20 @@ body {
 
 .dotset-reveal-focus {
   font-weight: 700;
-  color: #ffffff;
+  color: #000000;
 }
 
 .dotset-reveal-subtitle-link {
   z-index: 1;
   white-space: nowrap;
-  color: #f0f0f0;
+  color: #293681;
   opacity: 0;
   text-shadow: 0 0 transparent;
   border-radius: 9999px;
   flex: none;
   grid-area: 1/1;
   justify-self: center;
-  font-weight: 500;
+  font-weight: 600;
   position: relative;
 }
 
@@ -314,7 +316,7 @@ body {
   }
   5%, 28.333% {
     opacity: 1;
-    text-shadow: 2px 2px #4f52c8, 4px 4px #38bdf8, 6px 6px #2196f3, 8px 8px #0d47a1;
+    text-shadow: 2px 2px #e3f2fd, 4px 4px #90caf9, 6px 6px #2196f3, 8px 8px #0d47a1;
   }
   38.333%, 100% {
     opacity: 0;
@@ -328,14 +330,14 @@ body {
     padding-inline: 0.5rem;
   }
   .dotset-reveal-title {
-    text-shadow: 2px 2px #4f52c8, 4px 4px #38bdf8, 6px 6px #2196f3, 8px 8px #0d47a1;
+    text-shadow: 2px 2px #e3f2fd, 4px 4px #90caf9, 6px 6px #2196f3, 8px 8px #0d47a1;
   }
   .dotset-reveal-subtitle {
     margin-top: 0.25rem;
   }
   .dotset-reveal-subtitle-link,
   .dotset-reveal-subtitle.is-shadow-active .dotset-reveal-subtitle-link {
-    color: #ffffff;
+    color: #000000;
     text-shadow: none;
     font-weight: 600;
     animation-name: dotset-subtitle-opacity-cycle;

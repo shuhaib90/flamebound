@@ -63,7 +63,7 @@ export default function HomePage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080808] text-[#f0f0f0] selection:bg-[#4f52c8] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-white text-gray-900 selection:bg-[#293681] selection:text-white">
       {/* Navigation Header */}
       <Header />
 
@@ -77,14 +77,14 @@ export default function HomePage() {
         <section id="active-raffles" className="scroll-mt-24 space-y-6">
           
           {/* Section Header with CloudQuest glowing indicator */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-6 rounded bg-[#a5b4fc]" />
+              <div className="w-1 h-6 rounded bg-[#293681]" />
               <div>
-                <h2 className="font-syne text-xl sm:text-2xl font-bold text-white tracking-tight">
+                <h2 className="font-syne text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                   Featured Allocations
                 </h2>
-                <p className="font-dm text-xs text-[#8a8a9a]">
+                <p className="font-dm text-xs text-gray-500">
                   Browse live and upcoming partner whitelist raffles
                 </p>
               </div>
@@ -97,9 +97,9 @@ export default function HomePage() {
                 placeholder="Search project..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#111111] border border-white/[0.1] rounded-lg px-3 py-2 pl-9 font-dm text-xs text-white placeholder-[#555566] outline-none focus:border-[#a5b4fc]/50 transition-colors"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pl-9 font-dm text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-[#293681] focus:ring-1 focus:ring-[#293681] transition-colors"
               />
-              <Search size={14} className="absolute left-3 top-2.5 text-[#555566]" />
+              <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
             </div>
           </div>
 
@@ -110,51 +110,51 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-1.5 font-dm text-xs">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
                   statusFilter === 'all'
-                    ? 'bg-white/10 text-white border border-white/20'
-                    : 'text-[#8a8a9a] hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-[#293681] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 All ({raffles.length})
               </button>
               <button
                 onClick={() => setStatusFilter('live')}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${
                   statusFilter === 'live'
-                    ? 'bg-[#4ade80]/15 text-[#4ade80] border border-[#4ade80]/30'
-                    : 'text-[#8a8a9a] hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
+                <span className={`w-1.5 h-1.5 rounded-full ${statusFilter === 'live' ? 'bg-white' : 'bg-[#16a34a] animate-pulse'}`} />
                 <span>Live</span>
               </button>
               <button
                 onClick={() => setStatusFilter('fcfs')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
                   statusFilter === 'fcfs'
-                    ? 'bg-[#fb923c]/15 text-[#fb923c] border border-[#fb923c]/30'
-                    : 'text-[#8a8a9a] hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-[#ea580c] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 FCFS
               </button>
               <button
                 onClick={() => setStatusFilter('gtd')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
                   statusFilter === 'gtd'
-                    ? 'bg-[#a5b4fc]/15 text-[#a5b4fc] border border-[#a5b4fc]/30'
-                    : 'text-[#8a8a9a] hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-[#4274d9] text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 Guaranteed
               </button>
               <button
                 onClick={() => setStatusFilter('closed')}
-                className={`px-3 py-1.5 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
                   statusFilter === 'closed'
-                    ? 'bg-white/10 text-white border border-white/20'
-                    : 'text-[#8a8a9a] hover:text-white hover:bg-white/[0.04]'
+                    ? 'bg-gray-800 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 Closed
@@ -167,10 +167,10 @@ export default function HomePage() {
                 <button
                   key={net}
                   onClick={() => setNetworkFilter(net)}
-                  className={`px-2.5 py-1 rounded transition-colors uppercase ${
+                  className={`px-2.5 py-1 rounded font-medium transition-colors uppercase ${
                     networkFilter === net
-                      ? 'bg-white/10 text-white border border-white/20'
-                      : 'text-[#555566] hover:text-[#8a8a9a]'
+                      ? 'bg-[#293681] text-white'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   {net}

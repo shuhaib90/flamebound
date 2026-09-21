@@ -38,14 +38,14 @@ export function HowItWorks() {
       <div className="space-y-8">
         
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-1 h-6 rounded bg-[#4ade80]" />
+            <div className="w-1 h-6 rounded bg-[#293681]" />
             <div>
-              <h2 className="font-syne text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className="font-syne text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                 How DOTSET Works
               </h2>
-              <p className="font-dm text-xs text-[#8a8a9a]">
+              <p className="font-dm text-xs text-gray-500">
                 Transparent, open whitelist raffle and quest distribution
               </p>
             </div>
@@ -53,7 +53,7 @@ export function HowItWorks() {
 
           <Link
             href="/how-it-works"
-            className="text-xs text-[#a5b4fc] hover:underline flex items-center gap-1 font-mono-dm"
+            className="text-xs text-[#293681] hover:text-[#4274d9] hover:underline flex items-center gap-1 font-mono-dm font-medium"
           >
             <span>Read full guide</span>
             <ArrowRight size={12} />
@@ -68,29 +68,29 @@ export function HowItWorks() {
               <div
                 key={idx}
                 className={`cq-card p-5 flex flex-col justify-between ${
-                  step.highlight ? 'border-[#a5b4fc]/30 bg-[#4f52c8]/10' : ''
+                  step.highlight ? 'border-[#293681]/30 bg-blue-50/40' : ''
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono-dm text-xs font-semibold text-[#a5b4fc]">
+                    <span className="font-mono-dm text-xs font-bold text-[#293681]">
                       {step.num}
                     </span>
-                    <div className="p-2 rounded-lg bg-white/[0.05] text-[#38bdf8]">
+                    <div className="p-2 rounded-lg bg-blue-50 text-[#293681]">
                       <Icon size={18} />
                     </div>
                   </div>
 
-                  <h3 className="font-syne text-sm font-bold text-white mb-2">
+                  <h3 className="font-syne text-sm font-bold text-gray-900 mb-2">
                     {step.title}
                   </h3>
 
-                  <p className="font-dm text-xs text-[#8a8a9a] leading-relaxed">
+                  <p className="font-dm text-xs text-gray-500 leading-relaxed">
                     {step.desc}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-3 border-t border-white/[0.06] font-mono-dm text-[10px] text-[#555566] uppercase">
+                <div className="mt-6 pt-3 border-t border-gray-100 font-mono-dm text-[10px] text-gray-400 uppercase font-medium">
                   {idx === 2 ? 'Open to All' : 'Automated'}
                 </div>
               </div>
