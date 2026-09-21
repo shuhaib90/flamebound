@@ -71,12 +71,34 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://discord.com"
+                  href="https://discord.gg/Jq2Jt2HdfY"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1.5 text-gray-600 hover:text-[#293681] transition-colors"
                 >
-                  <span>Discord</span>
+                  <span>Discord Community</span>
+                  <ExternalLink size={11} />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://t.me/dotset_xyz"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-gray-600 hover:text-[#293681] transition-colors"
+                >
+                  <span>Telegram Channel</span>
+                  <ExternalLink size={11} />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://t.me/+z9ju9E3IXBEwNTdl"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-gray-600 hover:text-[#293681] transition-colors"
+                >
+                  <span>Telegram Group</span>
                   <ExternalLink size={11} />
                 </a>
               </li>
