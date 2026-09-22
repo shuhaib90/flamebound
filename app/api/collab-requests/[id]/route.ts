@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { 
+  updateCollabRequestAsync,
   updateCollabRequestStatusAsync, 
   deleteCollabRequestAsync, 
   approveAndPublishCollabRequestAsync 
@@ -18,12 +19,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ success: true, raffle: liveRaffle });
     }
 
-    if (body.status) {
+    if (body.status && Object.keys(body).length === 1) {
       await updateCollabRequestStatusAsync(id, body.status);
       return NextResponse.json({ success: true, status: body.status });
     }
 
-    return NextResponse.json({ success: false, error: 'Invalid action or status' }, { status: 400 });
+    const updated = await updateCollabRequestAsync(id, body);
+    if (!updated) {
+      return NextResponse.json({ success: false, error: 'Collab request not found' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, collabRequest: updated });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

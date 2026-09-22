@@ -902,6 +902,77 @@ function saveLocalCollabRequest(req: CollabRequest) {
   writeDb(db);
 }
 
+export async function updateCollabRequestAsync(id: string, updates: Partial<CollabRequest>): Promise<CollabRequest | null> {
+  const dbUpdates: any = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (updates.project !== undefined) dbUpdates.project = updates.project;
+  if (updates.title !== undefined) dbUpdates.title = updates.title;
+  if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+  if (updates.supply !== undefined) dbUpdates.supply = updates.supply;
+  if (updates.mintStage !== undefined) dbUpdates.mint_stage = updates.mintStage;
+  if (updates.network !== undefined) dbUpdates.network = updates.network;
+  if (updates.customNetwork !== undefined) dbUpdates.custom_network = updates.customNetwork;
+  if (updates.customNetworkLogoUrl !== undefined) dbUpdates.custom_network_logo_url = updates.customNetworkLogoUrl;
+  if (updates.walletAddressLabel !== undefined) dbUpdates.wallet_address_label = updates.walletAddressLabel;
+  if (updates.walletAddressPlaceholder !== undefined) dbUpdates.wallet_address_placeholder = updates.walletAddressPlaceholder;
+  if (updates.subtitle !== undefined) dbUpdates.subtitle = updates.subtitle;
+  if (updates.description !== undefined) dbUpdates.description = updates.description;
+  if (updates.nftTotalSupply !== undefined) dbUpdates.nft_total_supply = updates.nftTotalSupply;
+  if (updates.mintPrice !== undefined) dbUpdates.mint_price = updates.mintPrice;
+  if (updates.mintDate !== undefined) dbUpdates.mint_date = updates.mintDate;
+  if (updates.maxMintPerWallet !== undefined) dbUpdates.max_mint_per_wallet = updates.maxMintPerWallet;
+  if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl;
+  if (updates.bannerUrl !== undefined) dbUpdates.banner_url = updates.bannerUrl;
+  if (updates.artworkType !== undefined) dbUpdates.artwork_type = updates.artworkType;
+  if (updates.followUrl !== undefined) dbUpdates.follow_url = updates.followUrl;
+  if (updates.engageUrl !== undefined) dbUpdates.engage_url = updates.engageUrl;
+  if (updates.twitterUrl !== undefined) dbUpdates.twitter_url = updates.twitterUrl;
+  if (updates.discordUrl !== undefined) dbUpdates.discord_url = updates.discordUrl;
+  if (updates.mintUrl !== undefined) dbUpdates.mint_url = updates.mintUrl;
+  if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+  if (updates.customTasks !== undefined) dbUpdates.custom_tasks = updates.customTasks;
+  if (updates.requesterTwitter !== undefined) dbUpdates.requester_twitter = updates.requesterTwitter;
+  if (updates.requesterTelegram !== undefined) dbUpdates.requester_telegram = updates.requesterTelegram;
+  if (updates.requesterEmail !== undefined) dbUpdates.requester_email = updates.requesterEmail;
+  if (updates.requesterDiscord !== undefined) dbUpdates.requester_discord = updates.requesterDiscord;
+  if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+  try {
+    const { data, error } = await supabase
+      .from('flamebound_collab_requests')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (!error && data) {
+      const mapped = mapDbRowToCollabRequest(data);
+      saveLocalCollabRequest(mapped);
+      return mapped;
+    }
+    if (error) console.error('Supabase update collab error:', error);
+  } catch (err) {
+    console.error('Supabase update collab exception:', err);
+  }
+
+  const db = ensureDb();
+  if (db.collabRequests) {
+    const idx = db.collabRequests.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      db.collabRequests[idx] = {
+        ...db.collabRequests[idx],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      writeDb(db);
+      return db.collabRequests[idx];
+    }
+  }
+  return null;
+}
+
 export async function updateCollabRequestStatusAsync(id: string, status: 'pending' | 'approved' | 'rejected'): Promise<boolean> {
   try {
     const { error } = await supabase

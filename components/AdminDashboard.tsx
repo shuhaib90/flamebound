@@ -108,7 +108,12 @@ export function AdminDashboard() {
   const [uploadingChainLogo, setUploadingChainLogo] = useState(false);
 
   const [editingRaffle, setEditingRaffle] = useState<Raffle | null>(null);
+  const [editingCollab, setEditingCollab] = useState<CollabRequest | null>(null);
   const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
+
+  const editCollabLogoFileRef = useRef<HTMLInputElement>(null);
+  const editCollabBannerFileRef = useRef<HTMLInputElement>(null);
+  const editCollabChainLogoFileRef = useRef<HTMLInputElement>(null);
 
   // New task builder state for create form
   const [taskInput, setTaskInput] = useState<{
@@ -123,8 +128,21 @@ export function AdminDashboard() {
     type: 'telegram',
   });
 
-  // Task builder state for edit modal
+  // Task builder state for edit raffle modal
   const [editTaskInput, setEditTaskInput] = useState<{
+    title: string;
+    url: string;
+    actionLabel: string;
+    type: 'twitter' | 'telegram' | 'discord' | 'youtube' | 'website' | 'custom';
+  }>({
+    title: '',
+    url: '',
+    actionLabel: 'Join',
+    type: 'telegram',
+  });
+
+  // Task builder state for edit collab modal
+  const [editCollabTaskInput, setEditCollabTaskInput] = useState<{
     title: string;
     url: string;
     actionLabel: string;
@@ -288,7 +306,7 @@ export function AdminDashboard() {
     }
   }, [isAuthenticated]);
 
-  const handleImageUpload = async (file: File, type: 'logo' | 'banner' | 'chain_logo', isEdit = false) => {
+  const handleImageUpload = async (file: File, type: 'logo' | 'banner' | 'chain_logo', target: 'new' | 'edit_raffle' | 'edit_collab' | boolean = 'new') => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -304,7 +322,11 @@ export function AdminDashboard() {
       const data = await res.json();
 
       if (data.success && data.url) {
-        if (isEdit && editingRaffle) {
+        if (target === 'edit_collab' && editingCollab) {
+          if (type === 'logo') setEditingCollab({ ...editingCollab, logoUrl: data.url });
+          else if (type === 'banner') setEditingCollab({ ...editingCollab, bannerUrl: data.url });
+          else setEditingCollab({ ...editingCollab, customNetworkLogoUrl: data.url });
+        } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
           if (type === 'logo') setEditingRaffle({ ...editingRaffle, logoUrl: data.url });
           else if (type === 'banner') setEditingRaffle({ ...editingRaffle, bannerUrl: data.url });
           else setEditingRaffle({ ...editingRaffle, customNetworkLogoUrl: data.url });
@@ -325,7 +347,7 @@ export function AdminDashboard() {
     }
   };
 
-  const handleNetworkChange = (network: string, isEdit = false) => {
+  const handleNetworkChange = (network: string, target: 'new' | 'edit_raffle' | 'edit_collab' | boolean = 'new') => {
     let defaultLabel = 'Receiving EVM Wallet Address';
     let defaultPlaceholder = '0x... (Whitelist receiver)';
     if (network === 'SOLANA') {
@@ -348,7 +370,14 @@ export function AdminDashboard() {
       defaultPlaceholder = '0x... (Robinhood Address)';
     }
 
-    if (isEdit && editingRaffle) {
+    if (target === 'edit_collab' && editingCollab) {
+      setEditingCollab({
+        ...editingCollab,
+        network,
+        walletAddressLabel: editingCollab.walletAddressLabel || defaultLabel,
+        walletAddressPlaceholder: editingCollab.walletAddressPlaceholder || defaultPlaceholder,
+      });
+    } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
       setEditingRaffle({
         ...editingRaffle,
         network,
@@ -365,8 +394,27 @@ export function AdminDashboard() {
     }
   };
 
-  const handleAddCustomTask = (isEdit = false) => {
-    if (isEdit) {
+  const handleAddCustomTask = (target: 'new' | 'edit_raffle' | 'edit_collab' | boolean = 'new') => {
+    if (target === 'edit_collab') {
+      if (!editCollabTaskInput.title.trim() || !editCollabTaskInput.url.trim()) {
+        alert('Please enter task title and link URL');
+        return;
+      }
+      if (!editingCollab) return;
+      const newTask: CustomTask = {
+        id: `task-${Date.now()}`,
+        title: editCollabTaskInput.title.trim(),
+        url: editCollabTaskInput.url.trim(),
+        actionLabel: editCollabTaskInput.actionLabel.trim() || 'Visit',
+        type: editCollabTaskInput.type,
+        required: true,
+      };
+      setEditingCollab({
+        ...editingCollab,
+        customTasks: [...(editingCollab.customTasks || []), newTask],
+      });
+      setEditCollabTaskInput({ title: '', url: '', actionLabel: 'Join', type: 'telegram' });
+    } else if (target === 'edit_raffle' || target === true) {
       if (!editTaskInput.title.trim() || !editTaskInput.url.trim()) {
         alert('Please enter task title and link URL');
         return;
@@ -406,8 +454,13 @@ export function AdminDashboard() {
     }
   };
 
-  const handleRemoveCustomTask = (taskId: string, isEdit = false) => {
-    if (isEdit && editingRaffle) {
+  const handleRemoveCustomTask = (taskId: string, target: 'new' | 'edit_raffle' | 'edit_collab' | boolean = 'new') => {
+    if (target === 'edit_collab' && editingCollab) {
+      setEditingCollab({
+        ...editingCollab,
+        customTasks: (editingCollab.customTasks || []).filter(t => t.id !== taskId),
+      });
+    } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
       setEditingRaffle({
         ...editingRaffle,
         customTasks: (editingRaffle.customTasks || []).filter(t => t.id !== taskId),
@@ -417,6 +470,47 @@ export function AdminDashboard() {
         ...newRaffle,
         customTasks: newRaffle.customTasks.filter(t => t.id !== taskId),
       });
+    }
+  };
+
+  const handleUpdateCollab = async (e: React.FormEvent, andPublish = false) => {
+    e.preventDefault();
+    if (!editingCollab) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/collab-requests/${editingCollab.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingCollab),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (andPublish) {
+          const pubRes = await fetch(`/api/collab-requests/${editingCollab.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'approve_and_publish' }),
+          });
+          const pubData = await pubRes.json();
+          if (pubData.success) {
+            alert('🎉 Collab request saved and published live to raffles!');
+          } else {
+            alert(pubData.error || 'Saved changes, but publish live failed');
+          }
+        } else {
+          alert('Collab request details updated successfully!');
+        }
+        setEditingCollab(null);
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to update collab request');
+      }
+    } catch (err: any) {
+      alert(`Error updating collab request: ${err.message || 'Network error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1800,6 +1894,16 @@ export function AdminDashboard() {
                             <span>Approved & Published to Live Raffles</span>
                           </div>
                         )}
+
+                        {/* Edit Collab Details Button */}
+                        <button
+                          onClick={() => setEditingCollab(req)}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 border border-gray-200"
+                          title="Edit Collab Request Details"
+                        >
+                          <Edit3 size={13} />
+                          <span>Edit Details</span>
+                        </button>
                       </div>
 
                       <button
@@ -2191,6 +2295,581 @@ export function AdminDashboard() {
                     type="button"
                     onClick={() => setEditingRaffle(null)}
                     className="px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors text-sm font-medium border border-gray-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: EDIT COLLAB REQUEST */}
+        {editingCollab && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-3xl w-full my-8 shadow-2xl space-y-5 text-gray-900 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-syne text-lg font-bold text-gray-900">
+                      Edit Collab Request: {editingCollab.project || editingCollab.title}
+                    </h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono-dm uppercase font-bold border ${
+                      editingCollab.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                      editingCollab.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                      'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}>
+                      {editingCollab.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5 font-dm">
+                    Edit partner submission details before approving and publishing to live raffles.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditingCollab(null)}
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={e => handleUpdateCollab(e, false)} className="space-y-4 font-dm text-xs">
+                {/* Requester Contact Details */}
+                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
+                  <div className="font-mono-dm text-[11px] font-bold text-[#293681] uppercase flex items-center gap-1.5">
+                    <Users size={13} />
+                    <span>Requester Contact Information</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 text-[10px]">
+                        Requester 𝕏 / Twitter Handle
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCollab.requesterTwitter || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, requesterTwitter: e.target.value })}
+                        placeholder="@username"
+                        className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs focus:border-[#293681]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 text-[10px]">
+                        Requester Telegram Handle
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCollab.requesterTelegram || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, requesterTelegram: e.target.value })}
+                        placeholder="@telegram_handle"
+                        className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs focus:border-[#293681]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 text-[10px]">
+                        Discord Tag / Server
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCollab.requesterDiscord || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, requesterDiscord: e.target.value })}
+                        placeholder="discord_user#1234 or server invite"
+                        className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs focus:border-[#293681]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 text-[10px]">
+                        Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={editingCollab.requesterEmail || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, requesterEmail: e.target.value })}
+                        placeholder="contact@project.xyz"
+                        className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs focus:border-[#293681]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Name & Raffle Title */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Project / Partner Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.project || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, project: e.target.value })}
+                      placeholder="e.g. DOTSET or Partner"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Raffle Campaign Title
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.title || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, title: e.target.value })}
+                      placeholder="e.g. Genesis Whitelist Allocation"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Slug & Subtitle */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Custom URL Slug
+                    </label>
+                    <div className="flex items-center">
+                      <span className="bg-gray-100 border border-r-0 border-gray-200 text-gray-500 px-3 py-3 rounded-l-lg text-xs font-mono-dm select-none">
+                        /raffle/
+                      </span>
+                      <input
+                        type="text"
+                        value={editingCollab.slug || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                        placeholder="project-slug"
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-r-lg outline-none text-sm font-mono-dm focus:border-[#293681]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Subtitle / Catchphrase
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.subtitle || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, subtitle: e.target.value })}
+                      placeholder="e.g. Official Community Whitelist Raffle"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                    Project & Campaign Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editingCollab.description || ''}
+                    onChange={e => setEditingCollab({ ...editingCollab, description: e.target.value })}
+                    placeholder="Brief description about the project, mint perks, requirements..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-xs focus:border-[#293681] resize-none"
+                  />
+                </div>
+
+                {/* Visuals: Logo & Banner Uploaders */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  {/* Logo */}
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1.5 text-[11px] flex items-center justify-between">
+                      <span>Project Logo</span>
+                      {editingCollab.logoUrl && (
+                        <img 
+                          src={editingCollab.logoUrl} 
+                          alt="Logo preview" 
+                          className="w-5 h-5 object-contain rounded border border-gray-200 bg-white" 
+                          onError={e => { (e.target as HTMLImageElement).src = '/images/dotset-logo.png'; }}
+                        />
+                      )}
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={editingCollab.logoUrl || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, logoUrl: e.target.value })}
+                        placeholder="https://.../logo.png"
+                        className="flex-1 bg-white border border-gray-200 text-gray-900 p-2 rounded-lg outline-none text-xs"
+                      />
+                      <input
+                        type="file"
+                        ref={editCollabLogoFileRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logo', 'edit_collab')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => editCollabLogoFileRef.current?.click()}
+                        className="px-2.5 bg-white hover:bg-gray-100 text-gray-800 rounded-lg text-xs font-medium border border-gray-200 shrink-0"
+                      >
+                        {uploadingLogo ? '...' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Banner */}
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1.5 text-[11px] flex items-center justify-between">
+                      <span>Banner Artwork</span>
+                      {editingCollab.bannerUrl && (
+                        <img 
+                          src={editingCollab.bannerUrl} 
+                          alt="Banner preview" 
+                          className="w-8 h-5 object-cover rounded border border-gray-200 bg-white" 
+                          onError={e => { (e.target as HTMLImageElement).src = '/images/dotset-logo.png'; }}
+                        />
+                      )}
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={editingCollab.bannerUrl || ''}
+                        onChange={e => setEditingCollab({ ...editingCollab, bannerUrl: e.target.value })}
+                        placeholder="https://.../banner.png"
+                        className="flex-1 bg-white border border-gray-200 text-gray-900 p-2 rounded-lg outline-none text-xs"
+                      />
+                      <input
+                        type="file"
+                        ref={editCollabBannerFileRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'banner', 'edit_collab')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => editCollabBannerFileRef.current?.click()}
+                        className="px-2.5 bg-white hover:bg-gray-100 text-gray-800 rounded-lg text-xs font-medium border border-gray-200 shrink-0"
+                      >
+                        {uploadingBanner ? '...' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mint Info & Supply */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Stage
+                    </label>
+                    <select
+                      value={editingCollab.mintStage || 'GTD'}
+                      onChange={e => setEditingCollab({ ...editingCollab, mintStage: e.target.value as any })}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    >
+                      <option value="GTD">Guaranteed (GTD)</option>
+                      <option value="FCFS">First-Come First-Served (FCFS)</option>
+                      <option value="WL">Standard Whitelist (WL)</option>
+                      <option value="CUSTOM">Custom</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Raffle Spots
+                    </label>
+                    <input
+                      type="number"
+                      value={editingCollab.supply || 50}
+                      onChange={e => setEditingCollab({ ...editingCollab, supply: parseInt(e.target.value) || 10 })}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm font-mono-dm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      NFT Total Supply
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.nftTotalSupply || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, nftTotalSupply: e.target.value })}
+                      placeholder="e.g. 1,000 NFTs"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Price
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.mintPrice || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, mintPrice: e.target.value })}
+                      placeholder="FREE or 0.05 ETH"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Date
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.mintDate || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, mintDate: e.target.value })}
+                      placeholder="e.g. Oct 2026 / TBA"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Max Mint Per Wallet
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.maxMintPerWallet || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, maxMintPerWallet: e.target.value })}
+                      placeholder="e.g. 1 PER WL"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Blockchain Network & Custom Chain */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1 flex items-center justify-between">
+                      <span>Blockchain Network</span>
+                      <ChainLogo network={editingCollab.network} customNetworkLogoUrl={editingCollab.customNetworkLogoUrl} size={14} />
+                    </label>
+                    <select
+                      value={editingCollab.network || 'ETHEREUM'}
+                      onChange={e => handleNetworkChange(e.target.value, 'edit_collab')}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    >
+                      <option value="ETHEREUM">Ethereum (ETH)</option>
+                      <option value="BASE">Base</option>
+                      <option value="POLYGON">Polygon</option>
+                      <option value="ROBINHOOD">Robinhood Chain</option>
+                      <option value="APECHAIN">ApeChain</option>
+                      <option value="ARBITRUM">Arbitrum</option>
+                      <option value="SOLANA">Solana</option>
+                      <option value="CUSTOM">Custom Chain</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Custom Chain Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.customNetwork || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, customNetwork: e.target.value })}
+                      placeholder="e.g. Monad Testnet"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Chain Logo in Collab Modal */}
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                    Custom Chain Logo (URL or Upload)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editingCollab.customNetworkLogoUrl || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, customNetworkLogoUrl: e.target.value })}
+                      placeholder="https://.../chain-logo.png"
+                      className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs"
+                    />
+                    <input
+                      type="file"
+                      ref={editCollabChainLogoFileRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'chain_logo', 'edit_collab')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => editCollabChainLogoFileRef.current?.click()}
+                      className="px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-medium border border-gray-200"
+                    >
+                      {uploadingChainLogo ? '...' : 'Upload Logo'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Editable Wallet Input Text */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-500 font-medium mb-1 text-[10px]">
+                      Wallet Input Label Text
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.walletAddressLabel || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, walletAddressLabel: e.target.value })}
+                      placeholder="Receiving EVM Wallet Address"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-500 font-medium mb-1 text-[10px]">
+                      Wallet Input Placeholder
+                    </label>
+                    <input
+                      type="text"
+                      value={editingCollab.walletAddressPlaceholder || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, walletAddressPlaceholder: e.target.value })}
+                      placeholder="0x... (Whitelist receiver)"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2.5 rounded-lg outline-none text-xs font-mono-dm"
+                    />
+                  </div>
+                </div>
+
+                {/* Social / Task URLs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      𝕏 Follow URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editingCollab.followUrl || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, followUrl: e.target.value })}
+                      placeholder="https://x.com/project"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      𝕏 Like & RT URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editingCollab.engageUrl || ''}
+                      onChange={e => setEditingCollab({ ...editingCollab, engageUrl: e.target.value })}
+                      placeholder="https://x.com/project/status/..."
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Tasks in Collab Modal */}
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono-dm text-xs font-bold text-gray-800 uppercase">
+                      Custom Social Tasks ({editingCollab.customTasks?.length || 0})
+                    </span>
+                  </div>
+
+                  {editingCollab.customTasks && editingCollab.customTasks.length > 0 && (
+                    <div className="space-y-1.5">
+                      {editingCollab.customTasks.map((t, idx) => (
+                        <div key={t.id || idx} className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {t.type === 'twitter' ? <Twitter size={13} className="text-[#38bdf8]" /> :
+                             t.type === 'telegram' ? <Send size={13} className="text-[#229ED9]" /> :
+                             t.type === 'discord' ? <MessageSquare size={13} className="text-[#5865F2]" /> :
+                             t.type === 'youtube' ? <Youtube size={13} className="text-[#FF0000]" /> :
+                             <Globe size={13} className="text-[#293681]" />}
+                            <span className="font-semibold text-gray-900 truncate">{t.title}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomTask(t.id, 'edit_collab')}
+                            className="p-1 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-gray-200">
+                    <select
+                      value={editCollabTaskInput.type}
+                      onChange={e => setEditCollabTaskInput({ ...editCollabTaskInput, type: e.target.value as any })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    >
+                      <option value="telegram">Telegram</option>
+                      <option value="discord">Discord</option>
+                      <option value="twitter">Twitter / X</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="website">Website</option>
+                      <option value="custom">Custom</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder="Task Title"
+                      value={editCollabTaskInput.title}
+                      onChange={e => setEditCollabTaskInput({ ...editCollabTaskInput, title: e.target.value })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    />
+
+                    <input
+                      type="url"
+                      placeholder="Destination URL"
+                      value={editCollabTaskInput.url}
+                      onChange={e => setEditCollabTaskInput({ ...editCollabTaskInput, url: e.target.value })}
+                      className="bg-white border border-gray-200 p-2 rounded-lg text-xs"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomTask('edit_collab')}
+                      className="px-3 py-2 bg-[#293681] text-white rounded-lg text-xs font-semibold hover:bg-[#1f2963]"
+                    >
+                      + Add Task
+                    </button>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                    Internal Admin / Partner Notes
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCollab.notes || ''}
+                    onChange={e => setEditingCollab({ ...editingCollab, notes: e.target.value })}
+                    placeholder="Extra requirements, partnership remarks..."
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-xs focus:border-[#293681]"
+                  />
+                </div>
+
+                {/* Modal Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-3">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={e => handleUpdateCollab(e, true)}
+                    className="flex-1 bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-3 rounded-xl transition-all text-sm shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 size={16} />
+                    <span>{loading ? 'Saving...' : 'Save & Publish Live'}</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-[#293681] text-white font-bold py-3 rounded-xl hover:bg-[#1f2963] transition-colors text-sm shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingCollab(null)}
+                    className="px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors text-sm font-medium border border-gray-200 py-3"
                   >
                     Cancel
                   </button>
