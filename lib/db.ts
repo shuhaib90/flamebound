@@ -246,29 +246,38 @@ export async function createRaffleAsync(data: Omit<Raffle, 'id' | 'totalEntries'
       .select()
       .single();
 
-    if (!error && inserted) {
-      createRaffle(data);
-      return mapDbRowToRaffle(inserted);
+    if (error) {
+      console.error('Supabase create raffle error:', error);
+    } else if (inserted) {
+      const mapped = mapDbRowToRaffle(inserted);
+      createRaffle(mapped);
+      return mapped;
     }
   } catch (err) {
-    console.error('Supabase create raffle error:', err);
+    console.error('Supabase create raffle exception:', err);
   }
 
-  return createRaffle(data);
+  return createRaffle(newRaffle);
 }
 
-export function createRaffle(data: Omit<Raffle, 'id' | 'totalEntries' | 'winners' | 'createdAt'>): Raffle {
+export function createRaffle(data: Partial<Raffle> & Omit<Raffle, 'totalEntries' | 'winners'>): Raffle {
   const db = ensureDb();
   const newRaffle: Raffle = {
     ...data,
-    id: `raffle-${Date.now()}`,
-    slug: data.slug || `raffle-${Date.now()}`,
-    totalEntries: 0,
-    winners: [],
-    createdAt: new Date().toISOString(),
-  };
+    id: data.id || `raffle-${Date.now()}`,
+    slug: data.slug || data.id || `raffle-${Date.now()}`,
+    totalEntries: data.totalEntries || 0,
+    winners: data.winners || [],
+    createdAt: data.createdAt || new Date().toISOString(),
+  } as Raffle;
 
-  db.raffles.unshift(newRaffle);
+  // Avoid duplicates in local cache
+  const existingIdx = db.raffles.findIndex(r => r.id === newRaffle.id || r.slug === newRaffle.slug);
+  if (existingIdx !== -1) {
+    db.raffles[existingIdx] = newRaffle;
+  } else {
+    db.raffles.unshift(newRaffle);
+  }
   writeDb(db);
   return newRaffle;
 }

@@ -354,6 +354,14 @@ export function AdminDashboard() {
       return;
     }
 
+    let parsedEndDate: string;
+    try {
+      const parsed = newRaffle.endDate ? new Date(newRaffle.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      parsedEndDate = isNaN(parsed.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : parsed.toISOString();
+    } catch {
+      parsedEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
     try {
       setLoading(true);
       const res = await fetch('/api/raffles', {
@@ -362,7 +370,7 @@ export function AdminDashboard() {
         body: JSON.stringify({
           ...newRaffle,
           startDate: new Date().toISOString(),
-          endDate: new Date(newRaffle.endDate).toISOString(),
+          endDate: parsedEndDate,
           status: 'live',
         }),
       });
@@ -372,11 +380,42 @@ export function AdminDashboard() {
         alert('Raffle created successfully!');
         setActiveTab('raffles');
         fetchData();
+        // Reset form for next raffle
+        setNewRaffle({
+          title: '',
+          project: 'DOTSET',
+          slug: '',
+          type: 'WL RAFFLE',
+          mintStage: 'GTD',
+          subtitle: '',
+          description: '',
+          supply: 50,
+          nftTotalSupply: '1,000 NFTs',
+          mintPrice: 'FREE MINT',
+          mintDate: 'TBA',
+          maxMintPerWallet: '1 PER WL',
+          network: 'ETHEREUM',
+          customNetwork: '',
+          customNetworkLogoUrl: '',
+          walletAddressLabel: 'Receiving EVM Wallet Address',
+          walletAddressPlaceholder: '0x... (Whitelist receiver)',
+          logoUrl: '/images/dotset-logo.png',
+          bannerUrl: '/images/dotset-logo.png',
+          followUrl: 'https://x.com/dotsetxyz',
+          engageUrl: 'https://x.com/dotsetxyz',
+          twitterUrl: 'https://x.com/dotsetxyz',
+          discordUrl: 'https://discord.gg/Jq2Jt2HdfY',
+          mintUrl: '',
+          notes: '',
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+          entryMethod: 'raffle',
+          customTasks: [],
+        });
       } else {
-        alert(data.error || 'Failed to create raffle');
+        alert(data.error || data.message || 'Failed to create raffle');
       }
-    } catch (err) {
-      alert('Error creating raffle');
+    } catch (err: any) {
+      alert(`Error creating raffle: ${err.message || 'Network error'}`);
     } finally {
       setLoading(false);
     }
@@ -386,12 +425,23 @@ export function AdminDashboard() {
     e.preventDefault();
     if (!editingRaffle) return;
 
+    let parsedEndDate = editingRaffle.endDate;
+    try {
+      const parsed = editingRaffle.endDate ? new Date(editingRaffle.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      parsedEndDate = isNaN(parsed.getTime()) ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : parsed.toISOString();
+    } catch {
+      // keep existing
+    }
+
     try {
       setLoading(true);
       const res = await fetch(`/api/raffles/${editingRaffle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingRaffle),
+        body: JSON.stringify({
+          ...editingRaffle,
+          endDate: parsedEndDate,
+        }),
       });
 
       const data = await res.json();
@@ -400,10 +450,10 @@ export function AdminDashboard() {
         setEditingRaffle(null);
         fetchData();
       } else {
-        alert(data.error || 'Failed to update raffle');
+        alert(data.error || data.message || 'Failed to update raffle');
       }
-    } catch (err) {
-      alert('Error updating raffle');
+    } catch (err: any) {
+      alert(`Error updating raffle: ${err.message || 'Network error'}`);
     } finally {
       setLoading(false);
     }
