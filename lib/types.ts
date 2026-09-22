@@ -160,3 +160,13 @@ export interface CollabRequest {
   updatedAt?: string;
 }
 
+export interface CustomChain {
+  id: string; // unique slug e.g. "monad", "berachain", "solana"
+  name: string; // e.g. "Monad" or "Monad Testnet"
+  network: string; // e.g. "CUSTOM" or "MONAD"
+  logoUrl?: string; // image url or upload url
+  walletAddressLabel?: string; // e.g. "Receiving Monad (EVM) Wallet Address"
+  walletAddressPlaceholder?: string; // e.g. "0x... (Whitelist receiver)"
+  isBuiltIn?: boolean;
+  createdAt?: string;
+}

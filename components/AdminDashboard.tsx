@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Raffle, RaffleEntry, AdminStats, CustomTask, CollabRequest } from '@/lib/types';
+import { Raffle, RaffleEntry, AdminStats, CustomTask, CollabRequest, CustomChain } from '@/lib/types';
+import { BUILTIN_CHAINS } from '@/lib/db';
 import { useWallet } from '@/lib/wallet-context';
 import { ChainBadge, ChainLogo } from '@/components/ChainBadge';
 import { 
@@ -88,6 +89,7 @@ export function AdminDashboard() {
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [entries, setEntries] = useState<RaffleEntry[]>([]);
   const [collabRequests, setCollabRequests] = useState<CollabRequest[]>([]);
+  const [availableChains, setAvailableChains] = useState<CustomChain[]>(BUILTIN_CHAINS);
   const [collabFilter, setCollabFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -95,6 +97,18 @@ export function AdminDashboard() {
   const [selectedRaffleFilter, setSelectedRaffleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+
+  const getSelectedNetworkValue = (network: string, customNetwork?: string) => {
+    if (customNetwork && customNetwork.trim()) {
+      const found = availableChains.find(
+        c => !c.isBuiltIn && c.name.toLowerCase() === customNetwork.trim().toLowerCase()
+      );
+      if (found) return `SAVED_CUSTOM:${found.id}`;
+      return 'CUSTOM';
+    }
+    if (network === 'CUSTOM') return 'CUSTOM';
+    return network || 'ETHEREUM';
+  };
 
   const logoFileRef = useRef<HTMLInputElement>(null);
   const bannerFileRef = useRef<HTMLInputElement>(null);
@@ -211,24 +225,27 @@ export function AdminDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [rRes, eRes, sRes, cRes] = await Promise.all([
+      const [rRes, eRes, sRes, cRes, chRes] = await Promise.all([
         fetch('/api/raffles'),
         fetch('/api/admin/entries'),
         fetch('/api/admin/entries?stats=true'),
         fetch('/api/collab-requests'),
+        fetch('/api/chains'),
       ]);
 
-      const [rData, eData, sData, cData] = await Promise.all([
+      const [rData, eData, sData, cData, chData] = await Promise.all([
         rRes.json(),
         eRes.json(),
         sRes.json(),
         cRes.json(),
+        chRes.json(),
       ]);
 
       if (rData.success) setRaffles(rData.raffles || []);
       if (eData.success) setEntries(eData.entries || []);
       if (sData.success) setStats(sData.stats || null);
       if (cData.success) setCollabRequests(cData.collabRequests || []);
+      if (chData.success && chData.chains) setAvailableChains(chData.chains);
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
     } finally {
@@ -348,6 +365,73 @@ export function AdminDashboard() {
   };
 
   const handleNetworkChange = (network: string, target: 'new' | 'edit_raffle' | 'edit_collab' | boolean = 'new') => {
+    // 1. Check if selecting a saved custom chain
+    if (network.startsWith('SAVED_CUSTOM:')) {
+      const chainId = network.replace('SAVED_CUSTOM:', '');
+      const found = availableChains.find(
+        c => c.id === chainId || c.name.toLowerCase() === chainId.toLowerCase()
+      );
+      if (found) {
+        const defaultLabel = found.walletAddressLabel || `Receiving ${found.name} Wallet Address`;
+        const defaultPlaceholder = found.walletAddressPlaceholder || '0x... (Whitelist receiver)';
+        if (target === 'edit_collab' && editingCollab) {
+          setEditingCollab({
+            ...editingCollab,
+            network: 'CUSTOM',
+            customNetwork: found.name,
+            customNetworkLogoUrl: found.logoUrl || '',
+            walletAddressLabel: defaultLabel,
+            walletAddressPlaceholder: defaultPlaceholder,
+          });
+        } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
+          setEditingRaffle({
+            ...editingRaffle,
+            network: 'CUSTOM',
+            customNetwork: found.name,
+            customNetworkLogoUrl: found.logoUrl || '',
+            walletAddressLabel: defaultLabel,
+            walletAddressPlaceholder: defaultPlaceholder,
+          });
+        } else {
+          setNewRaffle({
+            ...newRaffle,
+            network: 'CUSTOM',
+            customNetwork: found.name,
+            customNetworkLogoUrl: found.logoUrl || '',
+            walletAddressLabel: defaultLabel,
+            walletAddressPlaceholder: defaultPlaceholder,
+          });
+        }
+        return;
+      }
+    }
+
+    // 2. Custom Chain (New)
+    if (network === 'CUSTOM') {
+      if (target === 'edit_collab' && editingCollab) {
+        setEditingCollab({
+          ...editingCollab,
+          network: 'CUSTOM',
+        });
+      } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
+        setEditingRaffle({
+          ...editingRaffle,
+          network: 'CUSTOM',
+        });
+      } else {
+        setNewRaffle({
+          ...newRaffle,
+          network: 'CUSTOM',
+          customNetwork: '',
+          customNetworkLogoUrl: '',
+          walletAddressLabel: 'Receiving EVM Wallet Address',
+          walletAddressPlaceholder: '0x... (Whitelist receiver)',
+        });
+      }
+      return;
+    }
+
+    // 3. Standard Built-in Chains
     let defaultLabel = 'Receiving EVM Wallet Address';
     let defaultPlaceholder = '0x... (Whitelist receiver)';
     if (network === 'SOLANA') {
@@ -374,20 +458,26 @@ export function AdminDashboard() {
       setEditingCollab({
         ...editingCollab,
         network,
-        walletAddressLabel: editingCollab.walletAddressLabel || defaultLabel,
-        walletAddressPlaceholder: editingCollab.walletAddressPlaceholder || defaultPlaceholder,
+        customNetwork: '',
+        customNetworkLogoUrl: '',
+        walletAddressLabel: defaultLabel,
+        walletAddressPlaceholder: defaultPlaceholder,
       });
     } else if ((target === 'edit_raffle' || target === true) && editingRaffle) {
       setEditingRaffle({
         ...editingRaffle,
         network,
-        walletAddressLabel: editingRaffle.walletAddressLabel || defaultLabel,
-        walletAddressPlaceholder: editingRaffle.walletAddressPlaceholder || defaultPlaceholder,
+        customNetwork: '',
+        customNetworkLogoUrl: '',
+        walletAddressLabel: defaultLabel,
+        walletAddressPlaceholder: defaultPlaceholder,
       });
     } else {
       setNewRaffle({
         ...newRaffle,
         network,
+        customNetwork: '',
+        customNetworkLogoUrl: '',
         walletAddressLabel: defaultLabel,
         walletAddressPlaceholder: defaultPlaceholder,
       });
@@ -1254,18 +1344,23 @@ export function AdminDashboard() {
                     <ChainLogo network={newRaffle.network} customNetworkLogoUrl={newRaffle.customNetworkLogoUrl} size={15} />
                   </label>
                   <select
-                    value={newRaffle.network}
+                    value={getSelectedNetworkValue(newRaffle.network, newRaffle.customNetwork)}
                     onChange={e => handleNetworkChange(e.target.value, false)}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-sm outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-sm outline-none font-medium"
                   >
-                    <option value="ETHEREUM">Ethereum (ETH)</option>
-                    <option value="BASE">Base</option>
-                    <option value="POLYGON">Polygon</option>
-                    <option value="ROBINHOOD">Robinhood Chain</option>
-                    <option value="APECHAIN">ApeChain</option>
-                    <option value="ARBITRUM">Arbitrum</option>
-                    <option value="SOLANA">Solana</option>
-                    <option value="CUSTOM">Custom Chain</option>
+                    <optgroup label="Standard Networks">
+                      {availableChains.filter(c => c.isBuiltIn).map(c => (
+                        <option key={c.id} value={c.network}>{c.name}</option>
+                      ))}
+                    </optgroup>
+                    {availableChains.filter(c => !c.isBuiltIn).length > 0 && (
+                      <optgroup label="Saved Custom Chains">
+                        {availableChains.filter(c => !c.isBuiltIn).map(c => (
+                          <option key={c.id} value={`SAVED_CUSTOM:${c.id}`}>🌟 {c.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="CUSTOM">+ New Custom Chain...</option>
                   </select>
                 </div>
 
@@ -2089,18 +2184,23 @@ export function AdminDashboard() {
                       <ChainLogo network={editingRaffle.network} customNetworkLogoUrl={editingRaffle.customNetworkLogoUrl} size={14} />
                     </label>
                     <select
-                      value={editingRaffle.network}
+                      value={getSelectedNetworkValue(editingRaffle.network, editingRaffle.customNetwork)}
                       onChange={e => handleNetworkChange(e.target.value, true)}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
                     >
-                      <option value="ETHEREUM">Ethereum (ETH)</option>
-                      <option value="BASE">Base</option>
-                      <option value="POLYGON">Polygon</option>
-                      <option value="ROBINHOOD">Robinhood Chain</option>
-                      <option value="APECHAIN">ApeChain</option>
-                      <option value="ARBITRUM">Arbitrum</option>
-                      <option value="SOLANA">Solana</option>
-                      <option value="CUSTOM">Custom Chain</option>
+                      <optgroup label="Standard Networks">
+                        {availableChains.filter(c => c.isBuiltIn).map(c => (
+                          <option key={c.id} value={c.network}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                      {availableChains.filter(c => !c.isBuiltIn).length > 0 && (
+                        <optgroup label="Saved Custom Chains">
+                          {availableChains.filter(c => !c.isBuiltIn).map(c => (
+                            <option key={c.id} value={`SAVED_CUSTOM:${c.id}`}>🌟 {c.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <option value="CUSTOM">+ New Custom Chain...</option>
                     </select>
                   </div>
 
@@ -2644,18 +2744,23 @@ export function AdminDashboard() {
                       <ChainLogo network={editingCollab.network} customNetworkLogoUrl={editingCollab.customNetworkLogoUrl} size={14} />
                     </label>
                     <select
-                      value={editingCollab.network || 'ETHEREUM'}
+                      value={getSelectedNetworkValue(editingCollab.network, editingCollab.customNetwork)}
                       onChange={e => handleNetworkChange(e.target.value, 'edit_collab')}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
                     >
-                      <option value="ETHEREUM">Ethereum (ETH)</option>
-                      <option value="BASE">Base</option>
-                      <option value="POLYGON">Polygon</option>
-                      <option value="ROBINHOOD">Robinhood Chain</option>
-                      <option value="APECHAIN">ApeChain</option>
-                      <option value="ARBITRUM">Arbitrum</option>
-                      <option value="SOLANA">Solana</option>
-                      <option value="CUSTOM">Custom Chain</option>
+                      <optgroup label="Standard Networks">
+                        {availableChains.filter(c => c.isBuiltIn).map(c => (
+                          <option key={c.id} value={c.network}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                      {availableChains.filter(c => !c.isBuiltIn).length > 0 && (
+                        <optgroup label="Saved Custom Chains">
+                          {availableChains.filter(c => !c.isBuiltIn).map(c => (
+                            <option key={c.id} value={`SAVED_CUSTOM:${c.id}`}>🌟 {c.name}</option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <option value="CUSTOM">+ New Custom Chain...</option>
                     </select>
                   </div>
 

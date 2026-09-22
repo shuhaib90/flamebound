@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Raffle, RaffleEntry, Winner, AdminStats, CollabRequest } from './types';
+import { Raffle, RaffleEntry, Winner, AdminStats, CollabRequest, CustomChain } from './types';
 import { formatAddress } from './blockchain';
 import { supabase } from './supabase';
 
@@ -10,6 +10,7 @@ interface DatabaseSchema {
   raffles: Raffle[];
   entries: RaffleEntry[];
   collabRequests?: CollabRequest[];
+  customChains?: CustomChain[];
 }
 
 const DEFAULT_RAFFLES: Raffle[] = [
@@ -252,10 +253,29 @@ export async function createRaffleAsync(data: Omit<Raffle, 'id' | 'totalEntries'
     } else if (inserted) {
       const mapped = mapDbRowToRaffle(inserted);
       createRaffle(mapped);
+      if (mapped.customNetwork && mapped.customNetwork.trim()) {
+        saveCustomChainAsync({
+          name: mapped.customNetwork.trim(),
+          network: mapped.network || 'CUSTOM',
+          logoUrl: mapped.customNetworkLogoUrl,
+          walletAddressLabel: mapped.walletAddressLabel,
+          walletAddressPlaceholder: mapped.walletAddressPlaceholder,
+        }).catch(() => {});
+      }
       return mapped;
     }
   } catch (err) {
     console.error('Supabase create raffle exception:', err);
+  }
+
+  if (newRaffle.customNetwork && newRaffle.customNetwork.trim()) {
+    saveCustomChainAsync({
+      name: newRaffle.customNetwork.trim(),
+      network: newRaffle.network || 'CUSTOM',
+      logoUrl: newRaffle.customNetworkLogoUrl,
+      walletAddressLabel: newRaffle.walletAddressLabel,
+      walletAddressPlaceholder: newRaffle.walletAddressPlaceholder,
+    }).catch(() => {});
   }
 
   return createRaffle(newRaffle);
@@ -284,6 +304,16 @@ export function createRaffle(data: Partial<Raffle> & Omit<Raffle, 'totalEntries'
 }
 
 export async function updateRaffleAsync(id: string, updates: Partial<Raffle>): Promise<Raffle | null> {
+  if (updates.customNetwork && updates.customNetwork.trim()) {
+    saveCustomChainAsync({
+      name: updates.customNetwork.trim(),
+      network: updates.network || 'CUSTOM',
+      logoUrl: updates.customNetworkLogoUrl,
+      walletAddressLabel: updates.walletAddressLabel,
+      walletAddressPlaceholder: updates.walletAddressPlaceholder,
+    }).catch(() => {});
+  }
+
   const dbUpdates: any = {
     updated_at: new Date().toISOString(),
   };
@@ -877,6 +907,15 @@ export async function createCollabRequestAsync(data: Omit<CollabRequest, 'id' | 
     if (!error && inserted) {
       const mapped = mapDbRowToCollabRequest(inserted);
       saveLocalCollabRequest(mapped);
+      if (mapped.customNetwork && mapped.customNetwork.trim()) {
+        saveCustomChainAsync({
+          name: mapped.customNetwork.trim(),
+          network: mapped.network || 'CUSTOM',
+          logoUrl: mapped.customNetworkLogoUrl,
+          walletAddressLabel: mapped.walletAddressLabel,
+          walletAddressPlaceholder: mapped.walletAddressPlaceholder,
+        }).catch(() => {});
+      }
       return mapped;
     }
     if (error) {
@@ -884,6 +923,16 @@ export async function createCollabRequestAsync(data: Omit<CollabRequest, 'id' | 
     }
   } catch (err) {
     console.error('Supabase create collab request exception:', err);
+  }
+
+  if (newReq.customNetwork && newReq.customNetwork.trim()) {
+    saveCustomChainAsync({
+      name: newReq.customNetwork.trim(),
+      network: newReq.network || 'CUSTOM',
+      logoUrl: newReq.customNetworkLogoUrl,
+      walletAddressLabel: newReq.walletAddressLabel,
+      walletAddressPlaceholder: newReq.walletAddressPlaceholder,
+    }).catch(() => {});
   }
 
   saveLocalCollabRequest(newReq);
@@ -903,6 +952,16 @@ function saveLocalCollabRequest(req: CollabRequest) {
 }
 
 export async function updateCollabRequestAsync(id: string, updates: Partial<CollabRequest>): Promise<CollabRequest | null> {
+  if (updates.customNetwork && updates.customNetwork.trim()) {
+    saveCustomChainAsync({
+      name: updates.customNetwork.trim(),
+      network: updates.network || 'CUSTOM',
+      logoUrl: updates.customNetworkLogoUrl,
+      walletAddressLabel: updates.walletAddressLabel,
+      walletAddressPlaceholder: updates.walletAddressPlaceholder,
+    }).catch(() => {});
+  }
+
   const dbUpdates: any = {
     updated_at: new Date().toISOString(),
   };
@@ -1072,3 +1131,247 @@ export async function approveAndPublishCollabRequestAsync(id: string): Promise<R
 
   return liveRaffle;
 }
+
+// ============================================================================
+// CUSTOM CHAINS REGISTRY & PERSISTENCE
+// ============================================================================
+
+export const BUILTIN_CHAINS: CustomChain[] = [
+  {
+    id: 'ethereum',
+    name: 'Ethereum (ETH)',
+    network: 'ETHEREUM',
+    walletAddressLabel: 'Receiving EVM Wallet Address',
+    walletAddressPlaceholder: '0x... (Whitelist receiver)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'base',
+    name: 'Base',
+    network: 'BASE',
+    walletAddressLabel: 'Receiving Base (EVM) Wallet Address',
+    walletAddressPlaceholder: '0x... (Base Address)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'polygon',
+    name: 'Polygon',
+    network: 'POLYGON',
+    walletAddressLabel: 'Receiving Polygon (EVM) Wallet Address',
+    walletAddressPlaceholder: '0x... (Polygon Address)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'robinhood',
+    name: 'Robinhood Chain',
+    network: 'ROBINHOOD',
+    walletAddressLabel: 'Receiving Robinhood Chain Address',
+    walletAddressPlaceholder: '0x... (Robinhood Address)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'apechain',
+    name: 'ApeChain',
+    network: 'APECHAIN',
+    walletAddressLabel: 'Receiving ApeChain Wallet Address',
+    walletAddressPlaceholder: '0x... (ApeChain Address)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'arbitrum',
+    name: 'Arbitrum',
+    network: 'ARBITRUM',
+    walletAddressLabel: 'Receiving Arbitrum Wallet Address',
+    walletAddressPlaceholder: '0x... (Arbitrum Address)',
+    isBuiltIn: true,
+  },
+  {
+    id: 'solana',
+    name: 'Solana',
+    network: 'SOLANA',
+    walletAddressLabel: 'Receiving Solana Wallet Address',
+    walletAddressPlaceholder: 'Enter Solana Address (e.g. 7xKX...)',
+    isBuiltIn: true,
+  },
+];
+
+function saveLocalCustomChain(chain: CustomChain) {
+  const db = ensureDb();
+  if (!db.customChains) db.customChains = [];
+  const idx = db.customChains.findIndex(
+    c => c.id === chain.id || c.name.toLowerCase() === chain.name.toLowerCase()
+  );
+  if (idx !== -1) {
+    db.customChains[idx] = { ...db.customChains[idx], ...chain };
+  } else {
+    db.customChains.push(chain);
+  }
+  writeDb(db);
+}
+
+export async function saveCustomChainAsync(chain: {
+  id?: string;
+  name: string;
+  network?: string;
+  logoUrl?: string;
+  walletAddressLabel?: string;
+  walletAddressPlaceholder?: string;
+}): Promise<CustomChain> {
+  const name = (chain.name || '').trim();
+  if (!name) throw new Error('Chain name is required');
+
+  const slug = chain.id || name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const newChain: CustomChain = {
+    id: slug || `chain-${Date.now()}`,
+    name: name,
+    network: chain.network || 'CUSTOM',
+    logoUrl: chain.logoUrl || undefined,
+    walletAddressLabel: chain.walletAddressLabel || `Receiving ${name} Wallet Address`,
+    walletAddressPlaceholder: chain.walletAddressPlaceholder || '0x... (Whitelist receiver)',
+    isBuiltIn: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('flamebound_custom_chains')
+      .upsert({
+        id: newChain.id,
+        name: newChain.name,
+        network: newChain.network,
+        logo_url: newChain.logoUrl,
+        wallet_address_label: newChain.walletAddressLabel,
+        wallet_address_placeholder: newChain.walletAddressPlaceholder,
+        is_builtin: false,
+        created_at: newChain.createdAt,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      const saved: CustomChain = {
+        id: data.id,
+        name: data.name,
+        network: data.network,
+        logoUrl: data.logo_url,
+        walletAddressLabel: data.wallet_address_label,
+        walletAddressPlaceholder: data.wallet_address_placeholder,
+        isBuiltIn: !!data.is_builtin,
+        createdAt: data.created_at,
+      };
+      saveLocalCustomChain(saved);
+      return saved;
+    }
+  } catch (err) {
+    // Graceful fallback if table is not yet migrated
+  }
+
+  saveLocalCustomChain(newChain);
+  return newChain;
+}
+
+export async function getCustomChainsAsync(): Promise<CustomChain[]> {
+  try {
+    const { data, error } = await supabase
+      .from('flamebound_custom_chains')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      return data.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        network: d.network || 'CUSTOM',
+        logoUrl: d.logo_url,
+        walletAddressLabel: d.wallet_address_label,
+        walletAddressPlaceholder: d.wallet_address_placeholder,
+        isBuiltIn: !!d.is_builtin,
+        createdAt: d.created_at,
+      }));
+    }
+  } catch (err) {
+    // fallback
+  }
+
+  const db = ensureDb();
+  return db.customChains || [];
+}
+
+export async function getAllAvailableChainsAsync(): Promise<CustomChain[]> {
+  const customSaved = await getCustomChainsAsync();
+  const raffles = await getRafflesAsync();
+  const collabs = await getCollabRequestsAsync();
+
+  const chainMap = new Map<string, CustomChain>();
+
+  // 1. Add Built-in chains
+  for (const b of BUILTIN_CHAINS) {
+    chainMap.set(b.id.toLowerCase(), b);
+    chainMap.set(b.name.toLowerCase(), b);
+    chainMap.set(b.network.toLowerCase(), b);
+  }
+
+  // 2. Add saved custom chains
+  for (const c of customSaved) {
+    const key = c.name.toLowerCase();
+    if (!chainMap.has(key)) {
+      chainMap.set(key, c);
+    } else {
+      const existing = chainMap.get(key)!;
+      if (!existing.logoUrl && c.logoUrl) {
+        existing.logoUrl = c.logoUrl;
+      }
+    }
+  }
+
+  // 3. Extract any custom chains used in active or past raffles
+  for (const r of raffles) {
+    if (r.customNetwork && r.customNetwork.trim()) {
+      const name = r.customNetwork.trim();
+      const key = name.toLowerCase();
+      if (!chainMap.has(key)) {
+        const extracted: CustomChain = {
+          id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          name: name,
+          network: r.network || 'CUSTOM',
+          logoUrl: r.customNetworkLogoUrl,
+          walletAddressLabel: r.walletAddressLabel,
+          walletAddressPlaceholder: r.walletAddressPlaceholder,
+          isBuiltIn: false,
+        };
+        chainMap.set(key, extracted);
+        saveCustomChainAsync(extracted).catch(() => {});
+      } else if (r.customNetworkLogoUrl) {
+        const existing = chainMap.get(key)!;
+        if (!existing.logoUrl) {
+          existing.logoUrl = r.customNetworkLogoUrl;
+        }
+      }
+    }
+  }
+
+  // 4. Extract any custom chains used in collab requests
+  for (const c of collabs) {
+    if (c.customNetwork && c.customNetwork.trim()) {
+      const name = c.customNetwork.trim();
+      const key = name.toLowerCase();
+      if (!chainMap.has(key)) {
+        const extracted: CustomChain = {
+          id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          name: name,
+          network: c.network || 'CUSTOM',
+          logoUrl: c.customNetworkLogoUrl,
+          walletAddressLabel: c.walletAddressLabel,
+          walletAddressPlaceholder: c.walletAddressPlaceholder,
+          isBuiltIn: false,
+        };
+        chainMap.set(key, extracted);
+        saveCustomChainAsync(extracted).catch(() => {});
+      }
+    }
+  }
+
+  // Return unique list
+  return Array.from(new Set(chainMap.values()));
+}
+

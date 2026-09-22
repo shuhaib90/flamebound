@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ChainBadge, ChainLogo } from '@/components/ChainBadge';
-import { CustomTask } from '@/lib/types';
+import { CustomTask, CustomChain } from '@/lib/types';
+import { BUILTIN_CHAINS } from '@/lib/db';
 import confetti from 'canvas-confetti';
 import { 
   Sparkles, 
@@ -29,11 +30,35 @@ import {
 } from 'lucide-react';
 
 export default function CollabRequestPage() {
+  const [availableChains, setAvailableChains] = useState<CustomChain[]>(BUILTIN_CHAINS);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingChainLogo, setUploadingChainLogo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/chains')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.chains) {
+          setAvailableChains(data.chains);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const getSelectedNetworkValue = (network: string, customNetwork?: string) => {
+    if (customNetwork && customNetwork.trim()) {
+      const found = availableChains.find(
+        c => !c.isBuiltIn && c.name.toLowerCase() === customNetwork.trim().toLowerCase()
+      );
+      if (found) return `SAVED_CUSTOM:${found.id}`;
+      return 'CUSTOM';
+    }
+    if (network === 'CUSTOM') return 'CUSTOM';
+    return network || 'ETHEREUM';
+  };
 
   const logoFileRef = useRef<HTMLInputElement>(null);
   const bannerFileRef = useRef<HTMLInputElement>(null);
@@ -45,7 +70,7 @@ export default function CollabRequestPage() {
     title: '',
     slug: '',
     supply: 50,
-    mintStage: 'GTD' as 'GTD' | 'FCFS' | 'WL',
+    mintStage: 'GTD' as 'GTD' | 'FCFS' | 'WL' | 'CUSTOM',
     network: 'ETHEREUM',
     customNetwork: '',
     customNetworkLogoUrl: '',
@@ -53,10 +78,10 @@ export default function CollabRequestPage() {
     walletAddressPlaceholder: '0x... (Whitelist receiver)',
     subtitle: '',
     description: '',
-    nftTotalSupply: '1,000 NFTs',
-    mintPrice: 'FREE MINT',
-    mintDate: 'TBA',
-    maxMintPerWallet: '1 PER WL',
+    nftTotalSupply: '',
+    mintPrice: '',
+    mintDate: '',
+    maxMintPerWallet: '',
     logoUrl: '',
     bannerUrl: '',
     followUrl: '',
@@ -98,6 +123,39 @@ export default function CollabRequestPage() {
 
   // Handle Network Change with smart presets
   const handleNetworkChange = (network: string) => {
+    // 1. Saved custom chain
+    if (network.startsWith('SAVED_CUSTOM:')) {
+      const chainId = network.replace('SAVED_CUSTOM:', '');
+      const found = availableChains.find(
+        c => c.id === chainId || c.name.toLowerCase() === chainId.toLowerCase()
+      );
+      if (found) {
+        setFormData(prev => ({
+          ...prev,
+          network: 'CUSTOM',
+          customNetwork: found.name,
+          customNetworkLogoUrl: found.logoUrl || '',
+          walletAddressLabel: found.walletAddressLabel || `Receiving ${found.name} Wallet Address`,
+          walletAddressPlaceholder: found.walletAddressPlaceholder || '0x... (Whitelist receiver)',
+        }));
+        return;
+      }
+    }
+
+    // 2. New custom chain
+    if (network === 'CUSTOM') {
+      setFormData(prev => ({
+        ...prev,
+        network: 'CUSTOM',
+        customNetwork: '',
+        customNetworkLogoUrl: '',
+        walletAddressLabel: 'Receiving EVM Wallet Address',
+        walletAddressPlaceholder: '0x... (Whitelist receiver)',
+      }));
+      return;
+    }
+
+    // 3. Standard built-in chain
     let defaultLabel = 'Receiving EVM Wallet Address';
     let defaultPlaceholder = '0x... (Whitelist receiver)';
     if (network === 'SOLANA') {
@@ -123,6 +181,8 @@ export default function CollabRequestPage() {
     setFormData(prev => ({
       ...prev,
       network,
+      customNetwork: '',
+      customNetworkLogoUrl: '',
       walletAddressLabel: defaultLabel,
       walletAddressPlaceholder: defaultPlaceholder,
     }));
@@ -520,18 +580,23 @@ export default function CollabRequestPage() {
                     <ChainLogo network={formData.network} customNetworkLogoUrl={formData.customNetworkLogoUrl} size={15} />
                   </label>
                   <select
-                    value={formData.network}
+                    value={getSelectedNetworkValue(formData.network, formData.customNetwork)}
                     onChange={e => handleNetworkChange(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 text-xs p-3 rounded-xl outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 text-xs p-3 rounded-xl outline-none font-medium"
                   >
-                    <option value="ETHEREUM">Ethereum (ETH)</option>
-                    <option value="BASE">Base</option>
-                    <option value="POLYGON">Polygon</option>
-                    <option value="ROBINHOOD">Robinhood Chain</option>
-                    <option value="APECHAIN">ApeChain</option>
-                    <option value="ARBITRUM">Arbitrum</option>
-                    <option value="SOLANA">Solana</option>
-                    <option value="CUSTOM">Custom Chain</option>
+                    <optgroup label="Standard Networks">
+                      {availableChains.filter(c => c.isBuiltIn).map(c => (
+                        <option key={c.id} value={c.network}>{c.name}</option>
+                      ))}
+                    </optgroup>
+                    {availableChains.filter(c => !c.isBuiltIn).length > 0 && (
+                      <optgroup label="Saved Custom Chains">
+                        {availableChains.filter(c => !c.isBuiltIn).map(c => (
+                          <option key={c.id} value={`SAVED_CUSTOM:${c.id}`}>🌟 {c.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="CUSTOM">+ New Custom Chain...</option>
                   </select>
                 </div>
 

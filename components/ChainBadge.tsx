@@ -11,16 +11,18 @@ interface ChainBadgeProps {
 
 export function ChainLogo({
   network = 'ETHEREUM',
+  customNetwork,
   customNetworkLogoUrl,
   size = 16,
   className = '',
 }: {
   network?: string;
+  customNetwork?: string;
   customNetworkLogoUrl?: string;
   size?: number;
   className?: string;
 }) {
-  const norm = (network || '').toUpperCase();
+  const norm = (customNetwork || network || '').toUpperCase();
 
   // If custom logo image is provided
   if (customNetworkLogoUrl) {
