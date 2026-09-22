@@ -43,6 +43,12 @@ export function Header() {
             >
               Winners
             </Link>
+            <Link 
+              href="/collab" 
+              className="px-3.5 py-1.5 rounded-md hover:text-[#293681] hover:bg-gray-100 transition-colors text-blue-900 font-semibold"
+            >
+              Request Collab
+            </Link>
           </nav>
 
           {/* Right Action: Socials, Live Pulse Badge & Explore Action */}
@@ -128,6 +134,13 @@ export function Header() {
             className="block p-2.5 rounded-lg text-gray-600 hover:text-[#293681] hover:bg-gray-50"
           >
             Winners
+          </Link>
+          <Link
+            href="/collab"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block p-2.5 rounded-lg text-[#293681] font-semibold hover:bg-gray-50"
+          >
+            Request Collab
           </Link>
 
           <div className="pt-2 border-t border-gray-200 flex items-center gap-3 px-2">

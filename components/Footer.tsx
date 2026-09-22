@@ -49,6 +49,12 @@ export function Footer() {
                   Winners Archive
                 </a>
               </li>
+              <li>
+                <Link href="/collab" className="text-[#293681] font-semibold hover:underline transition-colors flex items-center gap-1">
+                  <span>Submit Collab Request</span>
+                  <span className="px-1.5 py-0.2 rounded bg-blue-100 text-[10px] text-blue-800 uppercase font-mono-dm">Partner</span>
+                </Link>
+              </li>
             </ul>
           </div>
 

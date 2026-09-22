@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Raffle, RaffleEntry, AdminStats, CustomTask } from '@/lib/types';
+import { Raffle, RaffleEntry, AdminStats, CustomTask, CollabRequest } from '@/lib/types';
 import { useWallet } from '@/lib/wallet-context';
 import { ChainBadge, ChainLogo } from '@/components/ChainBadge';
 import { 
@@ -31,7 +31,11 @@ import {
   Calendar,
   AlertCircle,
   Youtube,
-  MessageSquare
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+  Inbox,
+  Sparkles
 } from 'lucide-react';
 
 interface NewRaffleForm {
@@ -83,9 +87,11 @@ export function AdminDashboard() {
 
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [entries, setEntries] = useState<RaffleEntry[]>([]);
+  const [collabRequests, setCollabRequests] = useState<CollabRequest[]>([]);
+  const [collabFilter, setCollabFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'raffles' | 'entries' | 'create'>('raffles');
+  const [activeTab, setActiveTab] = useState<'raffles' | 'entries' | 'create' | 'collabs'>('raffles');
   const [selectedRaffleFilter, setSelectedRaffleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -187,23 +193,90 @@ export function AdminDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [rRes, eRes, sRes] = await Promise.all([
+      const [rRes, eRes, sRes, cRes] = await Promise.all([
         fetch('/api/raffles'),
         fetch('/api/admin/entries'),
         fetch('/api/admin/entries?stats=true'),
+        fetch('/api/collab-requests'),
       ]);
 
-      const [rData, eData, sData] = await Promise.all([
+      const [rData, eData, sData, cData] = await Promise.all([
         rRes.json(),
         eRes.json(),
         sRes.json(),
+        cRes.json(),
       ]);
 
       if (rData.success) setRaffles(rData.raffles || []);
       if (eData.success) setEntries(eData.entries || []);
       if (sData.success) setStats(sData.stats || null);
+      if (cData.success) setCollabRequests(cData.collabRequests || []);
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveAndPublishCollab = async (id: string, projectName: string) => {
+    if (!confirm(`Are you sure you want to approve and publish "${projectName}" as a LIVE raffle on DOTSET?`)) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/collab-requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve_and_publish' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('🎉 Collab request approved and published directly to live raffles!');
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to approve collab request');
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Network error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateCollabStatus = async (id: string, status: 'approved' | 'rejected' | 'pending') => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/collab-requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to update collab request status');
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Network error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCollab = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this collab request? This action cannot be undone.')) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/collab-requests/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to delete collab request');
+      }
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Network error'}`);
     } finally {
       setLoading(false);
     }
@@ -609,6 +682,20 @@ export function AdminDashboard() {
     return true;
   });
 
+  const pendingCollabsCount = collabRequests.filter(c => c.status === 'pending').length;
+  const filteredCollabs = collabRequests.filter(c => {
+    if (collabFilter !== 'all' && c.status !== collabFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = (c.project || '').toLowerCase().includes(q);
+      const matchTitle = (c.title || '').toLowerCase().includes(q);
+      const matchX = (c.requesterTwitter || '').toLowerCase().includes(q);
+      const matchTg = (c.requesterTelegram || '').toLowerCase().includes(q);
+      if (!matchName && !matchTitle && !matchX && !matchTg) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-[#F9F9FB] text-gray-900 selection:bg-[#4274d9] selection:text-white pb-20">
       
@@ -680,25 +767,30 @@ export function AdminDashboard() {
 
           <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm">
             <div className="text-gray-500 text-xs font-mono-dm uppercase font-medium">
+              Collab Requests
+            </div>
+            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-amber-600 mt-1 flex items-baseline gap-2">
+              <span>{collabRequests.length}</span>
+              {pendingCollabsCount > 0 && (
+                <span className="text-xs font-mono-dm text-amber-600 font-semibold">
+                  ({pendingCollabsCount} pending)
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="text-gray-500 text-xs font-mono-dm uppercase font-medium">
               Total Quest Entries
             </div>
             <div className="font-grotesk text-2xl sm:text-3xl font-bold text-[#293681] mt-1">
               {stats?.totalEntries ?? entries.length}
             </div>
           </div>
-
-          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm">
-            <div className="text-gray-500 text-xs font-mono-dm uppercase font-medium">
-              Winners Selected
-            </div>
-            <div className="font-grotesk text-2xl sm:text-3xl font-bold text-amber-600 mt-1">
-              {stats?.totalWinnersSelected ?? raffles.reduce((acc, r) => acc + (r.winners?.length || 0), 0)}
-            </div>
-          </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-4">
           <button
             onClick={() => setActiveTab('raffles')}
             className={`px-4 py-2 rounded-lg text-sm font-dm font-semibold transition-all ${
@@ -708,6 +800,25 @@ export function AdminDashboard() {
             }`}
           >
             Manage Raffles ({raffles.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('collabs')}
+            className={`px-4 py-2 rounded-lg text-sm font-dm font-semibold transition-all flex items-center gap-2 ${
+              activeTab === 'collabs'
+                ? 'bg-[#293681] text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Inbox size={15} />
+            <span>Collab Requests</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-mono-dm ${
+              pendingCollabsCount > 0
+                ? 'bg-amber-500 text-white font-bold animate-pulse'
+                : activeTab === 'collabs' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+            }`}>
+              {collabRequests.length}
+            </span>
           </button>
 
           <button
@@ -1399,6 +1510,312 @@ export function AdminDashboard() {
               </div>
 
             </form>
+          </div>
+        )}
+
+        {/* TAB 4: COLLAB REQUESTS */}
+        {activeTab === 'collabs' && (
+          <div className="space-y-6">
+            {/* Header & Filter Controls */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="font-syne text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Inbox size={20} className="text-[#293681]" />
+                    <span>Partner Collaboration Requests</span>
+                  </h2>
+                  <p className="font-dm text-xs text-gray-500 mt-0.5">
+                    Review and approve submitted partner raffle campaigns before publishing them to the live directory.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="font-mono-dm text-xs text-gray-500">Filter:</span>
+                  <div className="flex bg-gray-100 p-1 rounded-lg text-xs font-dm">
+                    {(['all', 'pending', 'approved', 'rejected'] as const).map(status => (
+                      <button
+                        key={status}
+                        onClick={() => setCollabFilter(status)}
+                        className={`px-3 py-1 rounded-md capitalize transition-colors ${
+                          collabFilter === status
+                            ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                            : 'text-gray-500 hover:text-gray-900'
+                        }`}
+                      >
+                        {status}
+                        {status === 'pending' && (
+                          <span className="ml-1 text-[10px] text-amber-600 font-bold">
+                            ({collabRequests.filter(c => c.status === 'pending').length})
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* List / Cards */}
+            {filteredCollabs.length === 0 ? (
+              <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm space-y-2">
+                <Inbox size={36} className="mx-auto text-gray-300" />
+                <p className="font-dm text-sm text-gray-500">No collaboration requests found matching filter.</p>
+                <p className="font-dm text-xs text-gray-400">
+                  Projects can submit requests at <Link href="/collab" target="_blank" className="font-mono-dm text-[#293681] underline">/collab</Link>
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredCollabs.map(req => (
+                  <div
+                    key={req.id}
+                    className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow space-y-5"
+                  >
+                    {/* Top Row: Info & Status */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-gray-100">
+                      <div className="flex items-start gap-4">
+                        {req.logoUrl ? (
+                          <img
+                            src={req.logoUrl}
+                            alt={req.project}
+                            className="w-14 h-14 rounded-xl object-cover border border-gray-200 shrink-0 bg-gray-50"
+                            onError={e => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center font-grotesk font-bold text-gray-500 text-lg shrink-0">
+                            {req.project?.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-syne text-base font-bold text-gray-900">
+                              {req.project}
+                            </h3>
+                            <span className="text-xs text-gray-400 font-dm">·</span>
+                            <span className="font-dm text-xs text-gray-600 font-medium">
+                              {req.title}
+                            </span>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono-dm uppercase font-bold ${
+                              req.status === 'pending'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : req.status === 'approved'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-red-50 text-red-700 border border-red-200'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </div>
+
+                          <p className="font-dm text-xs text-gray-500 line-clamp-2 max-w-2xl">
+                            {req.description || req.subtitle || 'No description provided.'}
+                          </p>
+
+                          <div className="text-[11px] font-mono-dm text-gray-400">
+                            Submitted: {new Date(req.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Requester Contacts Direct Chat Box */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 min-w-[240px] space-y-2 shrink-0">
+                        <div className="font-mono-dm text-[10px] uppercase font-bold text-gray-600 tracking-wider">
+                          Requester Contact (Direct)
+                        </div>
+                        <div className="space-y-1.5 font-dm text-xs">
+                          {req.requesterTelegram && (
+                            <a
+                              href={req.requesterTelegram.startsWith('http') ? req.requesterTelegram : `https://t.me/${req.requesterTelegram.replace('@', '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-1.5 text-[#229ED9] hover:underline font-medium"
+                            >
+                              <Send size={12} />
+                              <span>Telegram: {req.requesterTelegram}</span>
+                              <ExternalLink size={10} className="text-gray-400" />
+                            </a>
+                          )}
+                          {req.requesterTwitter && (
+                            <a
+                              href={req.requesterTwitter.startsWith('http') ? req.requesterTwitter : `https://x.com/${req.requesterTwitter.replace('@', '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-1.5 text-gray-800 hover:text-[#293681] hover:underline font-medium"
+                            >
+                              <Twitter size={12} />
+                              <span>𝕏: {req.requesterTwitter}</span>
+                              <ExternalLink size={10} className="text-gray-400" />
+                            </a>
+                          )}
+                          {req.requesterDiscord && (
+                            <div className="flex items-center gap-1.5 text-[#5865F2]">
+                              <MessageSquare size={12} />
+                              <span>Discord: {req.requesterDiscord}</span>
+                            </div>
+                          )}
+                          {req.requesterEmail && (
+                            <div className="flex items-center gap-1.5 text-gray-600">
+                              <span>✉ {req.requesterEmail}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Middle Grid: Specs & Details */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-100 font-dm text-xs">
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Network</div>
+                        <div className="font-semibold text-gray-900 flex items-center gap-1 mt-0.5">
+                          <ChainBadge network={req.network} customNetwork={req.customNetwork} customNetworkLogoUrl={req.customNetworkLogoUrl} />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Stage</div>
+                        <div className="font-semibold text-gray-900 mt-0.5">{req.mintStage}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Supply</div>
+                        <div className="font-semibold text-gray-900 mt-0.5">{req.supply} Spots</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Mint Price</div>
+                        <div className="font-semibold text-gray-900 mt-0.5">{req.mintPrice}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Total NFT Supply</div>
+                        <div className="font-semibold text-gray-900 mt-0.5">{req.nftTotalSupply}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono-dm uppercase text-gray-400">Mint Date</div>
+                        <div className="font-semibold text-gray-900 mt-0.5">{req.mintDate}</div>
+                      </div>
+                    </div>
+
+                    {/* Custom Tasks & Social Links */}
+                    <div className="space-y-2">
+                      <div className="font-mono-dm text-[11px] uppercase font-bold text-gray-700">
+                        Campaign Tasks & Links:
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {req.followUrl && (
+                          <a
+                            href={req.followUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-[#293681]"
+                          >
+                            <Twitter size={12} className="text-[#38bdf8]" />
+                            <span>Follow Task</span>
+                            <ExternalLink size={10} className="text-gray-400" />
+                          </a>
+                        )}
+                        {req.engageUrl && (
+                          <a
+                            href={req.engageUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-[#293681]"
+                          >
+                            <Twitter size={12} className="text-[#38bdf8]" />
+                            <span>Engage / RT Task</span>
+                            <ExternalLink size={10} className="text-gray-400" />
+                          </a>
+                        )}
+                        {req.customTasks && req.customTasks.map((ct, idx) => (
+                          <a
+                            key={ct.id || idx}
+                            href={ct.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-[#293681]"
+                          >
+                            {ct.type === 'telegram' ? <Send size={12} className="text-[#229ED9]" /> :
+                             ct.type === 'discord' ? <MessageSquare size={12} className="text-[#5865F2]" /> :
+                             ct.type === 'youtube' ? <Youtube size={12} className="text-[#FF0000]" /> :
+                             ct.type === 'twitter' ? <Twitter size={12} className="text-[#38bdf8]" /> :
+                             <Globe size={12} className="text-[#293681]" />}
+                            <span>{ct.title}</span>
+                            <ExternalLink size={10} className="text-gray-400" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Banner preview if available */}
+                    {req.bannerUrl && (
+                      <div className="space-y-1">
+                        <div className="font-mono-dm text-[10px] uppercase text-gray-400">Banner Artwork Preview</div>
+                        <img
+                          src={req.bannerUrl}
+                          alt="Banner"
+                          className="h-28 sm:h-36 w-full object-cover rounded-xl border border-gray-200 bg-gray-100"
+                          onError={e => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        {req.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleApproveAndPublishCollab(req.id, req.project)}
+                              disabled={loading}
+                              className="px-4 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                            >
+                              <CheckCircle2 size={14} />
+                              <span>Approve & Publish Live</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleUpdateCollabStatus(req.id, 'rejected')}
+                              disabled={loading}
+                              className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
+                            >
+                              <XCircle size={14} />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        )}
+
+                        {req.status === 'rejected' && (
+                          <button
+                            onClick={() => handleUpdateCollabStatus(req.id, 'pending')}
+                            disabled={loading}
+                            className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-medium rounded-xl transition-colors"
+                          >
+                            Restore to Pending
+                          </button>
+                        )}
+
+                        {req.status === 'approved' && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium rounded-xl">
+                            <CheckCircle2 size={14} />
+                            <span>Approved & Published to Live Raffles</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteCollab(req.id)}
+                        disabled={loading}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-auto"
+                        title="Delete Collab Request"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

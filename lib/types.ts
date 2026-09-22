@@ -123,3 +123,40 @@ export interface HolderVerificationResult {
   error?: string;
 }
 
+export interface CollabRequest {
+  id: string;
+  project: string;
+  title: string;
+  slug?: string;
+  supply: number;
+  mintStage?: MintStage;
+  network: string;
+  customNetwork?: string;
+  customNetworkLogoUrl?: string;
+  walletAddressLabel?: string;
+  walletAddressPlaceholder?: string;
+  subtitle?: string;
+  description?: string;
+  nftTotalSupply?: string | number;
+  mintPrice?: string;
+  mintDate?: string;
+  maxMintPerWallet?: string | number;
+  logoUrl?: string;
+  bannerUrl?: string;
+  artworkType?: 'genesis' | 'cyber_beast' | 'founders_pass' | 'relic' | 'custom';
+  followUrl?: string;
+  engageUrl?: string;
+  twitterUrl?: string;
+  discordUrl?: string;
+  mintUrl?: string;
+  notes?: string;
+  customTasks?: CustomTask[];
+  requesterTwitter: string;
+  requesterTelegram: string;
+  requesterEmail?: string;
+  requesterDiscord?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt?: string;
+}
+

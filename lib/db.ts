@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Raffle, RaffleEntry, Winner, AdminStats } from './types';
+import { Raffle, RaffleEntry, Winner, AdminStats, CollabRequest } from './types';
 import { formatAddress } from './blockchain';
 import { supabase } from './supabase';
 
@@ -9,6 +9,7 @@ const DB_FILE = path.join(process.cwd(), 'data', 'flamebound_db.json');
 interface DatabaseSchema {
   raffles: Raffle[];
   entries: RaffleEntry[];
+  collabRequests?: CollabRequest[];
 }
 
 const DEFAULT_RAFFLES: Raffle[] = [
@@ -756,6 +757,247 @@ export function resetDatabase(): void {
   const initial: DatabaseSchema = {
     raffles: DEFAULT_RAFFLES,
     entries: DEFAULT_ENTRIES,
+    collabRequests: [],
   };
   writeDb(initial);
+}
+
+// ============================================================================
+// COLLAB REQUESTS CRUD OPERATIONS
+// ============================================================================
+
+function mapDbRowToCollabRequest(row: any): CollabRequest {
+  return {
+    id: row.id,
+    project: row.project,
+    title: row.title,
+    slug: row.slug || row.id,
+    supply: row.supply || 50,
+    mintStage: row.mint_stage || 'GTD',
+    network: row.network || 'ETHEREUM',
+    customNetwork: row.custom_network || row.customNetwork,
+    customNetworkLogoUrl: row.custom_network_logo_url || row.customNetworkLogoUrl,
+    walletAddressLabel: row.wallet_address_label || row.walletAddressLabel,
+    walletAddressPlaceholder: row.wallet_address_placeholder || row.walletAddressPlaceholder,
+    subtitle: row.subtitle || '',
+    description: row.description || '',
+    nftTotalSupply: row.nft_total_supply,
+    mintPrice: row.mint_price,
+    mintDate: row.mint_date,
+    maxMintPerWallet: row.max_mint_per_wallet,
+    logoUrl: row.logo_url || '/images/dotset-logo.png',
+    bannerUrl: row.banner_url || '/images/dotset-logo.png',
+    artworkType: row.artwork_type || 'genesis',
+    followUrl: row.follow_url || '',
+    engageUrl: row.engage_url || '',
+    twitterUrl: row.twitter_url || '',
+    discordUrl: row.discord_url || '',
+    mintUrl: row.mint_url || '',
+    notes: row.notes || '',
+    customTasks: Array.isArray(row.custom_tasks) 
+      ? row.custom_tasks 
+      : (typeof row.custom_tasks === 'string' ? (() => { try { return JSON.parse(row.custom_tasks); } catch { return []; } })() : (Array.isArray(row.customTasks) ? row.customTasks : [])),
+    requesterTwitter: row.requester_twitter,
+    requesterTelegram: row.requester_telegram,
+    requesterEmail: row.requester_email,
+    requesterDiscord: row.requester_discord,
+    status: row.status || 'pending',
+    createdAt: row.created_at || row.createdAt || new Date().toISOString(),
+    updatedAt: row.updated_at || row.updatedAt,
+  };
+}
+
+export async function getCollabRequestsAsync(): Promise<CollabRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from('flamebound_collab_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      return data.map(mapDbRowToCollabRequest);
+    }
+  } catch (err) {
+    console.warn('Supabase getCollabRequests error:', err);
+  }
+
+  const db = ensureDb();
+  return db.collabRequests || [];
+}
+
+export async function createCollabRequestAsync(data: Omit<CollabRequest, 'id' | 'status' | 'createdAt'>): Promise<CollabRequest> {
+  const newReq: CollabRequest = {
+    ...data,
+    id: `collab-${Date.now()}`,
+    slug: data.slug || `collab-${Date.now()}`,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    const { data: inserted, error } = await supabase
+      .from('flamebound_collab_requests')
+      .insert({
+        id: newReq.id,
+        project: newReq.project,
+        title: newReq.title,
+        slug: newReq.slug,
+        supply: newReq.supply,
+        mint_stage: newReq.mintStage || 'GTD',
+        network: newReq.network,
+        custom_network: newReq.customNetwork,
+        custom_network_logo_url: newReq.customNetworkLogoUrl,
+        wallet_address_label: newReq.walletAddressLabel,
+        wallet_address_placeholder: newReq.walletAddressPlaceholder,
+        subtitle: newReq.subtitle,
+        description: newReq.description,
+        nft_total_supply: newReq.nftTotalSupply,
+        mint_price: newReq.mintPrice,
+        mint_date: newReq.mintDate,
+        max_mint_per_wallet: newReq.maxMintPerWallet,
+        logo_url: newReq.logoUrl,
+        banner_url: newReq.bannerUrl,
+        artwork_type: newReq.artworkType || 'genesis',
+        follow_url: newReq.followUrl,
+        engage_url: newReq.engageUrl,
+        twitter_url: newReq.twitterUrl,
+        discord_url: newReq.discordUrl,
+        mint_url: newReq.mintUrl,
+        notes: newReq.notes,
+        custom_tasks: newReq.customTasks || [],
+        requester_twitter: newReq.requesterTwitter,
+        requester_telegram: newReq.requesterTelegram,
+        requester_email: newReq.requesterEmail,
+        requester_discord: newReq.requesterDiscord,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (!error && inserted) {
+      const mapped = mapDbRowToCollabRequest(inserted);
+      saveLocalCollabRequest(mapped);
+      return mapped;
+    }
+    if (error) {
+      console.error('Supabase create collab request error:', error);
+    }
+  } catch (err) {
+    console.error('Supabase create collab request exception:', err);
+  }
+
+  saveLocalCollabRequest(newReq);
+  return newReq;
+}
+
+function saveLocalCollabRequest(req: CollabRequest) {
+  const db = ensureDb();
+  if (!db.collabRequests) db.collabRequests = [];
+  const idx = db.collabRequests.findIndex(r => r.id === req.id);
+  if (idx !== -1) {
+    db.collabRequests[idx] = req;
+  } else {
+    db.collabRequests.unshift(req);
+  }
+  writeDb(db);
+}
+
+export async function updateCollabRequestStatusAsync(id: string, status: 'pending' | 'approved' | 'rejected'): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('flamebound_collab_requests')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) console.error('Supabase update collab status error:', error);
+  } catch (err) {
+    console.error('Supabase update collab status exception:', err);
+  }
+
+  const db = ensureDb();
+  if (db.collabRequests) {
+    const req = db.collabRequests.find(r => r.id === id);
+    if (req) {
+      req.status = status;
+      writeDb(db);
+    }
+  }
+  return true;
+}
+
+export async function deleteCollabRequestAsync(id: string): Promise<boolean> {
+  try {
+    await supabase.from('flamebound_collab_requests').delete().eq('id', id);
+  } catch (err) {
+    console.error('Supabase delete collab request error:', err);
+  }
+
+  const db = ensureDb();
+  if (db.collabRequests) {
+    db.collabRequests = db.collabRequests.filter(r => r.id !== id);
+    writeDb(db);
+  }
+  return true;
+}
+
+export async function approveAndPublishCollabRequestAsync(id: string): Promise<Raffle | null> {
+  // 1. Fetch collab request
+  let collab: CollabRequest | null = null;
+  try {
+    const { data } = await supabase
+      .from('flamebound_collab_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (data) collab = mapDbRowToCollabRequest(data);
+  } catch (err) {
+    // fallback
+  }
+
+  if (!collab) {
+    const db = ensureDb();
+    collab = db.collabRequests?.find(r => r.id === id) || null;
+  }
+
+  if (!collab) return null;
+
+  // 2. Convert and publish as a Live Raffle
+  const liveRaffle = await createRaffleAsync({
+    title: collab.title,
+    project: collab.project,
+    slug: collab.slug || `raffle-${Date.now()}`,
+    type: 'WL RAFFLE',
+    mintStage: collab.mintStage || 'GTD',
+    subtitle: collab.subtitle || '',
+    description: collab.description || '',
+    status: 'live',
+    supply: collab.supply,
+    nftTotalSupply: collab.nftTotalSupply || '1,000 NFTs',
+    mintPrice: collab.mintPrice || 'FREE MINT',
+    mintDate: collab.mintDate || 'TBA',
+    maxMintPerWallet: collab.maxMintPerWallet || '1 PER WL',
+    network: collab.network,
+    customNetwork: collab.customNetwork,
+    customNetworkLogoUrl: collab.customNetworkLogoUrl,
+    walletAddressLabel: collab.walletAddressLabel,
+    walletAddressPlaceholder: collab.walletAddressPlaceholder,
+    entryMethod: 'raffle',
+    artworkType: collab.artworkType || 'genesis',
+    logoUrl: collab.logoUrl || '/images/dotset-logo.png',
+    bannerUrl: collab.bannerUrl || '/images/dotset-logo.png',
+    followUrl: collab.followUrl,
+    engageUrl: collab.engageUrl,
+    twitterUrl: collab.twitterUrl,
+    discordUrl: collab.discordUrl,
+    mintUrl: collab.mintUrl,
+    notes: collab.notes || `Collab approved from @${collab.requesterTwitter.replace('@', '')}`,
+    customTasks: collab.customTasks || [],
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  // 3. Mark collab status as approved
+  await updateCollabRequestStatusAsync(id, 'approved');
+
+  return liveRaffle;
 }
