@@ -1431,6 +1431,105 @@ export function AdminDashboard() {
                   />
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Project / Partner Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.project || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, project: e.target.value })}
+                      placeholder="e.g. DOTSET or Partner"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Stage
+                    </label>
+                    <select
+                      value={editingRaffle.mintStage || (editingRaffle.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, mintStage: e.target.value as any })}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    >
+                      <option value="GTD">Guaranteed (GTD)</option>
+                      <option value="FCFS">First-Come First-Served (FCFS)</option>
+                      <option value="WL">Standard Whitelist (WL)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Project Logo & Banner Artwork in Edit Modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  {/* Logo */}
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1.5 text-[11px] flex items-center justify-between">
+                      <span>Project Logo</span>
+                      {editingRaffle.logoUrl && (
+                        <img src={editingRaffle.logoUrl} alt="Logo preview" className="w-5 h-5 object-contain rounded border border-gray-200 bg-white" />
+                      )}
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={editingRaffle.logoUrl || ''}
+                        onChange={e => setEditingRaffle({ ...editingRaffle, logoUrl: e.target.value })}
+                        placeholder="https://.../logo.png"
+                        className="flex-1 bg-white border border-gray-200 text-gray-900 p-2 rounded-lg outline-none text-xs"
+                      />
+                      <input
+                        type="file"
+                        ref={editLogoFileRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'logo', true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => editLogoFileRef.current?.click()}
+                        className="px-2.5 bg-white hover:bg-gray-100 text-gray-800 rounded-lg text-xs font-medium border border-gray-200 shrink-0"
+                      >
+                        {uploadingLogo ? '...' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Banner */}
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1.5 text-[11px] flex items-center justify-between">
+                      <span>Banner Artwork</span>
+                      {editingRaffle.bannerUrl && (
+                        <img src={editingRaffle.bannerUrl} alt="Banner preview" className="w-8 h-5 object-cover rounded border border-gray-200 bg-white" />
+                      )}
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={editingRaffle.bannerUrl || ''}
+                        onChange={e => setEditingRaffle({ ...editingRaffle, bannerUrl: e.target.value })}
+                        placeholder="https://.../banner.png"
+                        className="flex-1 bg-white border border-gray-200 text-gray-900 p-2 rounded-lg outline-none text-xs"
+                      />
+                      <input
+                        type="file"
+                        ref={editBannerFileRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'banner', true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => editBannerFileRef.current?.click()}
+                        className="px-2.5 bg-white hover:bg-gray-100 text-gray-800 rounded-lg text-xs font-medium border border-gray-200 shrink-0"
+                      >
+                        {uploadingBanner ? '...' : 'Upload'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
