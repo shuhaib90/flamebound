@@ -403,14 +403,14 @@ export default function SingleRafflePage() {
                 </div>
 
                 {/* Big Artwork Banner */}
-                <div className="relative overflow-hidden h-64 sm:h-80 bg-gray-100">
+                <div className="relative overflow-hidden aspect-[16/7] w-full bg-gray-100">
                   <PixelArtwork
                     type={raffle.artworkType}
                     bannerUrl={raffle.bannerUrl}
                     logoUrl={raffle.logoUrl}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                   
                   {/* Top-Right: Network Badge */}
                   <div className="absolute top-3 right-3 z-10">
@@ -426,8 +426,30 @@ export default function SingleRafflePage() {
                   </div>
                 </div>
 
+                {/* Overlapping Project Avatar Logo in prominent visible place */}
+                <div className="relative px-6 flex items-end justify-between -mt-8 sm:-mt-10 z-20 pointer-events-none">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1.5 border-4 border-white shadow-lg overflow-hidden flex items-center justify-center pointer-events-auto shrink-0 ring-1 ring-gray-200/50">
+                    {raffle.logoUrl ? (
+                      <img
+                        src={raffle.logoUrl}
+                        alt={projectName}
+                        className="w-full h-full object-contain rounded-xl"
+                        onError={e => {
+                          (e.target as HTMLImageElement).src = '/images/dotset-logo.png';
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src="/images/dotset-logo.png"
+                        alt="DOTSET"
+                        className="w-full h-full object-contain p-1"
+                      />
+                    )}
+                  </div>
+                </div>
+
                 {/* Body Specs */}
-                <div className="p-6 space-y-5">
+                <div className="p-6 pt-3 sm:pt-4 space-y-5">
                   <div>
                     <h1 className="font-syne text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
                       <span>{raffle.title}</span>

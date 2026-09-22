@@ -13,25 +13,16 @@ interface PixelArtworkProps {
 export function PixelArtwork({ type = 'genesis', bannerUrl, logoUrl, size = 180, className = '' }: PixelArtworkProps) {
   const [imgError, setImgError] = useState(false);
 
-  // If custom uploaded image is available
+  // If custom uploaded banner is available
   if (bannerUrl && !imgError) {
     return (
-      <div 
-        className="w-full bg-black flex flex-col items-center justify-center border-4 border-black relative overflow-hidden group select-none"
-        style={{ minHeight: `${size}px` }}
-      >
+      <div className={`w-full h-full relative overflow-hidden flex items-center justify-center bg-gray-100 select-none ${className}`}>
         <img
           src={bannerUrl}
-          alt="NFT Artwork"
+          alt="Campaign Artwork Banner"
           onError={() => setImgError(true)}
-          className="w-full h-full object-cover max-h-[220px] group-hover:scale-105 transition-transform"
-          style={{ imageRendering: 'pixelated' }}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        {logoUrl && (
-          <div className="absolute top-2 left-2 w-9 h-9">
-            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-md" />
-          </div>
-        )}
       </div>
     );
   }
@@ -39,18 +30,18 @@ export function PixelArtwork({ type = 'genesis', bannerUrl, logoUrl, size = 180,
   if (type === 'genesis') {
     return (
       <div 
-        className="w-full bg-black flex flex-col items-center justify-center border-4 border-black relative overflow-hidden group select-none p-3"
+        className="w-full h-full bg-[#0e172a] flex flex-col items-center justify-center relative overflow-hidden select-none p-4"
         style={{ minHeight: `${size}px` }}
       >
-        <div className="w-28 h-28 max-h-[140px] flex items-center justify-center group-hover:scale-110 transition-transform">
+        <div className="w-24 h-24 flex items-center justify-center group-hover:scale-110 transition-transform">
           <img
             src="/images/dotset-logo.png"
             alt="DOTSET Genesis"
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="mt-2 bg-[#293681] text-white font-pixel text-[9px] px-2 py-0.5 border-2 border-[#293681] font-bold">
-          ★ DOTSET GENESIS ★
+        <div className="mt-2 bg-[#293681] text-white font-mono-dm text-[10px] px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+          DOTSET Drop
         </div>
       </div>
     );
@@ -59,61 +50,46 @@ export function PixelArtwork({ type = 'genesis', bannerUrl, logoUrl, size = 180,
   if (type === 'cyber_beast') {
     return (
       <div 
-        className="w-full bg-black flex flex-col items-center justify-center border-4 border-black relative overflow-hidden group select-none p-4"
+        className="w-full h-full bg-[#0a0f1d] flex flex-col items-center justify-center relative overflow-hidden select-none p-4"
         style={{ minHeight: `${size}px` }}
       >
-        <div className="text-lime text-center font-pixel text-xs mb-2 tracking-wider">
-          CYBER-BEAST #042
+        <div className="text-[#38bdf8] text-center font-mono-dm text-xs mb-2 tracking-wider font-bold">
+          PARTNER WL PASS
         </div>
-        {/* Pixel Cyber Wolf / Beast */}
-        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" className="transform group-hover:scale-105 transition-transform">
-          {/* Beast Ears */}
-          <rect x="4" y="3" width="3" height="4" fill="#A6FF00" />
-          <rect x="17" y="3" width="3" height="4" fill="#A6FF00" />
-          <rect x="5" y="4" width="1" height="2" fill="#000000" />
-          <rect x="18" y="4" width="1" height="2" fill="#000000" />
-
-          {/* Head */}
-          <rect x="6" y="6" width="12" height="12" fill="#A6FF00" />
-          <rect x="3" y="8" width="18" height="8" fill="#A6FF00" />
-
-          {/* Cyber Visor */}
-          <rect x="5" y="9" width="14" height="4" fill="#000000" />
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" className="transform group-hover:scale-105 transition-transform">
+          <rect x="4" y="3" width="3" height="4" fill="#38bdf8" />
+          <rect x="17" y="3" width="3" height="4" fill="#38bdf8" />
+          <rect x="5" y="4" width="1" height="2" fill="#0f172a" />
+          <rect x="18" y="4" width="1" height="2" fill="#0f172a" />
+          <rect x="6" y="6" width="12" height="12" fill="#38bdf8" />
+          <rect x="3" y="8" width="18" height="8" fill="#38bdf8" />
+          <rect x="5" y="9" width="14" height="4" fill="#0f172a" />
           <rect x="6" y="10" width="12" height="2" fill="#FFFFFF" />
-
-          {/* Fang Snout */}
-          <rect x="9" y="14" width="6" height="5" fill="#000000" />
+          <rect x="9" y="14" width="6" height="5" fill="#0f172a" />
           <rect x="10" y="15" width="4" height="2" fill="#FFFFFF" />
-          <rect x="9" y="17" width="1" height="2" fill="#FFFFFF" />
-          <rect x="14" y="17" width="1" height="2" fill="#FFFFFF" />
         </svg>
-        <div className="mt-3 bg-lime text-black font-silkscreen text-[10px] px-2 py-0.5 border-2 border-black font-bold">
-          COMPANION PASS
+        <div className="mt-3 bg-[#38bdf8] text-gray-900 font-mono-dm text-[10px] px-2 py-0.5 rounded font-bold">
+          VERIFIED DROP
         </div>
       </div>
     );
   }
 
-  // Founders pass or Relic
+  // Fallback
   return (
     <div 
-      className="w-full bg-black flex flex-col items-center justify-center border-4 border-black relative overflow-hidden group select-none p-4"
+      className="w-full h-full bg-gradient-to-br from-[#1e293b] to-[#0f172a] flex flex-col items-center justify-center relative overflow-hidden select-none p-4"
       style={{ minHeight: `${size}px` }}
     >
-      <div className="text-lime text-center font-pixel text-xs mb-2 tracking-wider">
-        VIP FOUNDERS PASS
+      <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mb-2">
+        <img
+          src="/images/dotset-logo.png"
+          alt="DOTSET"
+          className="w-10 h-10 object-contain"
+        />
       </div>
-      {/* Pixel Key / Pass Badge */}
-      <svg width="96" height="96" viewBox="0 0 24 24" fill="none" className="transform group-hover:scale-105 transition-transform">
-        <rect x="7" y="3" width="10" height="10" fill="#FFFFFF" />
-        <rect x="9" y="5" width="6" height="6" fill="#000000" />
-        <rect x="10" y="6" width="4" height="4" fill="#A6FF00" />
-        <rect x="11" y="13" width="2" height="8" fill="#FFFFFF" />
-        <rect x="13" y="16" width="3" height="2" fill="#FFFFFF" />
-        <rect x="13" y="19" width="4" height="2" fill="#FFFFFF" />
-      </svg>
-      <div className="mt-3 bg-white text-black font-silkscreen text-[10px] px-2 py-0.5 border-2 border-black font-bold">
-        STATUS: CONCLUDED
+      <div className="text-white font-mono-dm text-[10px] uppercase font-semibold">
+        DOTSET WHITELIST
       </div>
     </div>
   );

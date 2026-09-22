@@ -105,10 +105,10 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
       className="cq-card flex flex-col justify-between overflow-hidden select-none group"
     >
       <div>
-        {/* Cover Artwork Banner matching CloudQuest */}
+        {/* Cover Artwork Banner matching aspect ratio */}
         <Link 
           href={rafflePageUrl} 
-          className="block relative overflow-hidden h-44 sm:h-48 cursor-pointer bg-gray-100"
+          className="block relative overflow-hidden aspect-[16/9] w-full cursor-pointer bg-gray-100"
         >
           <PixelArtwork
             type={raffle.artworkType}
@@ -118,7 +118,7 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           />
           
           {/* Bottom gradient fade */}
-          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
           {/* Top-Left: Network & Stage Pills */}
           <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
@@ -152,8 +152,30 @@ export function RaffleCard({ raffle, onEdit }: RaffleCardProps) {
           </div>
         </Link>
 
+        {/* Overlapping Project Logo Avatar in prominent visible place */}
+        <div className="relative px-4 sm:px-5 flex items-end justify-between -mt-6 sm:-mt-7 z-20 pointer-events-none">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white p-1 border-2 border-white shadow-md overflow-hidden flex items-center justify-center pointer-events-auto shrink-0 ring-1 ring-gray-100">
+            {raffle.logoUrl ? (
+              <img
+                src={raffle.logoUrl}
+                alt={raffle.project || raffle.title}
+                className="w-full h-full object-contain rounded-xl"
+                onError={e => {
+                  (e.target as HTMLImageElement).src = '/images/dotset-logo.png';
+                }}
+              />
+            ) : (
+              <img
+                src="/images/dotset-logo.png"
+                alt="DOTSET"
+                className="w-full h-full object-contain p-1"
+              />
+            )}
+          </div>
+        </div>
+
         {/* Card Body */}
-        <div className="p-4 sm:p-5 space-y-3">
+        <div className="p-4 sm:p-5 pt-2 sm:pt-3 space-y-3">
           
           {/* Project Title & Verified Tag */}
           <div>
