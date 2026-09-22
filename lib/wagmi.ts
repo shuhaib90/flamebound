@@ -11,7 +11,7 @@ export const robinhoodChain = defineChain({
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: {
     default: {
-      http: ['https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY'],
+      http: ['https://cloudflare-eth.com'],
     },
   },
   blockExplorers: {
@@ -31,8 +31,8 @@ export const wagmiConfig = getDefaultConfig({
   projectId: '3fcc6bba6f1de962d911bb5b5c3dba68', // Public WalletConnect project ID
   chains: [mainnet, robinhoodChain, base, sepolia, polygon, arbitrum],
   transports: {
-    [mainnet.id]: http('https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY'),
-    [robinhoodChain.id]: http('https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY'),
+    [mainnet.id]: http('https://cloudflare-eth.com'),
+    [robinhoodChain.id]: http('https://cloudflare-eth.com'),
     [base.id]: http('https://mainnet.base.org'),
     [sepolia.id]: http('https://rpc.sepolia.org'),
     [polygon.id]: http('https://polygon-rpc.com'),

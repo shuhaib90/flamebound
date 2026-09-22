@@ -12,7 +12,7 @@ const erc721Abi = parseAbi([
 
 // Official live DOTSET NFT deployment configurations
 export const DOTSET_PRIMARY_CONTRACT = '0xad11f08a3a1e15756abcf565269d3c32b6d464b9';
-export const DOTSET_PRIMARY_RPC = 'https://robinhood-mainnet.g.alchemy.com/v2/alch_008u8jC_qTSIJvqgLbdGY';
+export const DOTSET_PRIMARY_RPC = 'https://cloudflare-eth.com';
 
 // Clean test holders registry with valid EIP-55 checksummed addresses
 export const KNOWN_TEST_HOLDERS: Record<string, { balance: number; tokenIds: string[]; name: string }> = {
