@@ -1464,9 +1464,9 @@ export function AdminDashboard() {
                       </p>
 
                       {/* Stats Row */}
-                      <div className="grid grid-cols-3 gap-2 bg-gray-50 border border-gray-100 rounded-xl p-3 my-4 text-center">
+                      <div className="grid grid-cols-3 gap-2 bg-gray-50 border border-gray-100 rounded-xl p-3 my-3 text-center">
                         <div>
-                          <div className="text-[10px] font-mono-dm text-gray-400 uppercase">Supply</div>
+                          <div className="text-[10px] font-mono-dm text-gray-400 uppercase">WL Spots</div>
                           <div className="text-xs font-bold text-gray-900 mt-0.5">{r.supply} Spots</div>
                         </div>
                         <div>
@@ -1476,6 +1476,18 @@ export function AdminDashboard() {
                         <div>
                           <div className="text-[10px] font-mono-dm text-gray-400 uppercase">Winners</div>
                           <div className="text-xs font-bold text-amber-600 mt-0.5">{r.winners?.length || 0}</div>
+                        </div>
+                      </div>
+
+                      {/* Project Supply & Mint Date Meta */}
+                      <div className="flex items-center justify-between text-[11px] font-mono-dm bg-gray-50/70 px-3 py-2 rounded-lg border border-gray-100 mb-3 text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">Mint Date:</span>
+                          <span className="font-semibold text-gray-800">{r.mintDate || 'TBA'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">Total Supply:</span>
+                          <span className="font-semibold text-gray-800">{r.nftTotalSupply || 'TBA'}</span>
                         </div>
                       </div>
                     </div>
@@ -1659,7 +1671,7 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Slug & Mint Stage */}
+              {/* Supply & Mint Configuration */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
@@ -1691,7 +1703,7 @@ export function AdminDashboard() {
 
                 <div>
                   <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
-                    Allocation Supply (Spots) *
+                    Allocation Spots (Supply) *
                   </label>
                   <input
                     type="number"
@@ -1704,16 +1716,59 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Mint Details & Chain Configuration */}
+              {/* Project Total Supply, Mint Date & Price */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
-                    Mint Price (e.g. FREE MINT)
+                    Total NFT Supply (Project Supply)
+                  </label>
+                  <input
+                    type="text"
+                    value={newRaffle.nftTotalSupply}
+                    onChange={e => setNewRaffle({ ...newRaffle, nftTotalSupply: e.target.value })}
+                    placeholder="e.g. 1,000 NFTs or 5,555"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
+                    Mint Date of Project
+                  </label>
+                  <input
+                    type="text"
+                    value={newRaffle.mintDate}
+                    onChange={e => setNewRaffle({ ...newRaffle, mintDate: e.target.value })}
+                    placeholder="e.g. 15 OCT 2026 — 18:00 UTC or TBA"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
+                    Mint Price
                   </label>
                   <input
                     type="text"
                     value={newRaffle.mintPrice}
                     onChange={e => setNewRaffle({ ...newRaffle, mintPrice: e.target.value })}
+                    placeholder="e.g. FREE MINT or 0.05 ETH"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 rounded-xl p-3 text-sm outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Additional Mint Info & Schedule */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
+                    Max Mint Per Wallet
+                  </label>
+                  <input
+                    type="text"
+                    value={newRaffle.maxMintPerWallet}
+                    onChange={e => setNewRaffle({ ...newRaffle, maxMintPerWallet: e.target.value })}
+                    placeholder="e.g. 1 PER WL"
                     className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
@@ -1756,6 +1811,20 @@ export function AdminDashboard() {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Mint URL Link */}
+              <div>
+                <label className="block text-xs font-mono-dm uppercase text-gray-600 font-medium mb-1.5">
+                  Official Mint / Project URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={newRaffle.mintUrl}
+                  onChange={e => setNewRaffle({ ...newRaffle, mintUrl: e.target.value })}
+                  placeholder="https://mint.project.com"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl p-3 text-sm outline-none"
+                />
               </div>
 
               {/* Custom Chain & Logo Options */}
@@ -2772,7 +2841,7 @@ export function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
                       Supply (Spots)
@@ -2799,6 +2868,77 @@ export function AdminDashboard() {
                       <option value="closed">Closed</option>
                       <option value="winners_drawn">Winners Drawn</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Mint Info & Project Supply in Edit Modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Total NFT Supply
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.nftTotalSupply || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, nftTotalSupply: e.target.value })}
+                      placeholder="e.g. 1,000 NFTs or 5,555"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Date of Project
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.mintDate || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, mintDate: e.target.value })}
+                      placeholder="e.g. 15 OCT 2026 — 18:00 UTC"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Mint Price
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.mintPrice || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, mintPrice: e.target.value })}
+                      placeholder="e.g. FREE MINT or 0.05 ETH"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+                </div>
+
+                {/* Max Mint & Project URL in Edit Modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Max Mint Per Wallet
+                    </label>
+                    <input
+                      type="text"
+                      value={editingRaffle.maxMintPerWallet || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, maxMintPerWallet: e.target.value })}
+                      placeholder="e.g. 1 PER WL"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-mono-dm uppercase text-gray-600 font-medium mb-1">
+                      Official Mint / Project URL
+                    </label>
+                    <input
+                      type="url"
+                      value={editingRaffle.mintUrl || ''}
+                      onChange={e => setEditingRaffle({ ...editingRaffle, mintUrl: e.target.value })}
+                      placeholder="https://mint.project.com"
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg outline-none text-sm focus:border-[#293681]"
+                    />
                   </div>
                 </div>
 
