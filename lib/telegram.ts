@@ -7,7 +7,7 @@ export interface TelegramConfig {
 }
 
 const DEFAULT_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8614389362:AAFGEDPeVJzD8_anq3MM5SO00JM3WjRqegU';
-const DEFAULT_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
+const DEFAULT_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '@dotset_xyz';
 const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://dotsetraffles.xyz';
 
 let runtimeConfig: TelegramConfig = {

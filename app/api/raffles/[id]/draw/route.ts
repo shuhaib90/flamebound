@@ -1,5 +1,6 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { drawRaffleWinnersAsync, getRaffleByIdAsync } from '@/lib/db';
+import { sendTelegramWinnersNotification } from '@/lib/telegram';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -14,6 +15,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const result = await drawRaffleWinnersAsync(id, winnerCount ? Number(winnerCount) : undefined);
 
+    // Auto-send live winners announcement to Telegram
+    try {
+      await sendTelegramWinnersNotification(result.raffle);
+    } catch (tgErr) {
+      console.warn('Telegram auto-notify winners failed:', tgErr);
+    }
+
     return NextResponse.json({
       success: true,
       raffle: result.raffle,
@@ -24,3 +32,4 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
+

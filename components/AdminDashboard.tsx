@@ -1469,17 +1469,6 @@ export function AdminDashboard() {
                           <ExternalLink size={14} />
                         </Link>
                       </div>
-
-                      {/* Telegram Community Broadcast Button */}
-                      <button
-                        onClick={() => handleBroadcastToTelegram(r.id, r.title)}
-                        disabled={broadcastingRaffleId === r.id}
-                        className="w-full bg-[#0088cc]/10 hover:bg-[#0088cc]/20 border border-[#0088cc]/30 text-[#0088cc] font-dm font-semibold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                        title="Broadcast live announcement card to Telegram community channel"
-                      >
-                        <Send size={13} className={broadcastingRaffleId === r.id ? 'animate-spin' : ''} />
-                        <span>{broadcastingRaffleId === r.id ? 'Broadcasting...' : '📢 Broadcast to Telegram'}</span>
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -2584,82 +2573,9 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="text-[11px] text-gray-400 font-mono-dm text-center pt-2">
-                  Powered by @DOTSETRAFFLESbot • Fast, Secure & Automated
+                  Powered by @DOTSETRAFFLESbot • 100% Automated Instant Broadcast
                 </div>
               </div>
-            </div>
-
-            {/* Quick Broadcast Live Raffles Table */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="font-syne text-base font-bold text-gray-900">
-                    Quick Broadcast Any Live Raffle
-                  </h3>
-                  <p className="text-xs text-gray-500 font-dm">
-                    Instantly send an announcement card for any active raffle directly to <span className="font-mono font-semibold text-gray-800">{telegramChatId || 'your target channel'}</span>.
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-mono-dm text-gray-700">
-                  {raffles.length} Total Campaigns
-                </span>
-              </div>
-
-              {raffles.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs font-dm">
-                  No active raffles found to broadcast.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left font-dm text-xs">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-mono-dm text-[10px]">
-                      <tr>
-                        <th className="py-3 px-4">Campaign</th>
-                        <th className="py-3 px-4">Network</th>
-                        <th className="py-3 px-4">Spots</th>
-                        <th className="py-3 px-4">Stage</th>
-                        <th className="py-3 px-4 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 text-gray-700">
-                      {raffles.map(r => (
-                        <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="py-3 px-4">
-                            <div className="font-semibold text-gray-900">{r.title}</div>
-                            <div className="text-[11px] text-gray-400">{r.project}</div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <ChainBadge
-                              network={r.network}
-                              customNetwork={r.customNetwork}
-                              customNetworkLogoUrl={r.customNetworkLogoUrl}
-                              size="sm"
-                            />
-                          </td>
-                          <td className="py-3 px-4 font-mono-dm text-gray-900 font-medium">
-                            {r.supply} Spots
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-mono-dm text-gray-700 font-semibold uppercase">
-                              {r.mintStage || (r.entryMethod === 'fcfs' ? 'FCFS' : 'GTD')}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={() => handleBroadcastToTelegram(r.id, r.title)}
-                              disabled={broadcastingRaffleId === r.id}
-                              className="px-3 py-1.5 bg-[#0088cc] hover:bg-[#0077b5] text-white text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5 shadow-sm"
-                            >
-                              <Send size={12} className={broadcastingRaffleId === r.id ? 'animate-spin' : ''} />
-                              <span>{broadcastingRaffleId === r.id ? 'Posting...' : 'Broadcast to TG'}</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -3818,32 +3734,22 @@ export function AdminDashboard() {
                 )}
               </div>
 
-              {/* Telegram Broadcast Toggle */}
-              <div className="p-4 bg-sky-50/70 border border-sky-200 rounded-xl flex items-center justify-between gap-4">
+              {/* Automated Telegram Broadcast Badge */}
+              <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#0088cc] text-white flex items-center justify-center shrink-0">
-                    <Send size={18} />
+                  <div className="w-8 h-8 rounded-xl bg-[#0088cc] text-white flex items-center justify-center shrink-0">
+                    <Send size={15} />
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 text-xs flex items-center gap-1.5">
-                      <span>Broadcast Winners Announcement to Telegram Bot</span>
-                      <span className="font-mono text-[10px] text-[#0088cc] font-bold">@DOTSETRAFFLESbot</span>
+                      <span>Automatic Telegram Notification</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono-dm font-bold uppercase">Active</span>
                     </div>
                     <div className="text-[11px] text-gray-500 mt-0.5">
-                      Instantly sends rich winning announcement with direct link to check the full winners list.
+                      Announcements will automatically post to your community group upon publishing.
                     </div>
                   </div>
                 </div>
-
-                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={notifyTelegramOnWinners}
-                    onChange={e => setNotifyTelegramOnWinners(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0088cc]"></div>
-                </label>
               </div>
 
               {/* Modal Actions */}
