@@ -16,6 +16,9 @@ let runtimeConfig: TelegramConfig = {
   autoNotify: true,
 };
 
+// Known active chat subscribers (private chats + group IDs)
+const knownSubscribers = new Set<string>(['7935970554', '2127320399']);
+
 export function getTelegramConfig(): TelegramConfig {
   return { ...runtimeConfig };
 }
@@ -75,7 +78,10 @@ export function formatRaffleTelegramMessage(raffle: Raffle, baseUrl: string = AP
   lines.push(`🔗 #DOTSET #NFT #${escapeHtml(networkName.replace(/\s+/g, ''))} #Whitelist`);
 
   const text = lines.join('\n');
-  const imageUrl = raffle.bannerUrl || raffle.logoUrl || undefined;
+  let imageUrl = raffle.bannerUrl || raffle.logoUrl || undefined;
+  if (imageUrl && imageUrl.startsWith('/')) {
+    imageUrl = `${baseUrl.replace(/\/$/, '')}${imageUrl}`;
+  }
 
   return {
     text,
@@ -85,26 +91,55 @@ export function formatRaffleTelegramMessage(raffle: Raffle, baseUrl: string = AP
 }
 
 /**
- * Send a notification to Telegram group or channel
+ * Sync active chat subscribers and groups from Telegram API updates
+ */
+export async function syncTelegramSubscribers(token: string = DEFAULT_BOT_TOKEN): Promise<string[]> {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates`, {
+      cache: 'no-store',
+    });
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.result)) {
+      data.result.forEach((update: any) => {
+        const msg = update.message || update.channel_post || update.my_chat_member;
+        if (msg?.chat?.id) {
+          knownSubscribers.add(String(msg.chat.id));
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error syncing Telegram subscribers:', err);
+  }
+
+  const list: string[] = [];
+  if (runtimeConfig.chatId && runtimeConfig.chatId.trim()) {
+    list.push(runtimeConfig.chatId.trim());
+  }
+  knownSubscribers.forEach(id => {
+    const strId = String(id).trim();
+    if (strId && !list.includes(strId)) {
+      list.push(strId);
+    }
+  });
+
+  return list;
+}
+
+/**
+ * Send a notification to all subscribed Telegram groups, channels, and users
  */
 export async function sendTelegramRaffleNotification(
   raffle: Raffle,
   overrideChatId?: string,
   overrideToken?: string
-): Promise<{ success: boolean; messageId?: number; error?: string }> {
+): Promise<{ success: boolean; messageId?: number; sentCount?: number; error?: string }> {
   const token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  const chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
 
   if (!token) {
     return { success: false, error: 'Telegram Bot Token is not configured.' };
   }
-  if (!chatId) {
-    return { 
-      success: false, 
-      error: 'Telegram Chat ID or @channel is not configured. Please set it in Admin Dashboard or .env' 
-    };
-  }
 
+  const allTargets = overrideChatId ? [overrideChatId] : await syncTelegramSubscribers(token);
   const { text, raffleUrl, imageUrl } = formatRaffleTelegramMessage(raffle);
 
   const inlineKeyboard = {
@@ -119,102 +154,64 @@ export async function sendTelegramRaffleNotification(
     ],
   };
 
-  try {
-    // 1. If image is available and is a valid external/hosted URL, try sendPhoto
-    if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
-      const photoPayload = {
-        chat_id: chatId,
-        photo: imageUrl,
-        caption: text,
-        parse_mode: 'HTML',
-        reply_markup: inlineKeyboard,
-      };
+  let successfulDeliveries = 0;
+  let lastMessageId: number | undefined;
+  let lastError: string | undefined;
 
-      const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+  for (const chatId of allTargets) {
+    try {
+      // 1. Try sendPhoto if image URL is available
+      if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+        const photoRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            photo: imageUrl,
+            caption: text,
+            parse_mode: 'HTML',
+            reply_markup: inlineKeyboard,
+          }),
+        });
+
+        const photoData = await photoRes.json();
+        if (photoData.ok) {
+          successfulDeliveries++;
+          lastMessageId = photoData.result?.message_id;
+          continue;
+        }
+      }
+
+      // 2. Fallback to sendMessage
+      const msgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(photoPayload),
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML',
+          disable_web_page_preview: false,
+          reply_markup: inlineKeyboard,
+        }),
       });
 
-      const data = await res.json();
-      if (data.ok) {
-        return { success: true, messageId: data.result?.message_id };
+      const msgData = await msgRes.json();
+      if (msgData.ok) {
+        successfulDeliveries++;
+        lastMessageId = msgData.result?.message_id;
+      } else {
+        lastError = msgData.description;
       }
-      console.warn('sendPhoto failed, falling back to sendMessage:', data.description);
+    } catch (err: any) {
+      lastError = err.message;
     }
-
-    // 2. Fallback to sendMessage
-    const msgPayload = {
-      chat_id: chatId,
-      text: text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: false,
-      reply_markup: inlineKeyboard,
-    };
-
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(msgPayload),
-    });
-
-    const data = await res.json();
-    if (data.ok) {
-      return { success: true, messageId: data.result?.message_id };
-    }
-
-    return { success: false, error: data.description || 'Failed to send message via Telegram Bot' };
-  } catch (err: any) {
-    console.error('Error sending Telegram notification:', err);
-    return { success: false, error: err.message || 'Network exception while connecting to Telegram API' };
-  }
-}
-
-/**
- * Send a quick test notification to verify bot connection
- */
-export async function sendTelegramTestMessage(
-  chatId: string,
-  token?: string
-): Promise<{ success: boolean; error?: string }> {
-  const botToken = token || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  if (!botToken || !chatId) {
-    return { success: false, error: 'Bot token and Chat ID are required.' };
   }
 
-  const text = [
-    `🤖 <b>DOTSET RAFFLES BOT CONNECTED!</b>`,
-    ``,
-    `✅ Telegram notifications are working properly.`,
-    `📡 When new whitelist raffles go live, community announcements will be posted here automatically with direct entry links and raffle banner artwork.`,
-    ``,
-    `🌐 <a href="${APP_BASE_URL}">Visit DOTSET Raffles</a>`,
-  ].join('\n');
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: text,
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: '🚀 Open DOTSET', url: APP_BASE_URL }],
-          ],
-        },
-      }),
-    });
-
-    const data = await res.json();
-    if (data.ok) {
-      return { success: true };
-    }
-    return { success: false, error: data.description || 'Telegram API rejected message' };
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Network error sending test message' };
+  if (successfulDeliveries > 0) {
+    return { success: true, messageId: lastMessageId, sentCount: successfulDeliveries };
   }
+
+  return { success: false, error: lastError || 'Failed to deliver to Telegram targets' };
 }
 
 /**
@@ -259,32 +256,29 @@ export function formatWinnersTelegramMessage(raffle: Raffle, baseUrl: string = A
   lines.push(`🔗 #DOTSET #Winners #Whitelist #${escapeHtml(networkName.replace(/\s+/g, ''))}`);
 
   const text = lines.join('\n');
-  const imageUrl = raffle.bannerUrl || raffle.logoUrl || undefined;
+  let imageUrl = raffle.bannerUrl || raffle.logoUrl || undefined;
+  if (imageUrl && imageUrl.startsWith('/')) {
+    imageUrl = `${baseUrl.replace(/\/$/, '')}${imageUrl}`;
+  }
 
   return { text, raffleUrl, imageUrl };
 }
 
 /**
- * Send official winners announcement to Telegram community group/channel
+ * Send official winners announcement to all Telegram subscribers and groups
  */
 export async function sendTelegramWinnersNotification(
   raffle: Raffle,
   overrideChatId?: string,
   overrideToken?: string
-): Promise<{ success: boolean; messageId?: number; error?: string }> {
+): Promise<{ success: boolean; messageId?: number; sentCount?: number; error?: string }> {
   const token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  const chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
 
   if (!token) {
     return { success: false, error: 'Telegram Bot Token is not configured.' };
   }
-  if (!chatId) {
-    return { 
-      success: false, 
-      error: 'Telegram Chat ID is not configured. Please set it in Admin Dashboard or .env' 
-    };
-  }
 
+  const allTargets = overrideChatId ? [overrideChatId] : await syncTelegramSubscribers(token);
   const { text, raffleUrl, imageUrl } = formatWinnersTelegramMessage(raffle);
 
   const inlineKeyboard = {
@@ -299,51 +293,107 @@ export async function sendTelegramWinnersNotification(
     ],
   };
 
-  try {
-    if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
-      const photoPayload = {
-        chat_id: chatId,
-        photo: imageUrl,
-        caption: text,
-        parse_mode: 'HTML',
-        reply_markup: inlineKeyboard,
-      };
+  let successfulDeliveries = 0;
+  let lastMessageId: number | undefined;
+  let lastError: string | undefined;
 
-      const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+  for (const chatId of allTargets) {
+    try {
+      if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+        const photoRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            photo: imageUrl,
+            caption: text,
+            parse_mode: 'HTML',
+            reply_markup: inlineKeyboard,
+          }),
+        });
+
+        const photoData = await photoRes.json();
+        if (photoData.ok) {
+          successfulDeliveries++;
+          lastMessageId = photoData.result?.message_id;
+          continue;
+        }
+      }
+
+      const msgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(photoPayload),
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML',
+          disable_web_page_preview: false,
+          reply_markup: inlineKeyboard,
+        }),
       });
 
-      const data = await res.json();
-      if (data.ok) {
-        return { success: true, messageId: data.result?.message_id };
+      const msgData = await msgRes.json();
+      if (msgData.ok) {
+        successfulDeliveries++;
+        lastMessageId = msgData.result?.message_id;
+      } else {
+        lastError = msgData.description;
       }
-      console.warn('sendPhoto failed for winners announcement, falling back to sendMessage:', data.description);
+    } catch (err: any) {
+      lastError = err.message;
     }
+  }
 
-    const msgPayload = {
-      chat_id: chatId,
-      text: text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: false,
-      reply_markup: inlineKeyboard,
-    };
+  if (successfulDeliveries > 0) {
+    return { success: true, messageId: lastMessageId, sentCount: successfulDeliveries };
+  }
 
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  return { success: false, error: lastError || 'Failed to send winners announcement via Telegram' };
+}
+
+/**
+ * Send a quick test notification to verify bot connection
+ */
+export async function sendTelegramTestMessage(
+  chatId: string,
+  token?: string
+): Promise<{ success: boolean; error?: string }> {
+  const botToken = token || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
+  if (!botToken || !chatId) {
+    return { success: false, error: 'Bot token and Chat ID are required.' };
+  }
+
+  const text = [
+    `🤖 <b>DOTSET RAFFLES BOT CONNECTED!</b>`,
+    ``,
+    `✅ Telegram notifications are active and connected.`,
+    `📡 Live whitelist raffles and winners will be announced here automatically with entry links and artwork.`,
+    ``,
+    `🌐 <a href="${APP_BASE_URL}">Visit DOTSET Raffles</a>`,
+  ].join('\n');
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(msgPayload),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🚀 Open DOTSET', url: APP_BASE_URL }],
+          ],
+        },
+      }),
     });
 
     const data = await res.json();
     if (data.ok) {
-      return { success: true, messageId: data.result?.message_id };
+      return { success: true };
     }
-
-    return { success: false, error: data.description || 'Failed to send winners announcement via Telegram' };
+    return { success: false, error: data.description || 'Telegram API rejected message' };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Error connecting to Telegram API' };
+    return { success: false, error: err.message || 'Network error sending test message' };
   }
 }
-
