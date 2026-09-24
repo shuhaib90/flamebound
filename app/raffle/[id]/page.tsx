@@ -55,8 +55,10 @@ export default function SingleRafflePage() {
     handleLinked: false,
     walletProvided: false,
     followPartner: false,
-    followDotset: false,
     engage: false,
+    followDotsetArena: false,
+    followDotset: false,
+    joinTelegram: false,
   });
 
   const [customTasksDone, setCustomTasksDone] = useState<Record<string, boolean>>({});
@@ -165,24 +167,39 @@ export default function SingleRafflePage() {
 
   const customTasksList: CustomTask[] = Array.isArray(raffle?.customTasks) ? raffle.customTasks : [];
 
-  const baseTaskCount = 4;
-  const totalTasks = baseTaskCount + (raffle?.engageUrl ? 1 : 0) + customTasksList.length;
+  // Filter out built-in dotset tasks from customTasksList to prevent duplicate rendering
+  const extraCustomTasks = customTasksList.filter(ct => {
+    const url = (ct.url || '').toLowerCase();
+    const title = (ct.title || '').toLowerCase();
+    if (url.includes('dotsetarena') || title.includes('dotsetarena')) return false;
+    if (url.includes('dotsetxyz') || (title.includes('follow') && title.includes('dotset') && !title.includes('arena') && !title.includes('tg') && !title.includes('telegram'))) return false;
+    if (url.includes('t.me/dotset_xyz') || (title.includes('dotset') && (title.includes('telegram') || title.includes('tg') || title.includes('community')))) return false;
+    return true;
+  });
+
+  // Base tasks: Handle + Wallet + Follow Project + Follow @dotsetarena + Follow @DOTSET + Join Telegram
+  const baseTaskCount = 6;
+  const totalTasks = baseTaskCount + (raffle?.engageUrl ? 1 : 0) + extraCustomTasks.length;
 
   const completedCount = 
     (tasks.handleLinked ? 1 : 0) +
     (tasks.walletProvided ? 1 : 0) +
     (tasks.followPartner ? 1 : 0) +
-    (tasks.followDotset ? 1 : 0) +
     (tasks.engage ? 1 : 0) +
-    Object.values(customTasksDone).filter(Boolean).length;
+    (tasks.followDotsetArena ? 1 : 0) +
+    (tasks.followDotset ? 1 : 0) +
+    (tasks.joinTelegram ? 1 : 0) +
+    extraCustomTasks.filter(t => Boolean(customTasksDone[t.id])).length;
 
   const allTasksCompleted = 
     tasks.handleLinked && 
     tasks.walletProvided && 
     tasks.followPartner && 
-    tasks.followDotset &&
     (!raffle?.engageUrl || tasks.engage) &&
-    customTasksList.every(t => Boolean(customTasksDone[t.id]));
+    tasks.followDotsetArena &&
+    tasks.followDotset &&
+    tasks.joinTelegram &&
+    extraCustomTasks.every(t => Boolean(customTasksDone[t.id]));
 
   const progressPercent = Math.min(100, Math.round((completedCount / totalTasks) * 100));
 
@@ -228,20 +245,30 @@ export default function SingleRafflePage() {
   };
 
   const handleFollowPartner = () => {
-    const target = raffle?.followUrl || raffle?.twitterUrl || 'https://x.com/dotsetxyz';
+    const target = raffle?.followUrl || raffle?.twitterUrl || 'https://x.com/dotsetarena';
     window.open(target, '_blank');
     setTasks(prev => ({ ...prev, followPartner: true }));
   };
 
-  const handleFollowDotset = () => {
+  const handleEngageTask = () => {
+    const target = raffle?.engageUrl || raffle?.followUrl || 'https://x.com/dotsetarena';
+    window.open(target, '_blank');
+    setTasks(prev => ({ ...prev, engage: true }));
+  };
+
+  const handleFollowDotsetArena = () => {
     window.open('https://x.com/dotsetarena', '_blank');
+    setTasks(prev => ({ ...prev, followDotsetArena: true }));
+  };
+
+  const handleFollowDotset = () => {
+    window.open('https://x.com/dotsetxyz', '_blank');
     setTasks(prev => ({ ...prev, followDotset: true }));
   };
 
-  const handleEngageTask = () => {
-    const target = raffle?.engageUrl || raffle?.twitterUrl || 'https://x.com/dotsetxyz';
-    window.open(target, '_blank');
-    setTasks(prev => ({ ...prev, engage: true }));
+  const handleJoinTelegram = () => {
+    window.open('https://t.me/dotset_xyz', '_blank');
+    setTasks(prev => ({ ...prev, joinTelegram: true }));
   };
 
   const handleSubmitEntry = async () => {
@@ -769,7 +796,7 @@ export default function SingleRafflePage() {
                         </form>
                       </div>
 
-                      {/* 3. FOLLOW PARTNER */}
+                      {/* 3. FOLLOW PROJECT / PARTNER */}
                       <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followPartner ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
                         <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
                           <Twitter size={14} className="text-[#38bdf8] shrink-0" />
@@ -799,37 +826,7 @@ export default function SingleRafflePage() {
                         </button>
                       </div>
 
-                      {/* 4. FOLLOW DOTSET */}
-                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
-                          <Twitter size={14} className="text-[#38bdf8] shrink-0" />
-                          <span className="truncate">Follow @dotsetarena</span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleFollowDotset}
-                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
-                            tasks.followDotset
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
-                          }`}
-                        >
-                          {tasks.followDotset ? (
-                            <>
-                              <Check size={12} />
-                              <span>Done</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>Follow</span>
-                              <ExternalLink size={11} />
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* 5. ENGAGE WITH POST */}
+                      {/* 4. LIKE & REPOST POST */}
                       {raffle.engageUrl && (
                         <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.engage ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
                           <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
@@ -861,8 +858,98 @@ export default function SingleRafflePage() {
                         </div>
                       )}
 
-                      {/* 6+. DYNAMIC CUSTOM TASKS */}
-                      {customTasksList.map((ct, idx) => {
+                      {/* 5. FOLLOW @DOTSETARENA */}
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotsetArena ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
+                          <Twitter size={14} className="text-[#38bdf8] shrink-0" />
+                          <span className="truncate">Follow @dotsetarena</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleFollowDotsetArena}
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
+                            tasks.followDotsetArena
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
+                          }`}
+                        >
+                          {tasks.followDotsetArena ? (
+                            <>
+                              <Check size={12} />
+                              <span>Done</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Follow</span>
+                              <ExternalLink size={11} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* 6. FOLLOW @DOTSET */}
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
+                          <Twitter size={14} className="text-[#38bdf8] shrink-0" />
+                          <span className="truncate">Follow @DOTSET</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleFollowDotset}
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
+                            tasks.followDotset
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
+                          }`}
+                        >
+                          {tasks.followDotset ? (
+                            <>
+                              <Check size={12} />
+                              <span>Done</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Follow</span>
+                              <ExternalLink size={11} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* 7. JOIN DOTSET TELEGRAM */}
+                      <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.joinTelegram ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
+                          <Send size={14} className="text-[#229ED9] shrink-0" />
+                          <span className="truncate">Join DOTSET Telegram</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleJoinTelegram}
+                          className={`px-3 py-1.5 rounded-md font-dm text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors ${
+                            tasks.joinTelegram
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                              : 'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'
+                          }`}
+                        >
+                          {tasks.joinTelegram ? (
+                            <>
+                              <Check size={12} />
+                              <span>Done</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Join TG</span>
+                              <ExternalLink size={11} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* 8+. DYNAMIC EXTRA CUSTOM TASKS */}
+                      {extraCustomTasks.map((ct, idx) => {
                         const isDone = Boolean(customTasksDone[ct.id]);
                         return (
                           <div
