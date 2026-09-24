@@ -174,26 +174,60 @@ export function getRaffles(): Raffle[] {
 }
 
 export async function getRaffleByIdAsync(idOrSlug: string): Promise<Raffle | null> {
+  if (!idOrSlug) return null;
+  const cleanTerm = idOrSlug.trim();
+
   try {
-    const { data, error } = await supabase
+    // 1. Direct ID match first (primary key)
+    const { data: byId } = await supabase
       .from('flamebound_raffles')
       .select('*')
-      .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
-      .single();
+      .eq('id', cleanTerm)
+      .maybeSingle();
 
-    if (error || !data) {
-      return getRaffleById(idOrSlug);
+    if (byId) {
+      return mapDbRowToRaffle(byId);
     }
-    return mapDbRowToRaffle(data);
+
+    // 2. Slug match (order by created_at descending to pick latest if multiple share slug)
+    const { data: bySlug, error } = await supabase
+      .from('flamebound_raffles')
+      .select('*')
+      .eq('slug', cleanTerm)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (bySlug && bySlug.length > 0) {
+      return mapDbRowToRaffle(bySlug[0]);
+    }
+
+    // 3. Fallback to or filter query
+    const { data: orMatches } = await supabase
+      .from('flamebound_raffles')
+      .select('*')
+      .or(`id.eq.${cleanTerm},slug.eq.${cleanTerm}`)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (orMatches && orMatches.length > 0) {
+      return mapDbRowToRaffle(orMatches[0]);
+    }
+
+    return getRaffleById(cleanTerm);
   } catch (err) {
-    return getRaffleById(idOrSlug);
+    return getRaffleById(cleanTerm);
   }
 }
 
 export function getRaffleById(idOrSlug: string): Raffle | null {
+  if (!idOrSlug) return null;
   const db = ensureDb();
-  const raffle = db.raffles.find(r => r.id === idOrSlug || r.slug === idOrSlug);
-  return raffle || null;
+  const cleanTerm = idOrSlug.trim();
+  const byId = db.raffles.find(r => r.id === cleanTerm);
+  if (byId) return byId;
+  const bySlug = db.raffles.filter(r => r.slug === cleanTerm);
+  if (bySlug.length > 0) return bySlug[bySlug.length - 1];
+  return null;
 }
 
 export async function createRaffleAsync(data: Omit<Raffle, 'id' | 'totalEntries' | 'winners' | 'createdAt'>): Promise<Raffle> {

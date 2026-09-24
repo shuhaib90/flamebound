@@ -189,13 +189,13 @@ export function AdminDashboard() {
   });
 
   const [newRaffle, setNewRaffle] = useState<NewRaffleForm>({
-    title: 'DOTSET PARTNER WL',
-    project: 'DOTSET',
-    slug: 'partner-wl',
+    title: '',
+    project: '',
+    slug: '',
     type: 'WL RAFFLE',
     mintStage: 'GTD',
-    subtitle: 'Exclusive guaranteed whitelist spot allocation for partner community.',
-    description: 'Whitelist allocation for verified entrants with direct mint allocation.',
+    subtitle: '',
+    description: '',
     supply: 50,
     nftTotalSupply: '1,000 NFTs',
     mintPrice: 'FREE MINT',
@@ -1665,7 +1665,16 @@ export function AdminDashboard() {
                     type="text"
                     required
                     value={newRaffle.project}
-                    onChange={e => setNewRaffle({ ...newRaffle, project: e.target.value })}
+                    onChange={e => {
+                      const newProj = e.target.value;
+                      const autoSlug = newProj.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                      setNewRaffle(prev => ({
+                        ...prev,
+                        project: newProj,
+                        title: (!prev.title || prev.title.startsWith('DOTSET x ')) && newProj ? `DOTSET x ${newProj}` : prev.title,
+                        slug: (!prev.slug || prev.slug === prev.project.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')) ? autoSlug : prev.slug,
+                      }));
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 placeholder:text-gray-400 rounded-xl p-3 text-sm outline-none"
                   />
                 </div>
