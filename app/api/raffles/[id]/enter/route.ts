@@ -6,10 +6,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try {
     const { id } = params;
     const body = await req.json();
-    const { walletAddress, twitterUsername, taskStatus } = body;
+    const { walletAddress, twitterUsername, telegramUsername, taskStatus } = body;
 
     const cleanWallet = (walletAddress || '').trim().toLowerCase();
     const cleanTwitter = (twitterUsername || '').trim().replace(/^@/, '');
+    const cleanTelegram = (telegramUsername || '').trim().replace(/^@/, '');
 
     if (!cleanWallet) {
       return NextResponse.json({
@@ -67,6 +68,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       raffleId: id,
       walletAddress: cleanWallet,
       twitterUsername: cleanTwitter,
+      telegramUsername: cleanTelegram || undefined,
       taskStatus: taskStatus || {},
       network: raffle.customNetwork || raffle.network,
     });

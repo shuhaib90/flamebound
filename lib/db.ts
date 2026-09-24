@@ -553,6 +553,7 @@ export async function createEntryAsync(entryData: {
   raffleId: string;
   walletAddress: string;
   twitterUsername?: string;
+  telegramUsername?: string;
   taskStatus?: Record<string, any>;
   network?: string;
   userAgent?: string;
@@ -578,6 +579,7 @@ export async function createEntryAsync(entryData: {
     walletAddress: entryData.walletAddress,
     shortAddress: formatAddress(entryData.walletAddress),
     twitterUsername: entryData.twitterUsername || '',
+    telegramUsername: entryData.telegramUsername || '',
     taskStatus: entryData.taskStatus || {},
     isHolder: true,
     tokenBalance: 1,
@@ -599,6 +601,7 @@ export async function createEntryAsync(entryData: {
       wallet_address: newEntry.walletAddress,
       short_address: newEntry.shortAddress,
       twitter_username: newEntry.twitterUsername,
+      telegram_username: newEntry.telegramUsername,
       task_status: newEntry.taskStatus,
       is_holder: true,
       token_balance: 1,

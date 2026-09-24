@@ -23,6 +23,7 @@ interface EntryCardModalProps {
     id: string;
     walletAddress: string;
     twitterUsername?: string;
+    telegramUsername?: string;
     verifiedAt: string;
   };
   autoDownload?: boolean;
@@ -347,7 +348,7 @@ export function EntryCardModal({
           </div>
 
           {/* Quick info specs */}
-          <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
+          <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/60">
               <span className="text-[10px] text-gray-400 uppercase font-mono-dm block">Project</span>
               <span className="text-xs font-bold text-gray-900 dark:text-white truncate block">
@@ -355,12 +356,20 @@ export function EntryCardModal({
               </span>
             </div>
             <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/60">
-              <span className="text-[10px] text-gray-400 uppercase font-mono-dm block">Your X Handle</span>
+              <span className="text-[10px] text-gray-400 uppercase font-mono-dm block">X Handle</span>
               <span className="text-xs font-bold text-gray-900 dark:text-white truncate block">
                 {entryReceipt.twitterUsername ? `@${entryReceipt.twitterUsername.replace('@', '')}` : 'Anonymous'}
               </span>
             </div>
-            <div className="col-span-2 sm:col-span-1 p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/60">
+            {entryReceipt.telegramUsername ? (
+              <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/60">
+                <span className="text-[10px] text-gray-400 uppercase font-mono-dm block">Telegram</span>
+                <span className="text-xs font-bold text-[#229ED9] truncate block">
+                  @{entryReceipt.telegramUsername.replace('@', '')}
+                </span>
+              </div>
+            ) : null}
+            <div className={`p-2.5 rounded-lg bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/60 ${entryReceipt.telegramUsername ? '' : 'col-span-2 sm:col-span-2'}`}>
               <span className="text-[10px] text-gray-400 uppercase font-mono-dm block">Ticket Number</span>
               <span className="text-xs font-bold text-[#293681] dark:text-blue-400 truncate block select-all">
                 {entryReceipt.id}

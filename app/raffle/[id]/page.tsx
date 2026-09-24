@@ -51,6 +51,7 @@ export default function SingleRafflePage() {
   // Form Fields
   const [twitterHandle, setTwitterHandle] = useState('');
   const [walletInput, setWalletInput] = useState('');
+  const [telegramHandle, setTelegramHandle] = useState('');
 
   // Checklist Tasks
   const [tasks, setTasks] = useState({
@@ -70,6 +71,7 @@ export default function SingleRafflePage() {
     id: string;
     walletAddress: string;
     twitterUsername?: string;
+    telegramUsername?: string;
     verifiedAt: string;
   } | null>(null);
 
@@ -304,6 +306,7 @@ export default function SingleRafflePage() {
         body: JSON.stringify({
           walletAddress: cleanWallet,
           twitterUsername: cleanHandle,
+          telegramUsername: telegramHandle.trim().replace(/^@/, ''),
           taskStatus: {
             ...tasks,
             customTasksDone,
@@ -318,6 +321,7 @@ export default function SingleRafflePage() {
           id: data.entry.id,
           walletAddress: data.entry.walletAddress,
           twitterUsername: data.entry.twitterUsername,
+          telegramUsername: data.entry.telegramUsername,
           verifiedAt: data.entry.createdAt || new Date().toISOString(),
         });
         setShowEntryCardModal(true);
@@ -677,8 +681,16 @@ export default function SingleRafflePage() {
                         {entryReceipt.twitterUsername && (
                           <div>
                             <span className="text-gray-400 block font-mono-dm text-[10px] uppercase font-medium">X Handle:</span>
-                            <span className="font-mono-dm text-xs text-gray-900 font-medium">
+                            <span className="font-mono-dm text-xs text-gray-900 dark:text-slate-100 font-medium">
                               @{entryReceipt.twitterUsername.replace('@', '')}
+                            </span>
+                          </div>
+                        )}
+                        {entryReceipt.telegramUsername && (
+                          <div>
+                            <span className="text-gray-400 block font-mono-dm text-[10px] uppercase font-medium">Telegram:</span>
+                            <span className="font-mono-dm text-xs text-gray-900 dark:text-slate-100 font-medium">
+                              @{entryReceipt.telegramUsername.replace('@', '')}
                             </span>
                           </div>
                         )}
@@ -809,6 +821,29 @@ export default function SingleRafflePage() {
                             {tasks.walletProvided ? 'Set' : 'Confirm'}
                           </button>
                         </form>
+                      </div>
+
+                      {/* 2.5 TELEGRAM USERNAME (OPTIONAL) */}
+                      <div className="p-3 rounded-lg border bg-gray-50 border-gray-200 transition-colors">
+                        <div className="flex items-center justify-between gap-1.5 mb-2">
+                          <div className="flex items-center gap-1.5 font-dm text-xs font-semibold text-gray-900">
+                            <Send size={14} className="text-[#229ED9]" />
+                            <span>Telegram Username</span>
+                          </div>
+                          <span className="font-mono-dm text-[10px] text-gray-500 uppercase font-medium bg-gray-200/70 px-1.5 py-0.5 rounded">
+                            Optional
+                          </span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="@yourtelegram (optional)"
+                            value={telegramHandle}
+                            onChange={(e) => setTelegramHandle(e.target.value)}
+                            className="flex-1 bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-xs font-mono-dm text-gray-900 placeholder-gray-400 outline-none focus:border-[#293681]"
+                          />
+                        </div>
                       </div>
 
                       {/* 3. FOLLOW PROJECT / PARTNER */}
