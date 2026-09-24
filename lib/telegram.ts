@@ -206,15 +206,16 @@ export function formatWinnersTelegramMessage(raffle: Raffle, baseUrl: string = A
   ];
 
   if (count > 0) {
-    lines.push(`📋 <b>Selected Winners (Top ${Math.min(count, 5)}):</b>`);
-    const previewWinners = winners.slice(0, 5);
-    previewWinners.forEach((w, idx) => {
-      const handle = w.twitterUsername ? ` (@${escapeHtml(w.twitterUsername.replace(/^@/, ''))})` : '';
-      lines.push(`${idx + 1}. <code>${escapeHtml(w.shortWallet || w.wallet)}</code>${handle}`);
+    lines.push(`📋 <b>Selected Winners (${count}):</b>`);
+    
+    winners.forEach((w, idx) => {
+      // Display: Wallet + Telegram username (if available), no X username
+      const tgHandle = w.telegramUsername && w.telegramUsername.trim() 
+        ? ` (@${escapeHtml(w.telegramUsername.replace(/^@/, ''))})` 
+        : '';
+      const walletText = w.wallet || w.shortWallet;
+      lines.push(`${idx + 1}. <code>${escapeHtml(walletText)}</code>${tgHandle}`);
     });
-    if (count > 5) {
-      lines.push(`<i>...and ${count - 5} more winners!</i>`);
-    }
     lines.push(``);
   }
 

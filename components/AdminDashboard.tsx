@@ -966,10 +966,31 @@ export function AdminDashboard() {
       }
 
       if (wallet) {
+        // Auto-match against entrant database if X or Telegram handle not explicitly provided
+        let autoTwitter = twitter;
+        let autoTelegram = telegram;
+
+        if (!autoTwitter || !autoTelegram) {
+          const cleanWalletLookup = wallet.toLowerCase();
+          const matchedEntry = entries.find(
+            e => e.walletAddress.toLowerCase() === cleanWalletLookup
+          );
+          if (matchedEntry) {
+            if (!autoTwitter && matchedEntry.twitterUsername) {
+              const handle = matchedEntry.twitterUsername.trim();
+              autoTwitter = handle.startsWith('@') ? handle : `@${handle}`;
+            }
+            if (!autoTelegram && matchedEntry.telegramUsername) {
+              const handle = matchedEntry.telegramUsername.trim();
+              autoTelegram = handle.startsWith('@') ? handle : `@${handle}`;
+            }
+          }
+        }
+
         parsed.push({
           wallet,
-          twitter: twitter || '',
-          telegram: telegram || '',
+          twitter: autoTwitter || '',
+          telegram: autoTelegram || '',
           rank: parsed.length + 1,
         });
       }
@@ -982,12 +1003,30 @@ export function AdminDashboard() {
   const handleAddSingleWinner = () => {
     if (!singleWinnerWallet.trim()) return;
     const cleanWallet = singleWinnerWallet.trim();
-    const cleanTwitter = singleWinnerTwitter.trim() 
+    let cleanTwitter = singleWinnerTwitter.trim() 
       ? (singleWinnerTwitter.trim().startsWith('@') ? singleWinnerTwitter.trim() : `@${singleWinnerTwitter.trim()}`) 
       : '';
-    const cleanTelegram = singleWinnerTelegram.trim() 
+    let cleanTelegram = singleWinnerTelegram.trim() 
       ? (singleWinnerTelegram.trim().startsWith('@') ? singleWinnerTelegram.trim() : `@${singleWinnerTelegram.trim()}`) 
       : '';
+
+    // Auto-lookup if handle not typed
+    if (!cleanTwitter || !cleanTelegram) {
+      const cleanWalletLookup = cleanWallet.toLowerCase();
+      const matchedEntry = entries.find(
+        e => e.walletAddress.toLowerCase() === cleanWalletLookup
+      );
+      if (matchedEntry) {
+        if (!cleanTwitter && matchedEntry.twitterUsername) {
+          const handle = matchedEntry.twitterUsername.trim();
+          cleanTwitter = handle.startsWith('@') ? handle : `@${handle}`;
+        }
+        if (!cleanTelegram && matchedEntry.telegramUsername) {
+          const handle = matchedEntry.telegramUsername.trim();
+          cleanTelegram = handle.startsWith('@') ? handle : `@${handle}`;
+        }
+      }
+    }
 
     const updated = [
       ...parsedWinnersList,
