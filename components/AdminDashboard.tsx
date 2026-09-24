@@ -134,6 +134,15 @@ export function AdminDashboard() {
   const [editingCollab, setEditingCollab] = useState<CollabRequest | null>(null);
   const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
 
+  // Manual & Bulk Winners Management State
+  const [managingWinnersRaffle, setManagingWinnersRaffle] = useState<Raffle | null>(null);
+  const [bulkWinnersRawText, setBulkWinnersRawText] = useState('');
+  const [parsedWinnersList, setParsedWinnersList] = useState<Array<{ wallet: string; twitter: string; rank: number }>>([]);
+  const [notifyTelegramOnWinners, setNotifyTelegramOnWinners] = useState(true);
+  const [singleWinnerWallet, setSingleWinnerWallet] = useState('');
+  const [singleWinnerTwitter, setSingleWinnerTwitter] = useState('');
+  const [savingWinners, setSavingWinners] = useState(false);
+
   const editCollabLogoFileRef = useRef<HTMLInputElement>(null);
   const editCollabBannerFileRef = useRef<HTMLInputElement>(null);
   const editCollabChainLogoFileRef = useRef<HTMLInputElement>(null);
@@ -873,6 +882,187 @@ export function AdminDashboard() {
     }
   };
 
+  // Open Winners Management Modal
+  const openWinnersModal = (raffle: Raffle) => {
+    setManagingWinnersRaffle(raffle);
+    setSavingWinners(false);
+    setSingleWinnerWallet('');
+    setSingleWinnerTwitter('');
+    if (raffle.winners && raffle.winners.length > 0) {
+      const existingText = raffle.winners
+        .map(w => `${w.wallet}${w.twitterUsername ? `, ${w.twitterUsername}` : ''}`)
+        .join('\n');
+      setBulkWinnersRawText(existingText);
+      setParsedWinnersList(
+        raffle.winners.map((w, idx) => ({
+          wallet: w.wallet,
+          twitter: w.twitterUsername || '',
+          rank: w.rank || idx + 1,
+        }))
+      );
+    } else {
+      setBulkWinnersRawText('');
+      setParsedWinnersList([]);
+    }
+  };
+
+  // Auto-arrange & parse bulk winner text into structured list
+  const autoParseWinnersText = (text: string) => {
+    setBulkWinnersRawText(text);
+    if (!text.trim()) {
+      setParsedWinnersList([]);
+      return;
+    }
+
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const parsed: Array<{ wallet: string; twitter: string; rank: number }> = [];
+
+    lines.forEach((line) => {
+      // Clean leading numbering like "1.", "1)", "#1", etc.
+      const cleanLine = line.replace(/^#?\d+[\.\)\:\-]\s*/, '').trim();
+      
+      // Split by comma, tab, pipe, semicolon or whitespace
+      let tokens: string[] = [];
+      if (cleanLine.includes(',')) {
+        tokens = cleanLine.split(',').map(t => t.trim().replace(/^["']|["']$/g, ''));
+      } else if (cleanLine.includes('\t')) {
+        tokens = cleanLine.split('\t').map(t => t.trim());
+      } else if (cleanLine.includes('|')) {
+        tokens = cleanLine.split('|').map(t => t.trim());
+      } else if (cleanLine.includes(';')) {
+        tokens = cleanLine.split(';').map(t => t.trim().replace(/^["']|["']$/g, ''));
+      } else {
+        tokens = cleanLine.split(/\s+/).map(t => t.trim());
+      }
+
+      tokens = tokens.filter(Boolean);
+      if (tokens.length === 0) return;
+
+      let wallet = '';
+      let twitter = '';
+
+      for (const token of tokens) {
+        if (!wallet && (token.startsWith('0x') || token.length >= 26 || (!token.startsWith('@') && tokens.length === 1))) {
+          wallet = token;
+        } else if (token.startsWith('@') || (!twitter && wallet && token !== wallet)) {
+          twitter = token.startsWith('@') ? token : `@${token}`;
+        } else if (!wallet) {
+          wallet = token;
+        }
+      }
+
+      if (wallet) {
+        parsed.push({
+          wallet,
+          twitter: twitter || '',
+          rank: parsed.length + 1,
+        });
+      }
+    });
+
+    setParsedWinnersList(parsed);
+  };
+
+  // Add individual winner manually
+  const handleAddSingleWinner = () => {
+    if (!singleWinnerWallet.trim()) return;
+    const cleanWallet = singleWinnerWallet.trim();
+    const cleanTwitter = singleWinnerTwitter.trim() 
+      ? (singleWinnerTwitter.trim().startsWith('@') ? singleWinnerTwitter.trim() : `@${singleWinnerTwitter.trim()}`) 
+      : '';
+
+    const updated = [
+      ...parsedWinnersList,
+      {
+        wallet: cleanWallet,
+        twitter: cleanTwitter,
+        rank: parsedWinnersList.length + 1,
+      },
+    ];
+
+    setParsedWinnersList(updated);
+    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+    setSingleWinnerWallet('');
+    setSingleWinnerTwitter('');
+  };
+
+  // Remove winner row
+  const handleRemoveWinner = (index: number) => {
+    const updated = parsedWinnersList
+      .filter((_, i) => i !== index)
+      .map((w, idx) => ({ ...w, rank: idx + 1 }));
+
+    setParsedWinnersList(updated);
+    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+  };
+
+  // Random pick from existing entrants
+  const handlePickRandomFromEntrants = () => {
+    if (!managingWinnersRaffle) return;
+    const raffleEntries = entries.filter(e => e.raffleId === managingWinnersRaffle.id && e.status === 'confirmed');
+    if (raffleEntries.length === 0) {
+      alert('No verified entrants found for this raffle yet to draw from.');
+      return;
+    }
+
+    const count = managingWinnersRaffle.supply || 10;
+    const shuffled = [...raffleEntries].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(count, raffleEntries.length));
+
+    const newWinners = selected.map((e, idx) => ({
+      wallet: e.walletAddress,
+      twitter: e.twitterUsername ? (e.twitterUsername.startsWith('@') ? e.twitterUsername : `@${e.twitterUsername}`) : '',
+      rank: idx + 1,
+    }));
+
+    setParsedWinnersList(newWinners);
+    setBulkWinnersRawText(newWinners.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+  };
+
+  // Save & Publish winners
+  const handleSaveAndPublishWinners = async () => {
+    if (!managingWinnersRaffle) return;
+    if (parsedWinnersList.length === 0) {
+      alert('Please paste or add at least one winning wallet address before publishing.');
+      return;
+    }
+
+    setSavingWinners(true);
+    try {
+      const res = await fetch(`/api/raffles/${managingWinnersRaffle.id}/winners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          winners: parsedWinnersList.map((item, idx) => ({
+            wallet: item.wallet,
+            twitter: item.twitter,
+            rank: idx + 1,
+          })),
+          notifyTelegram: notifyTelegramOnWinners,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        let msg = `🎉 Successfully published ${parsedWinnersList.length} winner(s) to "${managingWinnersRaffle.title}"!`;
+        if (data.telegram?.success) {
+          msg += `\n📢 Official winners announcement broadcasted to Telegram!`;
+        } else if (data.telegram?.error) {
+          msg += `\n⚠️ Telegram note: ${data.telegram.error}`;
+        }
+        alert(msg);
+        setManagingWinnersRaffle(null);
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to save winners');
+      }
+    } catch (err: any) {
+      alert(`Error saving winners: ${err.message || 'Network error'}`);
+    } finally {
+      setSavingWinners(false);
+    }
+  };
+
   // CSV Export (ONLY Wallet Address, X Username) named <projectName>_winners.csv
   const exportCsv = (raffle: Raffle, entriesOrWinners: 'winners' | 'entries') => {
     let rows: { wallet: string; twitter: string }[] = [];
@@ -1229,14 +1419,14 @@ export function AdminDashboard() {
                     {/* Actions Row */}
                     <div className="space-y-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center gap-2">
-                        {/* Draw Winners Button */}
+                        {/* Add / Import Winners Button */}
                         <button
-                          onClick={() => handleDrawWinners(r.id)}
-                          disabled={drawingRaffleId === r.id}
+                          onClick={() => openWinnersModal(r)}
                           className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-dm font-bold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                          title="Import, bulk paste, or auto-draw winners"
                         >
                           <Trophy size={14} />
-                          <span>{drawingRaffleId === r.id ? 'Drawing...' : 'Draw Winners'}</span>
+                          <span>{r.winners && r.winners.length > 0 ? `Winners (${r.winners.length})` : '🏆 Add / Draw Winners'}</span>
                         </button>
 
                         {/* Export CSV Button */}
@@ -3436,6 +3626,256 @@ export function AdminDashboard() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: MANAGE & BULK IMPORT WINNERS */}
+        {managingWinnersRaffle && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 max-w-4xl w-full my-8 shadow-2xl space-y-5 text-gray-900 max-h-[92vh] overflow-y-auto">
+              
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                    <Trophy size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-syne text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <span>Manage & Import Winners:</span>
+                      <span className="text-[#293681]">{managingWinnersRaffle.title}</span>
+                    </h3>
+                    <p className="font-dm text-xs text-gray-500 mt-0.5">
+                      {managingWinnersRaffle.project} • Target Supply: <b>{managingWinnersRaffle.supply} Spots</b> • {managingWinnersRaffle.customNetwork || managingWinnersRaffle.network}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setManagingWinnersRaffle(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePickRandomFromEntrants}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-dm font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Trophy size={13} />
+                    <span>🎲 Auto-Draw from Entrants ({entries.filter(e => e.raffleId === managingWinnersRaffle.id && e.status === 'confirmed').length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sample = [
+                        '0x71C845170B1fA304381C65158229F8a5Fe44a808, @crypto_whale',
+                        '0x83e20eE9f430D0a4F39294e3391740924E7A5A79, @nft_degen',
+                        '0x92f8016484e5900be46A9749a04C40a12F874558, @dotset_fan',
+                      ].join('\n');
+                      autoParseWinnersText(sample);
+                    }}
+                    className="px-2.5 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 font-dm text-xs rounded-lg transition-colors"
+                  >
+                    📋 Load Sample Format
+                  </button>
+                </div>
+
+                {parsedWinnersList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBulkWinnersRawText('');
+                      setParsedWinnersList([]);
+                    }}
+                    className="px-2.5 py-1.5 text-red-600 hover:bg-red-50 font-dm text-xs rounded-lg transition-colors"
+                  >
+                    🗑️ Clear List
+                  </button>
+                )}
+              </div>
+
+              {/* Bulk Paste Drop Box */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-mono-dm uppercase text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-[#38bdf8]" />
+                    <span>Bulk Paste Drop Box (Auto-Arranges Automatically)</span>
+                  </label>
+                  <span className="font-mono-dm text-[11px] text-gray-500">
+                    {parsedWinnersList.length} / {managingWinnersRaffle.supply} Spots Detected
+                  </span>
+                </div>
+                
+                <textarea
+                  rows={5}
+                  value={bulkWinnersRawText}
+                  onChange={e => autoParseWinnersText(e.target.value)}
+                  placeholder="Paste winners in bulk (one per line). Supported formats:&#10;0x1234567890abcdef1234567890abcdef12345678, @username1&#10;0xabcdef1234567890abcdef1234567890abcdef12 @username2&#10;0x9876543210fedcba9876543210fedcba98765432&#10;Tab-separated, comma-separated, or just wallet addresses..."
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 placeholder:text-gray-400 font-mono-dm p-3 rounded-xl outline-none text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Manual Single Entry Builder */}
+              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                <div className="font-mono-dm uppercase text-[10px] text-gray-500 font-bold">
+                  + Add Single Winner Manually
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <div className="sm:col-span-7">
+                    <input
+                      type="text"
+                      value={singleWinnerWallet}
+                      onChange={e => setSingleWinnerWallet(e.target.value)}
+                      placeholder="0x... (Wallet Address)"
+                      className="w-full bg-white border border-gray-200 text-gray-900 font-mono-dm p-2 rounded-lg text-xs outline-none focus:border-[#293681]"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <input
+                      type="text"
+                      value={singleWinnerTwitter}
+                      onChange={e => setSingleWinnerTwitter(e.target.value)}
+                      placeholder="@twitter (Optional)"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none focus:border-[#293681]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={handleAddSingleWinner}
+                      disabled={!singleWinnerWallet.trim()}
+                      className="w-full h-full py-2 bg-[#293681] hover:bg-[#1f2963] disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Parsed Arranged Winners Table */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between font-mono-dm text-xs">
+                  <span className="font-bold text-gray-800">
+                    Live Arranged Winners Table ({parsedWinnersList.length})
+                  </span>
+                  {parsedWinnersList.length > 0 && (
+                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-bold text-[10px]">
+                      Ready to Publish
+                    </span>
+                  )}
+                </div>
+
+                {parsedWinnersList.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 border border-gray-200 rounded-xl text-gray-400 text-xs font-dm">
+                    No winners added yet. Paste a list above or click "Auto-Draw from Entrants".
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm max-h-60 overflow-y-auto">
+                    <table className="w-full text-left font-dm text-xs">
+                      <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-mono-dm text-[10px] sticky top-0 bg-gray-50 z-10">
+                        <tr>
+                          <th className="py-2.5 px-3 w-14 text-center">Rank</th>
+                          <th className="py-2.5 px-3">Wallet Address</th>
+                          <th className="py-2.5 px-3">X / Twitter</th>
+                          <th className="py-2.5 px-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-700">
+                        {parsedWinnersList.map((w, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-2 px-3 text-center font-mono-dm font-bold text-amber-600">
+                              #{w.rank}
+                            </td>
+                            <td className="py-2 px-3 font-mono-dm text-gray-900 font-medium">
+                              {w.wallet}
+                            </td>
+                            <td className="py-2 px-3 text-[#293681] font-semibold">
+                              {w.twitter || '—'}
+                            </td>
+                            <td className="py-2 px-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveWinner(idx)}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                title="Remove winner"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Telegram Broadcast Toggle */}
+              <div className="p-4 bg-sky-50/70 border border-sky-200 rounded-xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#0088cc] text-white flex items-center justify-center shrink-0">
+                    <Send size={18} />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 text-xs flex items-center gap-1.5">
+                      <span>Broadcast Winners Announcement to Telegram Bot</span>
+                      <span className="font-mono text-[10px] text-[#0088cc] font-bold">@DOTSETRAFFLESbot</span>
+                    </div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      Instantly sends rich winning announcement with direct link to check the full winners list.
+                    </div>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={notifyTelegramOnWinners}
+                    onChange={e => setNotifyTelegramOnWinners(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0088cc]"></div>
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-200">
+                <button
+                  type="button"
+                  disabled={savingWinners || parsedWinnersList.length === 0}
+                  onClick={handleSaveAndPublishWinners}
+                  className="flex-1 bg-[#16a34a] hover:bg-[#15803d] disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl transition-all text-sm shadow-sm flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 size={16} />
+                  <span>{savingWinners ? 'Publishing Winners...' : `Save & Publish ${parsedWinnersList.length} Winners Live`}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => exportCsv(managingWinnersRaffle, 'winners')}
+                  className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl transition-colors text-xs font-semibold border border-gray-200 flex items-center justify-center gap-1.5"
+                >
+                  <Download size={14} />
+                  <span>Export CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setManagingWinnersRaffle(null)}
+                  className="px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors text-xs font-medium border border-gray-200 py-3"
+                >
+                  Cancel
+                </button>
+              </div>
+
             </div>
           </div>
         )}

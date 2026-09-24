@@ -216,3 +216,134 @@ export async function sendTelegramTestMessage(
     return { success: false, error: err.message || 'Network error sending test message' };
   }
 }
+
+/**
+ * Format and send a winners announcement to Telegram
+ */
+export function formatWinnersTelegramMessage(raffle: Raffle, baseUrl: string = APP_BASE_URL): {
+  text: string;
+  raffleUrl: string;
+  imageUrl?: string;
+} {
+  const raffleUrl = `${baseUrl.replace(/\/$/, '')}/raffle/${raffle.slug || raffle.id}`;
+  const networkName = raffle.customNetwork || raffle.network || 'Ethereum';
+  const winners = raffle.winners || [];
+  const count = winners.length;
+
+  const lines = [
+    `🏆 <b>WINNERS ANNOUNCED ON DOTSET!</b> 🎟️✨`,
+    ``,
+    `💎 <b>Project:</b> ${escapeHtml(raffle.project || 'DOTSET Partner')}`,
+    `🎟️ <b>Raffle:</b> ${escapeHtml(raffle.title)}`,
+    `📦 <b>Total Selected Winners:</b> <b>${escapeHtml(count)} Spot(s)</b>`,
+    `⛓️ <b>Chain:</b> <code>${escapeHtml(networkName)}</code>`,
+    ``,
+  ];
+
+  if (count > 0) {
+    lines.push(`📋 <b>Selected Winners (Top ${Math.min(count, 5)}):</b>`);
+    const previewWinners = winners.slice(0, 5);
+    previewWinners.forEach((w, idx) => {
+      const handle = w.twitterUsername ? ` (@${escapeHtml(w.twitterUsername.replace(/^@/, ''))})` : '';
+      lines.push(`${idx + 1}. <code>${escapeHtml(w.shortWallet || w.wallet)}</code>${handle}`);
+    });
+    if (count > 5) {
+      lines.push(`<i>...and ${count - 5} more winners!</i>`);
+    }
+    lines.push(``);
+  }
+
+  lines.push(`🎉 <b>Check Full Winners List on DOTSET:</b>`);
+  lines.push(`👉 <a href="${raffleUrl}">${raffleUrl}</a>`);
+  lines.push(``);
+  lines.push(`🔗 #DOTSET #Winners #Whitelist #${escapeHtml(networkName.replace(/\s+/g, ''))}`);
+
+  const text = lines.join('\n');
+  const imageUrl = raffle.bannerUrl || raffle.logoUrl || undefined;
+
+  return { text, raffleUrl, imageUrl };
+}
+
+/**
+ * Send official winners announcement to Telegram community group/channel
+ */
+export async function sendTelegramWinnersNotification(
+  raffle: Raffle,
+  overrideChatId?: string,
+  overrideToken?: string
+): Promise<{ success: boolean; messageId?: number; error?: string }> {
+  const token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
+  const chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
+
+  if (!token) {
+    return { success: false, error: 'Telegram Bot Token is not configured.' };
+  }
+  if (!chatId) {
+    return { 
+      success: false, 
+      error: 'Telegram Chat ID is not configured. Please set it in Admin Dashboard or .env' 
+    };
+  }
+
+  const { text, raffleUrl, imageUrl } = formatWinnersTelegramMessage(raffle);
+
+  const inlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: '🏆 Check Full Winners List', url: raffleUrl },
+      ],
+      [
+        { text: '🌐 Explore Other Raffles', url: APP_BASE_URL },
+        { text: '💬 Join Discord', url: 'https://discord.gg/Jq2Jt2HdfY' },
+      ],
+    ],
+  };
+
+  try {
+    if (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+      const photoPayload = {
+        chat_id: chatId,
+        photo: imageUrl,
+        caption: text,
+        parse_mode: 'HTML',
+        reply_markup: inlineKeyboard,
+      };
+
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(photoPayload),
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        return { success: true, messageId: data.result?.message_id };
+      }
+      console.warn('sendPhoto failed for winners announcement, falling back to sendMessage:', data.description);
+    }
+
+    const msgPayload = {
+      chat_id: chatId,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: false,
+      reply_markup: inlineKeyboard,
+    };
+
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msgPayload),
+    });
+
+    const data = await res.json();
+    if (data.ok) {
+      return { success: true, messageId: data.result?.message_id };
+    }
+
+    return { success: false, error: data.description || 'Failed to send winners announcement via Telegram' };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Error connecting to Telegram API' };
+  }
+}
+

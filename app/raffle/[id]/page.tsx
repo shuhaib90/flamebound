@@ -25,7 +25,10 @@ import {
   Globe, 
   ShieldAlert,
   ArrowRight,
-  Youtube
+  Youtube,
+  Trophy,
+  Search,
+  Sparkles
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
@@ -37,6 +40,11 @@ export default function SingleRafflePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Winner Verification State
+  const [winnerSearchInput, setWinnerSearchInput] = useState('');
+  const [winnerSearchResult, setWinnerSearchResult] = useState<{ found: boolean; rank?: number; wallet?: string } | null>(null);
+  const [copiedWinnerWallet, setCopiedWinnerWallet] = useState<string | null>(null);
 
   // Form Fields
   const [twitterHandle, setTwitterHandle] = useState('');
@@ -198,6 +206,24 @@ export default function SingleRafflePage() {
     }
     setError(null);
     setTasks(prev => ({ ...prev, walletProvided: true }));
+  };
+
+  const handleCheckWinner = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!winnerSearchInput.trim() || !raffle?.winners || raffle.winners.length === 0) return;
+    const cleanSearch = winnerSearchInput.trim().toLowerCase();
+    const match = raffle.winners.find(
+      w => w.wallet.toLowerCase() === cleanSearch || 
+           (w.twitterUsername && w.twitterUsername.toLowerCase().replace(/^@/, '') === cleanSearch.replace(/^@/, ''))
+    );
+    if (match) {
+      setWinnerSearchResult({ found: true, rank: match.rank, wallet: match.wallet });
+      try {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      } catch {}
+    } else {
+      setWinnerSearchResult({ found: false });
+    }
   };
 
   const handleFollowPartner = () => {
@@ -367,7 +393,8 @@ export default function SingleRafflePage() {
 
         {/* Main Content Layout */}
         {!loading && raffle && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Left Column: Raffle Media & Complete Technical Specs (7 Cols) */}
             <div className="lg:col-span-7 space-y-6">
@@ -917,6 +944,182 @@ export default function SingleRafflePage() {
             </div>
 
           </div>
+
+          {/* OFFICIAL WHITELIST WINNERS SECTION (When winners are drawn or exist) */}
+          {raffle && raffle.winners && raffle.winners.length > 0 && (
+            <div id="winners" className="mt-10 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                    <Trophy size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-syne text-lg sm:text-xl font-bold text-gray-900">
+                        Official Selected Winners
+                      </h2>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono-dm uppercase font-bold flex items-center gap-1">
+                        <CheckCircle2 size={11} />
+                        <span>Winners Announced</span>
+                      </span>
+                    </div>
+                    <p className="font-dm text-xs text-gray-500 mt-0.5">
+                      {raffle.winners.length} whitelist spot(s) have been officially confirmed for this campaign.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 font-mono-dm text-xs">
+                  <span className="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 font-bold">
+                    {raffle.winners.length} / {raffle.supply} Spots Allocated
+                  </span>
+                </div>
+              </div>
+
+              {/* Interactive Winner Checker Bar */}
+              <div className="bg-gradient-to-r from-blue-50/50 via-slate-50 to-white border border-blue-100 p-4 sm:p-5 rounded-xl space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <span className="font-dm text-xs font-bold text-[#293681] flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-[#38bdf8]" />
+                    <span>Check If You Won:</span>
+                  </span>
+                  {address && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWinnerSearchInput(address);
+                        const match = raffle.winners?.find(w => w.wallet.toLowerCase() === address.toLowerCase());
+                        if (match) {
+                          setWinnerSearchResult({ found: true, rank: match.rank, wallet: match.wallet });
+                          try { confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } }); } catch {}
+                        } else {
+                          setWinnerSearchResult({ found: false });
+                        }
+                      }}
+                      className="font-mono-dm text-[11px] text-[#293681] font-semibold hover:underline"
+                    >
+                      [Check My Connected Wallet ({address.slice(0, 6)}...{address.slice(-4)})]
+                    </button>
+                  )}
+                </div>
+
+                <form onSubmit={handleCheckWinner} className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      value={winnerSearchInput}
+                      onChange={e => {
+                        setWinnerSearchInput(e.target.value);
+                        setWinnerSearchResult(null);
+                      }}
+                      placeholder="Enter your wallet address (0x...) or X handle (@username)..."
+                      className="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-xs font-mono-dm text-gray-900 placeholder-gray-400 outline-none focus:border-[#293681]"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#293681] hover:bg-[#1f2963] text-white text-xs font-semibold rounded-lg transition-colors shrink-0 shadow-sm"
+                  >
+                    Check Status
+                  </button>
+                </form>
+
+                {/* Winner Result Notification */}
+                {winnerSearchResult && (
+                  <div className={`p-3 rounded-lg border text-xs font-dm flex items-center gap-2.5 animate-fadeIn ${
+                    winnerSearchResult.found
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
+                    {winnerSearchResult.found ? (
+                      <>
+                        <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                        <div>
+                          🎉 <b>CONGRATULATIONS!</b> You are selected as <b>Winner #{winnerSearchResult.rank}</b>! Your whitelist spot is secured.
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldAlert size={16} className="text-amber-600 shrink-0" />
+                        <div>
+                          Address was not found in the winning whitelist for this drop. Keep participating in upcoming allocations!
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Winners Table */}
+              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                  <table className="w-full text-left font-dm text-xs">
+                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-mono-dm text-[10px] sticky top-0 bg-gray-50 z-10">
+                      <tr>
+                        <th className="py-3 px-4 w-16 text-center">#</th>
+                        <th className="py-3 px-4">Receiving Wallet Address</th>
+                        <th className="py-3 px-4">X / Twitter</th>
+                        <th className="py-3 px-4 text-right">Allocation Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-700">
+                      {raffle.winners.map((w, idx) => {
+                        const isCopied = copiedWinnerWallet === w.wallet;
+                        return (
+                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-4 text-center font-mono-dm font-bold text-amber-600">
+                              #{w.rank || idx + 1}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono-dm text-gray-900 font-medium select-all">
+                                  {w.wallet}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(w.wallet);
+                                    setCopiedWinnerWallet(w.wallet);
+                                    setTimeout(() => setCopiedWinnerWallet(null), 2000);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-gray-700 rounded transition-colors"
+                                  title="Copy Wallet Address"
+                                >
+                                  {isCopied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                                </button>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 font-medium text-[#293681]">
+                              {w.twitterUsername ? (
+                                <a
+                                  href={`https://x.com/${w.twitterUsername.replace(/^@/, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="hover:underline flex items-center gap-1"
+                                >
+                                  <span>{w.twitterUsername}</span>
+                                  <ExternalLink size={10} className="text-gray-400" />
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono-dm uppercase font-bold">
+                                Whitelist Confirmed
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+          </>
         )}
 
       </main>
