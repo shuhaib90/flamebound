@@ -8,6 +8,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { PixelArtwork } from '@/components/PixelArtworks';
 import { ChainBadge } from '@/components/ChainBadge';
+import { EntryCardModal } from '@/components/EntryCardModal';
 import { useWallet } from '@/lib/wallet-context';
 import confetti from 'canvas-confetti';
 import { 
@@ -28,7 +29,8 @@ import {
   Youtube,
   Trophy,
   Search,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react';
 
 export default function SingleRafflePage() {
@@ -71,6 +73,7 @@ export default function SingleRafflePage() {
     verifiedAt: string;
   } | null>(null);
 
+  const [showEntryCardModal, setShowEntryCardModal] = useState(false);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -317,6 +320,7 @@ export default function SingleRafflePage() {
           twitterUsername: data.entry.twitterUsername,
           verifiedAt: data.entry.createdAt || new Date().toISOString(),
         });
+        setShowEntryCardModal(true);
 
         if (typeof window !== 'undefined') {
           localStorage.setItem(`dotset_entry_${raffle.id}_${cleanWallet}`, JSON.stringify(data.entry));
@@ -681,12 +685,23 @@ export default function SingleRafflePage() {
                       </div>
                     </div>
 
-                    <Link
-                      href="/#active-raffles"
-                      className="w-full btn-outline-cq text-xs py-3 block text-center"
-                    >
-                      Return to Directory
-                    </Link>
+                    <div className="space-y-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowEntryCardModal(true)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#293681] to-[#4274d9] text-white font-dm text-xs font-semibold flex items-center justify-center gap-2 hover:opacity-95 shadow-sm transition-all"
+                      >
+                        <Sparkles size={14} className="text-[#38bdf8]" />
+                        <span>View & Download Official Entry Pass</span>
+                      </button>
+
+                      <Link
+                        href="/#active-raffles"
+                        className="w-full btn-outline-cq text-xs py-2.5 block text-center"
+                      >
+                        Return to Directory
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   /* SIMPLE OPEN ENTRY FORM */
@@ -1224,6 +1239,15 @@ export default function SingleRafflePage() {
             </div>
           )}
           </>
+        )}
+
+        {entryReceipt && raffle && (
+          <EntryCardModal
+            isOpen={showEntryCardModal}
+            onClose={() => setShowEntryCardModal(false)}
+            raffle={raffle}
+            entryReceipt={entryReceipt}
+          />
         )}
 
       </main>
