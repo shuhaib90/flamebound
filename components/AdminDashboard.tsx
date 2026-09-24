@@ -81,6 +81,14 @@ const DEFAULT_DOTSET_AUTO_TASKS: CustomTask[] = [
     required: true,
   },
   {
+    id: 'task-dotset-xyz',
+    title: 'Follow @dotsetxyz on 𝕏',
+    url: 'https://x.com/dotsetxyz',
+    actionLabel: 'Follow',
+    type: 'twitter',
+    required: true,
+  },
+  {
     id: 'task-dotset-telegram',
     title: 'Join DOTSET Telegram Community',
     url: 'https://t.me/dotset_xyz',
