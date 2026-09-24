@@ -75,9 +75,10 @@ export interface Winner {
   rank: number;
   wallet: string;
   shortWallet: string;
-  entryNumber: string;
+  entryNumber?: string;
   twitterUsername?: string;
-  drawnAt: string;
+  telegramUsername?: string;
+  drawnAt?: string;
   txUrl?: string;
 }
 
@@ -87,6 +88,7 @@ export interface RaffleEntry {
   walletAddress: string;
   shortAddress: string;
   twitterUsername?: string;
+  telegramUsername?: string;
   taskStatus?: Record<string, any>;
   isHolder?: boolean;
   tokenBalance?: number;

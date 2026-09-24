@@ -22,16 +22,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage or system preference
+    // Default is always light (white) mode unless user explicitly selected 'dark' in localStorage
     const savedTheme = localStorage.getItem('dotset_theme') as Theme | null;
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
+    if (savedTheme === 'dark') {
+      setThemeState('dark');
+      applyTheme('dark');
     } else {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = prefersDark ? 'dark' : 'light';
-      setThemeState(initialTheme);
-      applyTheme(initialTheme);
+      setThemeState('light');
+      applyTheme('light');
     }
   }, []);
 

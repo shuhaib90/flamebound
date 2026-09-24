@@ -138,10 +138,11 @@ export function AdminDashboard() {
   // Manual & Bulk Winners Management State
   const [managingWinnersRaffle, setManagingWinnersRaffle] = useState<Raffle | null>(null);
   const [bulkWinnersRawText, setBulkWinnersRawText] = useState('');
-  const [parsedWinnersList, setParsedWinnersList] = useState<Array<{ wallet: string; twitter: string; rank: number }>>([]);
+  const [parsedWinnersList, setParsedWinnersList] = useState<Array<{ wallet: string; twitter: string; telegram?: string; rank: number }>>([]);
   const [notifyTelegramOnWinners, setNotifyTelegramOnWinners] = useState(true);
   const [singleWinnerWallet, setSingleWinnerWallet] = useState('');
   const [singleWinnerTwitter, setSingleWinnerTwitter] = useState('');
+  const [singleWinnerTelegram, setSingleWinnerTelegram] = useState('');
   const [savingWinners, setSavingWinners] = useState(false);
 
   const editCollabLogoFileRef = useRef<HTMLInputElement>(null);
@@ -889,15 +890,17 @@ export function AdminDashboard() {
     setSavingWinners(false);
     setSingleWinnerWallet('');
     setSingleWinnerTwitter('');
+    setSingleWinnerTelegram('');
     if (raffle.winners && raffle.winners.length > 0) {
       const existingText = raffle.winners
-        .map(w => `${w.wallet}${w.twitterUsername ? `, ${w.twitterUsername}` : ''}`)
+        .map(w => `${w.wallet}${w.twitterUsername ? `, ${w.twitterUsername}` : ''}${w.telegramUsername ? `, ${w.telegramUsername}` : ''}`)
         .join('\n');
       setBulkWinnersRawText(existingText);
       setParsedWinnersList(
         raffle.winners.map((w, idx) => ({
           wallet: w.wallet,
           twitter: w.twitterUsername || '',
+          telegram: w.telegramUsername || '',
           rank: w.rank || idx + 1,
         }))
       );
@@ -916,7 +919,7 @@ export function AdminDashboard() {
     }
 
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-    const parsed: Array<{ wallet: string; twitter: string; rank: number }> = [];
+    const parsed: Array<{ wallet: string; twitter: string; telegram?: string; rank: number }> = [];
 
     lines.forEach((line) => {
       // Clean leading numbering like "1.", "1)", "#1", etc.
@@ -941,12 +944,22 @@ export function AdminDashboard() {
 
       let wallet = '';
       let twitter = '';
+      let telegram = '';
 
       for (const token of tokens) {
-        if (!wallet && (token.startsWith('0x') || token.length >= 26 || (!token.startsWith('@') && tokens.length === 1))) {
+        const lower = token.toLowerCase();
+        if (lower.startsWith('tg:') || lower.startsWith('telegram:') || lower.includes('t.me/')) {
+          const raw = token.replace(/^(tg:|telegram:|https?:\/\/t\.me\/|t\.me\/)/i, '').trim();
+          telegram = raw ? (raw.startsWith('@') ? raw : `@${raw}`) : '';
+        } else if (lower.startsWith('x:') || lower.startsWith('twitter:') || lower.includes('x.com/') || lower.includes('twitter.com/')) {
+          const raw = token.replace(/^(x:|twitter:|https?:\/\/(www\.)?(x|twitter)\.com\/)/i, '').trim();
+          twitter = raw ? (raw.startsWith('@') ? raw : `@${raw}`) : '';
+        } else if (!wallet && (token.startsWith('0x') || token.length >= 26 || (!token.startsWith('@') && tokens.length === 1))) {
           wallet = token;
-        } else if (token.startsWith('@') || (!twitter && wallet && token !== wallet)) {
-          twitter = token.startsWith('@') ? token : `@${token}`;
+        } else if (!twitter && token.startsWith('@')) {
+          twitter = token;
+        } else if (twitter && !telegram && token.startsWith('@')) {
+          telegram = token;
         } else if (!wallet) {
           wallet = token;
         }
@@ -956,6 +969,7 @@ export function AdminDashboard() {
         parsed.push({
           wallet,
           twitter: twitter || '',
+          telegram: telegram || '',
           rank: parsed.length + 1,
         });
       }
@@ -971,20 +985,25 @@ export function AdminDashboard() {
     const cleanTwitter = singleWinnerTwitter.trim() 
       ? (singleWinnerTwitter.trim().startsWith('@') ? singleWinnerTwitter.trim() : `@${singleWinnerTwitter.trim()}`) 
       : '';
+    const cleanTelegram = singleWinnerTelegram.trim() 
+      ? (singleWinnerTelegram.trim().startsWith('@') ? singleWinnerTelegram.trim() : `@${singleWinnerTelegram.trim()}`) 
+      : '';
 
     const updated = [
       ...parsedWinnersList,
       {
         wallet: cleanWallet,
         twitter: cleanTwitter,
+        telegram: cleanTelegram,
         rank: parsedWinnersList.length + 1,
       },
     ];
 
     setParsedWinnersList(updated);
-    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}${w.telegram ? `, ${w.telegram}` : ''}`).join('\n'));
     setSingleWinnerWallet('');
     setSingleWinnerTwitter('');
+    setSingleWinnerTelegram('');
   };
 
   // Remove winner row
@@ -994,7 +1013,7 @@ export function AdminDashboard() {
       .map((w, idx) => ({ ...w, rank: idx + 1 }));
 
     setParsedWinnersList(updated);
-    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+    setBulkWinnersRawText(updated.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}${w.telegram ? `, ${w.telegram}` : ''}`).join('\n'));
   };
 
   // Random pick from existing entrants
@@ -1013,11 +1032,12 @@ export function AdminDashboard() {
     const newWinners = selected.map((e, idx) => ({
       wallet: e.walletAddress,
       twitter: e.twitterUsername ? (e.twitterUsername.startsWith('@') ? e.twitterUsername : `@${e.twitterUsername}`) : '',
+      telegram: e.telegramUsername ? (e.telegramUsername.startsWith('@') ? e.telegramUsername : `@${e.telegramUsername}`) : '',
       rank: idx + 1,
     }));
 
     setParsedWinnersList(newWinners);
-    setBulkWinnersRawText(newWinners.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}`).join('\n'));
+    setBulkWinnersRawText(newWinners.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}${w.telegram ? `, ${w.telegram}` : ''}`).join('\n'));
   };
 
   // Save & Publish winners
@@ -1037,6 +1057,7 @@ export function AdminDashboard() {
           winners: parsedWinnersList.map((item, idx) => ({
             wallet: item.wallet,
             twitter: item.twitter,
+            telegram: item.telegram,
             rank: idx + 1,
           })),
           notifyTelegram: notifyTelegramOnWinners,
@@ -1064,21 +1085,23 @@ export function AdminDashboard() {
     }
   };
 
-  // CSV Export (ONLY Wallet Address, X Username) named <projectName>_winners.csv
+  // CSV Export (Wallet Address, X Username, Telegram Username) named <projectName>_winners.csv
   const exportCsv = (raffle: Raffle, entriesOrWinners: 'winners' | 'entries') => {
-    let rows: { wallet: string; twitter: string }[] = [];
+    let rows: { wallet: string; twitter: string; telegram: string }[] = [];
     const projectName = (raffle.project || raffle.title || 'dotset').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
 
     if (entriesOrWinners === 'winners' && raffle.winners && raffle.winners.length > 0) {
       rows = raffle.winners.map(w => ({
         wallet: w.wallet,
         twitter: w.twitterUsername || '',
+        telegram: w.telegramUsername || '',
       }));
     } else {
       const raffleEntries = entries.filter(e => e.raffleId === raffle.id);
       rows = raffleEntries.map(e => ({
         wallet: e.walletAddress,
         twitter: e.twitterUsername || '',
+        telegram: e.telegramUsername || '',
       }));
     }
 
@@ -1088,8 +1111,8 @@ export function AdminDashboard() {
     }
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [
-      'Wallet Address,X Username',
-      ...rows.map(r => `"${r.wallet}","${r.twitter}"`),
+      'Wallet Address,X Username,Telegram Username',
+      ...rows.map(r => `"${r.wallet}","${r.twitter}","${r.telegram}"`),
     ].join('\n');
 
     const encodedUri = encodeURI(csvContent);
@@ -3636,7 +3659,7 @@ export function AdminDashboard() {
                   rows={5}
                   value={bulkWinnersRawText}
                   onChange={e => autoParseWinnersText(e.target.value)}
-                  placeholder="Paste winners in bulk (one per line). Supported formats:&#10;0x1234567890abcdef1234567890abcdef12345678, @username1&#10;0xabcdef1234567890abcdef1234567890abcdef12 @username2&#10;0x9876543210fedcba9876543210fedcba98765432&#10;Tab-separated, comma-separated, or just wallet addresses..."
+                  placeholder="Paste winners in bulk (one per line). Supported formats:&#10;0x1234567890abcdef1234567890abcdef12345678, @twitterUser, @tgUser&#10;0xabcdef1234567890abcdef1234567890abcdef12 x:@twitterUser tg:@tgUser&#10;0x9876543210fedcba9876543210fedcba98765432 @twitterUser&#10;Tab-separated, comma-separated, or just wallet addresses..."
                   className="w-full bg-gray-50 border border-gray-200 focus:border-[#293681] text-gray-900 placeholder:text-gray-400 font-mono-dm p-3 rounded-xl outline-none text-xs leading-relaxed"
                 />
               </div>
@@ -3647,7 +3670,7 @@ export function AdminDashboard() {
                   + Add Single Winner Manually
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                  <div className="sm:col-span-7">
+                  <div className="sm:col-span-5">
                     <input
                       type="text"
                       value={singleWinnerWallet}
@@ -3662,6 +3685,15 @@ export function AdminDashboard() {
                       value={singleWinnerTwitter}
                       onChange={e => setSingleWinnerTwitter(e.target.value)}
                       placeholder="@twitter (Optional)"
+                      className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none focus:border-[#293681]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <input
+                      type="text"
+                      value={singleWinnerTelegram}
+                      onChange={e => setSingleWinnerTelegram(e.target.value)}
+                      placeholder="@telegram (Optional)"
                       className="w-full bg-white border border-gray-200 text-gray-900 p-2 rounded-lg text-xs outline-none focus:border-[#293681]"
                     />
                   </div>
@@ -3703,6 +3735,7 @@ export function AdminDashboard() {
                           <th className="py-2.5 px-3 w-14 text-center">Rank</th>
                           <th className="py-2.5 px-3">Wallet Address</th>
                           <th className="py-2.5 px-3">X / Twitter</th>
+                          <th className="py-2.5 px-3">Telegram</th>
                           <th className="py-2.5 px-3 text-right">Action</th>
                         </tr>
                       </thead>
@@ -3717,6 +3750,9 @@ export function AdminDashboard() {
                             </td>
                             <td className="py-2 px-3 text-[#293681] font-semibold">
                               {w.twitter || '—'}
+                            </td>
+                            <td className="py-2 px-3 text-[#0088cc] font-medium font-mono-dm">
+                              {w.telegram || '—'}
                             </td>
                             <td className="py-2 px-3 text-right">
                               <button

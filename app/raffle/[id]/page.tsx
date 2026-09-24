@@ -211,10 +211,11 @@ export default function SingleRafflePage() {
   const handleCheckWinner = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!winnerSearchInput.trim() || !raffle?.winners || raffle.winners.length === 0) return;
-    const cleanSearch = winnerSearchInput.trim().toLowerCase();
+    const cleanSearch = winnerSearchInput.trim().toLowerCase().replace(/^@/, '');
     const match = raffle.winners.find(
       w => w.wallet.toLowerCase() === cleanSearch || 
-           (w.twitterUsername && w.twitterUsername.toLowerCase().replace(/^@/, '') === cleanSearch.replace(/^@/, ''))
+           (w.twitterUsername && w.twitterUsername.toLowerCase().replace(/^@/, '') === cleanSearch) ||
+           (w.telegramUsername && w.telegramUsername.toLowerCase().replace(/^@/, '') === cleanSearch)
     );
     if (match) {
       setWinnerSearchResult({ found: true, rank: match.rank, wallet: match.wallet });
@@ -335,13 +336,13 @@ export default function SingleRafflePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-gray-900 selection:bg-[#293681] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#090b14] text-gray-900 dark:text-slate-100 selection:bg-[#293681] selection:text-white transition-colors duration-200">
       <Header />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
+        <div className="flex items-center justify-between pb-6 mb-8 border-b border-gray-200 dark:border-slate-800">
           <Link
             href="/#active-raffles"
             className="btn-outline-cq text-xs py-2 px-3.5 flex items-center gap-2"
@@ -1052,28 +1053,29 @@ export default function SingleRafflePage() {
               </div>
 
               {/* Winners Table */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto max-h-96 overflow-y-auto">
                   <table className="w-full text-left font-dm text-xs">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-mono-dm text-[10px] sticky top-0 bg-gray-50 z-10">
+                    <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 uppercase font-mono-dm text-[10px] sticky top-0 z-10">
                       <tr>
                         <th className="py-3 px-4 w-16 text-center">#</th>
                         <th className="py-3 px-4">Receiving Wallet Address</th>
                         <th className="py-3 px-4">X / Twitter</th>
+                        <th className="py-3 px-4">Telegram</th>
                         <th className="py-3 px-4 text-right">Allocation Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-gray-700">
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800 text-gray-700 dark:text-slate-300">
                       {raffle.winners.map((w, idx) => {
                         const isCopied = copiedWinnerWallet === w.wallet;
                         return (
-                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                            <td className="py-3 px-4 text-center font-mono-dm font-bold text-amber-600">
+                          <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors">
+                            <td className="py-3 px-4 text-center font-mono-dm font-bold text-amber-600 dark:text-amber-400">
                               #{w.rank || idx + 1}
                             </td>
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
-                                <span className="font-mono-dm text-gray-900 font-medium select-all">
+                                <span className="font-mono-dm text-gray-900 dark:text-slate-100 font-medium select-all">
                                   {w.wallet}
                                 </span>
                                 <button
@@ -1083,14 +1085,14 @@ export default function SingleRafflePage() {
                                     setCopiedWinnerWallet(w.wallet);
                                     setTimeout(() => setCopiedWinnerWallet(null), 2000);
                                   }}
-                                  className="p-1 text-gray-400 hover:text-gray-700 rounded transition-colors"
+                                  className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 rounded transition-colors"
                                   title="Copy Wallet Address"
                                 >
-                                  {isCopied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                                  {isCopied ? <Check size={13} className="text-emerald-600 dark:text-emerald-400" /> : <Copy size={13} />}
                                 </button>
                               </div>
                             </td>
-                            <td className="py-3 px-4 font-medium text-[#293681]">
+                            <td className="py-3 px-4 font-medium text-[#293681] dark:text-blue-400">
                               {w.twitterUsername ? (
                                 <a
                                   href={`https://x.com/${w.twitterUsername.replace(/^@/, '')}`}
@@ -1099,14 +1101,29 @@ export default function SingleRafflePage() {
                                   className="hover:underline flex items-center gap-1"
                                 >
                                   <span>{w.twitterUsername}</span>
-                                  <ExternalLink size={10} className="text-gray-400" />
+                                  <ExternalLink size={10} className="text-gray-400 dark:text-slate-500" />
                                 </a>
                               ) : (
-                                <span className="text-gray-400">—</span>
+                                <span className="text-gray-400 dark:text-slate-600">—</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 font-medium text-[#0088cc] dark:text-cyan-400 font-mono-dm">
+                              {w.telegramUsername ? (
+                                <a
+                                  href={`https://t.me/${w.telegramUsername.replace(/^@/, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="hover:underline flex items-center gap-1"
+                                >
+                                  <span>{w.telegramUsername}</span>
+                                  <ExternalLink size={10} className="text-gray-400 dark:text-slate-500" />
+                                </a>
+                              ) : (
+                                <span className="text-gray-400 dark:text-slate-600">—</span>
                               )}
                             </td>
                             <td className="py-3 px-4 text-right">
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-mono-dm uppercase font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-mono-dm uppercase font-bold">
                                 Whitelist Confirmed
                               </span>
                             </td>

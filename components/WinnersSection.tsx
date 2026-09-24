@@ -16,6 +16,7 @@ import {
   Search, 
   ExternalLink,
   Twitter,
+  Send,
   ArrowRight
 } from 'lucide-react';
 
@@ -50,10 +51,11 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
   // Filtered winners in modal
   const filteredWinners = selectedRaffle?.winners ? selectedRaffle.winners.filter(w => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
+    const q = searchQuery.toLowerCase().trim().replace(/^@/, '');
     return (
       w.wallet.toLowerCase().includes(q) ||
-      (w.twitterUsername && w.twitterUsername.toLowerCase().includes(q))
+      (w.twitterUsername && w.twitterUsername.toLowerCase().replace(/^@/, '').includes(q)) ||
+      (w.telegramUsername && w.telegramUsername.toLowerCase().replace(/^@/, '').includes(q))
     );
   }) : [];
 
@@ -318,7 +320,7 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                 <input
                   type="text"
-                  placeholder="Check your wallet (0x...) or X username (@handle)..."
+                  placeholder="Check your wallet (0x...), X handle (@x), or Telegram (@tg)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80 text-gray-900 dark:text-slate-100 font-mono-dm text-xs focus:outline-none focus:border-[#293681] dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
@@ -385,20 +387,34 @@ export function WinnersSection({ raffles }: { raffles: Raffle[] }) {
                           </button>
                         </div>
 
-                        {/* Twitter Handle / Verified badge */}
+                        {/* Social Handles (Twitter & Telegram) / Verified badge */}
                         <div className="flex items-center gap-2 shrink-0">
                           {winner.twitterUsername && (
                             <a
-                              href={`https://x.com/${winner.twitterUsername.replace('@', '')}`}
+                              href={`https://x.com/${winner.twitterUsername.replace(/^@/, '')}`}
                               target="_blank"
                               rel="noreferrer"
                               className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-medium hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors flex items-center gap-1"
-                              title={`View @${winner.twitterUsername.replace('@', '')} on X`}
+                              title={`View @${winner.twitterUsername.replace(/^@/, '')} on X`}
                             >
                               <Twitter size={11} />
-                              <span>@{winner.twitterUsername.replace('@', '')}</span>
+                              <span>@{winner.twitterUsername.replace(/^@/, '')}</span>
                             </a>
                           )}
+
+                          {winner.telegramUsername && (
+                            <a
+                              href={`https://t.me/${winner.telegramUsername.replace(/^@/, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-2 py-1 rounded bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 text-[11px] font-medium hover:bg-cyan-100 dark:hover:bg-cyan-900/60 transition-colors flex items-center gap-1"
+                              title={`View @${winner.telegramUsername.replace(/^@/, '')} on Telegram`}
+                            >
+                              <Send size={11} />
+                              <span>@{winner.telegramUsername.replace(/^@/, '')}</span>
+                            </a>
+                          )}
+
                           <CheckCircle2 size={16} className="text-[#16a34a] dark:text-emerald-400 shrink-0" />
                         </div>
                       </div>

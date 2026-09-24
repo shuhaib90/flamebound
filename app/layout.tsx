@@ -29,8 +29,7 @@ export default function RootLayout({
               (function() {
                 try {
                   var saved = localStorage.getItem('dotset_theme');
-                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (saved === 'dark' || (!saved && prefersDark)) {
+                  if (saved === 'dark') {
                     document.documentElement.classList.add('dark');
                     document.documentElement.style.colorScheme = 'dark';
                   } else {

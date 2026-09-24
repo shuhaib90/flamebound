@@ -45,17 +45,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const formattedWinners: Winner[] = winners.map((item: any, index: number) => {
       let wallet = '';
       let twitter = '';
+      let telegram = '';
 
       if (typeof item === 'string') {
         wallet = item.trim();
       } else if (item && typeof item === 'object') {
         wallet = (item.wallet || item.walletAddress || item.address || '').trim();
         twitter = (item.twitter || item.twitterUsername || item.handle || item.xUsername || '').trim();
+        telegram = (item.telegram || item.telegramUsername || item.tgUsername || item.tg || '').trim();
       }
 
       // Format short wallet
       const short = formatAddress(wallet);
       const cleanTwitter = twitter ? (twitter.startsWith('@') ? twitter : `@${twitter}`) : '';
+      const cleanTelegram = telegram ? (telegram.startsWith('@') ? telegram : `@${telegram}`) : '';
 
       return {
         rank: index + 1,
@@ -63,6 +66,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         shortWallet: short,
         entryNumber: `WIN-${String(index + 1).padStart(2, '0')}`,
         twitterUsername: cleanTwitter,
+        telegramUsername: cleanTelegram,
         drawnAt: new Date().toISOString(),
       };
     }).filter(w => Boolean(w.wallet));
