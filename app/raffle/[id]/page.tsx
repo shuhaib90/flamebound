@@ -234,7 +234,7 @@ export default function SingleRafflePage() {
   };
 
   const handleFollowDotset = () => {
-    window.open('https://x.com/dotsetxyz', '_blank');
+    window.open('https://x.com/dotsetarena', '_blank');
     setTasks(prev => ({ ...prev, followDotset: true }));
   };
 
@@ -803,7 +803,7 @@ export default function SingleRafflePage() {
                       <div className={`p-3 rounded-lg border flex items-center justify-between gap-2 transition-colors ${tasks.followDotset ? 'bg-emerald-50/40 border-emerald-300' : 'bg-gray-50 border-gray-200'}`}>
                         <div className="flex items-center gap-2 min-w-0 font-dm text-xs font-semibold text-gray-900">
                           <Twitter size={14} className="text-[#38bdf8] shrink-0" />
-                          <span className="truncate">Follow @DOTSET</span>
+                          <span className="truncate">Follow @dotsetarena</span>
                         </div>
 
                         <button

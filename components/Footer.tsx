@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://x.com/dotsetxyz"
+                  href="https://x.com/dotsetarena"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-[#293681] dark:hover:text-blue-400 transition-colors"

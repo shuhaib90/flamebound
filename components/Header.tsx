@@ -57,7 +57,7 @@ export function Header() {
             {/* Social Icons */}
             <div className="flex items-center space-x-1 pr-2 border-r border-gray-200 dark:border-slate-800">
               <a
-                href="https://x.com/dotsetxyz"
+                href="https://x.com/dotsetarena"
                 target="_blank"
                 rel="noreferrer"
                 className="p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:text-[#293681] dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
