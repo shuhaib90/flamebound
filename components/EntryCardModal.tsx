@@ -11,8 +11,9 @@ interface EntryCardModalProps {
     id: string;
     title: string;
     project: string;
-    imageUrl?: string;
+    logoUrl?: string;
     bannerUrl?: string;
+    imageUrl?: string;
     network?: string;
     entryMethod?: string;
     supply?: string | number;
@@ -106,36 +107,71 @@ export function EntryCardModal({
         ctx.fillStyle = '#0b0f19';
         ctx.fillRect(boxX, boxY, boxW, boxH);
 
-        let imageLoaded = false;
-        if (raffle.imageUrl) {
-          const projImg = new Image();
-          projImg.crossOrigin = 'anonymous';
-          await new Promise((resolve) => {
-            projImg.onload = () => { imageLoaded = true; resolve(true); };
-            projImg.onerror = () => { imageLoaded = false; resolve(false); };
-            projImg.src = raffle.imageUrl!;
-          });
+        // Find candidate project images in priority order
+        const candidateUrls: string[] = [];
+        if (raffle.logoUrl && raffle.logoUrl !== '/images/dotset-logo.png') {
+          candidateUrls.push(raffle.logoUrl);
+        }
+        if (raffle.bannerUrl && raffle.bannerUrl !== '/images/dotset-logo.png') {
+          candidateUrls.push(raffle.bannerUrl);
+        }
+        if (raffle.imageUrl && raffle.imageUrl !== '/images/dotset-logo.png') {
+          candidateUrls.push(raffle.imageUrl);
+        }
+        if (raffle.logoUrl) {
+          candidateUrls.push(raffle.logoUrl);
+        }
 
-          if (imageLoaded && projImg.naturalWidth > 0) {
-            // Draw image cover
-            const imgAspect = projImg.naturalWidth / projImg.naturalHeight;
-            const boxAspect = boxW / boxH;
-            let drawW = boxW, drawH = boxH, drawX = boxX, drawY = boxY;
+        const loadImageWithFallback = async (srcUrl: string): Promise<HTMLImageElement | null> => {
+          // Attempt 1: Direct CORS load
+          const tryLoad = (url: string) =>
+            new Promise<HTMLImageElement | null>((resolve) => {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => resolve(img);
+              img.onerror = () => resolve(null);
+              img.src = url;
+            });
 
-            if (imgAspect > boxAspect) {
-              drawW = boxH * imgAspect;
-              drawX = boxX - (drawW - boxW) / 2;
-            } else {
-              drawH = boxW / imgAspect;
-              drawY = boxY - (drawH - boxH) / 2;
-            }
+          let img = await tryLoad(srcUrl);
+          if (img && img.naturalWidth > 0) return img;
 
-            ctx.drawImage(projImg, drawX, drawY, drawW, drawH);
+          // Attempt 2: If external HTTP(S), proxy through Next.js server route
+          if (srcUrl.startsWith('http://') || srcUrl.startsWith('https://')) {
+            const proxiedUrl = `/api/image-proxy?url=${encodeURIComponent(srcUrl)}`;
+            img = await tryLoad(proxiedUrl);
+            if (img && img.naturalWidth > 0) return img;
+          }
+
+          return null;
+        };
+
+        let loadedProjectImg: HTMLImageElement | null = null;
+        for (const candidate of candidateUrls) {
+          if (!candidate) continue;
+          loadedProjectImg = await loadImageWithFallback(candidate);
+          if (loadedProjectImg && loadedProjectImg.naturalWidth > 0) {
+            break;
           }
         }
 
-        // If no image or image failed, render custom futuristic project badge
-        if (!imageLoaded) {
+        if (loadedProjectImg && loadedProjectImg.naturalWidth > 0) {
+          // Draw image cover with centered cropping
+          const imgAspect = loadedProjectImg.naturalWidth / loadedProjectImg.naturalHeight;
+          const boxAspect = boxW / boxH;
+          let drawW = boxW, drawH = boxH, drawX = boxX, drawY = boxY;
+
+          if (imgAspect > boxAspect) {
+            drawW = boxH * imgAspect;
+            drawX = boxX - (drawW - boxW) / 2;
+          } else {
+            drawH = boxW / imgAspect;
+            drawY = boxY - (drawH - boxH) / 2;
+          }
+
+          ctx.drawImage(loadedProjectImg, drawX, drawY, drawW, drawH);
+        } else {
+          // If no candidate image could be loaded, render custom futuristic project badge
           const grad = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
           grad.addColorStop(0, '#1e293b');
           grad.addColorStop(1, '#0f172a');
