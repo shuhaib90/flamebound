@@ -5,6 +5,7 @@ import {
   deleteCollabRequestAsync, 
   approveAndPublishCollabRequestAsync 
 } from '@/lib/db';
+import { sendTelegramRaffleNotification, getTelegramConfig } from '@/lib/telegram';
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -16,6 +17,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       if (!liveRaffle) {
         return NextResponse.json({ success: false, error: 'Collab request not found' }, { status: 404 });
       }
+
+      // Auto-send Telegram community notification in background if configured
+      if (getTelegramConfig().autoNotify) {
+        sendTelegramRaffleNotification(liveRaffle).catch(err => {
+          console.warn('Telegram auto-notify background error:', err);
+        });
+      }
+
       return NextResponse.json({ success: true, raffle: liveRaffle });
     }
 
