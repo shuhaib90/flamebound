@@ -21,8 +21,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-white text-gray-900 antialiased selection:bg-[#4274d9] selection:text-white min-h-screen flex flex-col font-dm relative">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('dotset_theme');
+                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-white dark:bg-[#090b14] text-gray-900 dark:text-slate-100 antialiased selection:bg-[#4274d9] selection:text-white min-h-screen flex flex-col font-dm relative transition-colors duration-200">
         {/* Ambient Grid and Glow */}
         <div className="amb-grid" />
         <div className="amb-glow" />

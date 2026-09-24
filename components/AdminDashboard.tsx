@@ -6,6 +6,7 @@ import { Raffle, RaffleEntry, AdminStats, CustomTask, CollabRequest, CustomChain
 import { BUILTIN_CHAINS } from '@/lib/db';
 import { useWallet } from '@/lib/wallet-context';
 import { ChainBadge, ChainLogo } from '@/components/ChainBadge';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   ShieldCheck, 
   Plus, 
@@ -1184,43 +1185,44 @@ export function AdminDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F9F9FB] text-gray-900 selection:bg-[#4274d9] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#F9F9FB] dark:bg-[#090b14] text-gray-900 dark:text-slate-100 selection:bg-[#4274d9] selection:text-white pb-20 transition-colors duration-200">
       
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#090b14]/90 backdrop-blur-xl border-b border-gray-200 dark:border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-dm transition-colors"
+            className="flex items-center gap-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white text-sm font-dm transition-colors"
           >
             <ArrowLeft size={16} />
             <span>Back to Site</span>
           </Link>
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-gray-200 dark:bg-slate-800" />
           <div className="flex items-center gap-2">
             <img
               src="/images/dotset-logo.png"
               alt="dotset"
-              className="h-5 sm:h-6 w-auto opacity-95 object-contain"
+              className="h-5 sm:h-6 w-auto opacity-95 object-contain dark:brightness-110"
             />
-            <span className="px-2 py-0.5 rounded-full bg-[#293681]/10 text-[#293681] border border-[#293681]/20 text-[10px] font-mono-dm uppercase font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-[#293681]/10 dark:bg-blue-500/20 text-[#293681] dark:text-blue-300 border border-[#293681]/20 dark:border-blue-500/30 text-[10px] font-mono-dm uppercase font-semibold">
               Admin Controller
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
             title="Refresh Data"
           >
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           </button>
           <button
             onClick={handleLock}
-            className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-mono-dm transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 text-xs font-mono-dm transition-colors flex items-center gap-1.5"
             title="Lock Dashboard Session"
           >
             <Lock size={13} />

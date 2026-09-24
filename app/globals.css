@@ -39,6 +39,33 @@
   --r2: 8px;
 }
 
+html.dark,
+.dark {
+  --color-brand-primary: #5c7cfa;
+  --color-brand-secondary: #74c0fc;
+  --color-brand-tertiary: #95ccdd;
+  --color-brand-quaternary: #1e293b;
+  --color-app-background: #090b14;
+  --bg: #090b14;
+  --bg1: #0f172a;
+  --bg2: #1e293b;
+  --sur: rgba(255, 255, 255, 0.04);
+  --sur2: rgba(255, 255, 255, 0.08);
+  --bdr: rgba(255, 255, 255, 0.12);
+  --bdr2: rgba(92, 124, 250, 0.35);
+  --p: #5c7cfa;
+  --p2: #74c0fc;
+  --glow: rgba(92, 124, 250, 0.18);
+  --cyan: #38bdf8;
+  --green: #22c55e;
+  --orange: #f97316;
+  --red: #ef4444;
+  --txt: #f8fafc;
+  --txt2: #94a3b8;
+  --txt3: #64748b;
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -48,12 +75,19 @@ html {
 }
 
 body {
-  background-color: #ffffff !important;
-  color: #0a0a0a !important;
+  background-color: #ffffff;
+  color: #0a0a0a;
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body,
+.dark body {
+  background-color: #090b14 !important;
+  color: #f8fafc !important;
 }
 
 /* Custom Sleek Scrollbars */
@@ -64,17 +98,30 @@ body {
 ::-webkit-scrollbar-track {
   background: #ffffff;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #090b14;
+}
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 /* Highlight */
 ::selection {
   background: #293681;
+  color: #ffffff;
+}
+.dark ::selection {
+  background: #3b82f6;
   color: #ffffff;
 }
 
@@ -105,6 +152,13 @@ body {
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%);
 }
 
+.dark .amb-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 80%);
+}
+
 .amb-glow {
   position: fixed;
   width: 800px;
@@ -118,6 +172,10 @@ body {
   z-index: 0;
 }
 
+.dark .amb-glow {
+  background: radial-gradient(ellipse, rgba(66, 116, 217, 0.20) 0%, rgba(14, 165, 233, 0.08) 50%, transparent 70%);
+}
+
 /* Floating animation for stats bubbles */
 @keyframes floatAnim {
   0%, 100% { transform: translateY(0px); }
@@ -128,71 +186,6 @@ body {
 .animate-float-2 { animation: floatAnim 4s ease-in-out infinite 0.8s; }
 .animate-float-3 { animation: floatAnim 4s ease-in-out infinite 1.6s; }
 .animate-float-4 { animation: floatAnim 4s ease-in-out infinite 2.4s; }
-
-/* CloudQuest Buttons */
-.btn-primary-cq {
-  background: #293681;
-  color: #ffffff;
-  border: 1px solid #293681;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 0.88rem;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.16s ease;
-}
-
-.btn-primary-cq:hover {
-  background: #4274d9;
-  border-color: #4274d9;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(66, 116, 217, 0.25);
-}
-
-.btn-outline-cq {
-  background: #ffffff;
-  color: #293681;
-  border: 1px solid #e2e8f0;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  font-size: 0.88rem;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.16s ease;
-}
-
-.btn-outline-cq:hover {
-  background: #f8fafc;
-  color: #293681;
-  border-color: #293681;
-  transform: translateY(-1px);
-}
-
-/* Glass Card */
-.cq-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px -2px rgba(41, 54, 129, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-  transition: all 0.16s ease;
-}
-
-.cq-card:hover {
-  background: #ffffff;
-  border-color: #293681;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -4px rgba(41, 54, 129, 0.14);
-}
 
 /* =========================================================
    DOTSET.XYZ HERO SECTION & 3D REVEAL ANIMATION STYLES
@@ -211,6 +204,10 @@ body {
   justify-content: center;
   overflow: hidden;
   background-color: #ffffff;
+}
+
+.dark .dotset-hero-container {
+  background-color: #090b14;
 }
 
 .dotset-reveal-scene,
@@ -256,6 +253,11 @@ body {
   line-height: 1;
 }
 
+.dark .dotset-reveal-title {
+  color: #ffffff;
+  text-shadow: 4px 4px #1e293b, 8px 8px #1e3a8a, 12px 12px #2563eb, 16px 16px #3b82f6;
+}
+
 .dotset-reveal-subtitle {
   width: min(100%, calc(var(--dotset-name-font-size) * 3.175));
   max-width: 100%;
@@ -272,9 +274,17 @@ body {
   position: relative;
 }
 
+.dark .dotset-reveal-subtitle {
+  color: #cbd5e1;
+}
+
 .dotset-reveal-focus {
   font-weight: 700;
   color: #000000;
+}
+
+.dark .dotset-reveal-focus {
+  color: #ffffff;
 }
 
 .dotset-reveal-subtitle-link {
@@ -289,6 +299,10 @@ body {
   justify-self: center;
   font-weight: 600;
   position: relative;
+}
+
+.dark .dotset-reveal-subtitle-link {
+  color: #ffffff;
 }
 
 .dotset-reveal-subtitle-link:first-child {
@@ -332,6 +346,9 @@ body {
   .dotset-reveal-title {
     text-shadow: 2px 2px #e3f2fd, 4px 4px #90caf9, 6px 6px #2196f3, 8px 8px #0d47a1;
   }
+  .dark .dotset-reveal-title {
+    text-shadow: 2px 2px #1e293b, 4px 4px #1e3a8a, 6px 6px #2563eb, 8px 8px #3b82f6;
+  }
   .dotset-reveal-subtitle {
     margin-top: 0.25rem;
   }
@@ -341,6 +358,10 @@ body {
     text-shadow: none;
     font-weight: 600;
     animation-name: dotset-subtitle-opacity-cycle;
+  }
+  .dark .dotset-reveal-subtitle-link,
+  .dark .dotset-reveal-subtitle.is-shadow-active .dotset-reveal-subtitle-link {
+    color: #ffffff;
   }
 }
 
