@@ -71,32 +71,7 @@ interface NewRaffleForm {
   customTasks: CustomTask[];
 }
 
-const DEFAULT_DOTSET_AUTO_TASKS: CustomTask[] = [
-  {
-    id: 'task-dotset-arena',
-    title: 'Follow @dotsetarena on 𝕏',
-    url: 'https://x.com/dotsetarena',
-    actionLabel: 'Follow',
-    type: 'twitter',
-    required: true,
-  },
-  {
-    id: 'task-dotset-xyz',
-    title: 'Follow @dotsetxyz on 𝕏',
-    url: 'https://x.com/dotsetxyz',
-    actionLabel: 'Follow',
-    type: 'twitter',
-    required: true,
-  },
-  {
-    id: 'task-dotset-telegram',
-    title: 'Join DOTSET Telegram Community',
-    url: 'https://t.me/dotset_xyz',
-    actionLabel: 'Join TG',
-    type: 'telegram',
-    required: true,
-  },
-];
+const DEFAULT_DOTSET_AUTO_TASKS: CustomTask[] = [];
 
 export function AdminDashboard() {
   const { address, isConnected } = useWallet();
@@ -226,15 +201,15 @@ export function AdminDashboard() {
     walletAddressPlaceholder: '0x... (Whitelist receiver)',
     logoUrl: '/images/dotset-logo.png',
     bannerUrl: '/images/dotset-logo.png',
-    followUrl: 'https://x.com/dotsetarena',
+    followUrl: '',
     engageUrl: '',
-    twitterUrl: 'https://x.com/dotsetarena',
-    discordUrl: 'https://discord.com',
+    twitterUrl: '',
+    discordUrl: '',
     mintUrl: '',
     notes: 'Official Partner Whitelist',
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     entryMethod: 'raffle',
-    customTasks: [...DEFAULT_DOTSET_AUTO_TASKS],
+    customTasks: [],
   });
 
   const isAuthenticated = sessionAuth;
@@ -601,40 +576,6 @@ export function AdminDashboard() {
     }
   };
 
-  const handleAddDefaultDotsetTasks = (target: 'new' | 'edit_raffle' | 'edit_collab' = 'new') => {
-    if (target === 'edit_collab' && editingCollab) {
-      const existingUrls = (editingCollab.customTasks || []).map(t => t.url.toLowerCase());
-      const toAdd = DEFAULT_DOTSET_AUTO_TASKS.filter(dt => !existingUrls.includes(dt.url.toLowerCase())).map(t => ({
-        ...t,
-        id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      }));
-      setEditingCollab({
-        ...editingCollab,
-        customTasks: [...(editingCollab.customTasks || []), ...toAdd],
-      });
-    } else if (target === 'edit_raffle' && editingRaffle) {
-      const existingUrls = (editingRaffle.customTasks || []).map(t => t.url.toLowerCase());
-      const toAdd = DEFAULT_DOTSET_AUTO_TASKS.filter(dt => !existingUrls.includes(dt.url.toLowerCase())).map(t => ({
-        ...t,
-        id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      }));
-      setEditingRaffle({
-        ...editingRaffle,
-        customTasks: [...(editingRaffle.customTasks || []), ...toAdd],
-      });
-    } else {
-      const existingUrls = newRaffle.customTasks.map(t => t.url.toLowerCase());
-      const toAdd = DEFAULT_DOTSET_AUTO_TASKS.filter(dt => !existingUrls.includes(dt.url.toLowerCase())).map(t => ({
-        ...t,
-        id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      }));
-      setNewRaffle(prev => ({
-        ...prev,
-        customTasks: [...prev.customTasks, ...toAdd],
-      }));
-    }
-  };
-
   const handleUpdateCollab = async (e: React.FormEvent, andPublish = false) => {
     e.preventDefault();
     if (!editingCollab) return;
@@ -712,7 +653,7 @@ export function AdminDashboard() {
         // Reset form for next raffle
         setNewRaffle({
           title: '',
-          project: 'DOTSET',
+          project: '',
           slug: '',
           type: 'WL RAFFLE',
           mintStage: 'GTD',
@@ -730,15 +671,15 @@ export function AdminDashboard() {
           walletAddressPlaceholder: '0x... (Whitelist receiver)',
           logoUrl: '/images/dotset-logo.png',
           bannerUrl: '/images/dotset-logo.png',
-          followUrl: 'https://x.com/dotsetarena',
+          followUrl: '',
           engageUrl: '',
-          twitterUrl: 'https://x.com/dotsetarena',
-          discordUrl: 'https://discord.gg/Jq2Jt2HdfY',
+          twitterUrl: '',
+          discordUrl: '',
           mintUrl: '',
           notes: '',
           endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
           entryMethod: 'raffle',
-          customTasks: [...DEFAULT_DOTSET_AUTO_TASKS],
+          customTasks: [],
         });
       } else {
         alert(data.error || data.message || 'Failed to create raffle');
@@ -764,11 +705,13 @@ export function AdminDashboard() {
 
     try {
       setLoading(true);
+      // Exclude totalEntries and winners from edit updates so existing entrants and winners are NEVER washed out!
+      const { totalEntries, winners, ...editableFields } = editingRaffle;
       const res = await fetch(`/api/raffles/${editingRaffle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...editingRaffle,
+          ...editableFields,
           endDate: parsedEndDate,
         }),
       });
@@ -1922,18 +1865,9 @@ export function AdminDashboard() {
                       <span>Social Verification Tasks ({newRaffle.customTasks.length})</span>
                     </div>
                     <span className="text-[11px] font-dm text-gray-500 block mt-0.5">
-                      Auto-includes official @dotsetarena & Telegram community quests
+                      Add any custom social tasks or community quests manually below
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleAddDefaultDotsetTasks('new')}
-                    className="px-3 py-1.5 bg-[#293681]/10 hover:bg-[#293681]/20 text-[#293681] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 self-start sm:self-auto shrink-0"
-                    title="Quick add @dotsetarena follow & Telegram community tasks"
-                  >
-                    <Sparkles size={13} className="text-[#293681]" />
-                    <span>+ Auto-Add DOTSET Tasks</span>
-                  </button>
                 </div>
 
                 {/* List of active custom tasks */}
@@ -2793,14 +2727,6 @@ export function AdminDashboard() {
                     <span className="font-mono-dm text-xs font-bold text-gray-800 uppercase">
                       Custom Social Tasks ({editingRaffle.customTasks?.length || 0})
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleAddDefaultDotsetTasks('edit_raffle')}
-                      className="px-2.5 py-1 bg-[#293681]/10 hover:bg-[#293681]/20 text-[#293681] text-[11px] font-semibold rounded-lg transition-colors flex items-center gap-1 shrink-0"
-                    >
-                      <Sparkles size={11} className="text-[#293681]" />
-                      <span>+ Auto-Add DOTSET Tasks</span>
-                    </button>
                   </div>
 
                   {editingRaffle.customTasks && editingRaffle.customTasks.length > 0 && (
@@ -3354,14 +3280,6 @@ export function AdminDashboard() {
                     <span className="font-mono-dm text-xs font-bold text-gray-800 uppercase">
                       Custom Social Tasks ({editingCollab.customTasks?.length || 0})
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleAddDefaultDotsetTasks('edit_collab')}
-                      className="px-2.5 py-1 bg-[#293681]/10 hover:bg-[#293681]/20 text-[#293681] text-[11px] font-semibold rounded-lg transition-colors flex items-center gap-1 shrink-0"
-                    >
-                      <Sparkles size={11} className="text-[#293681]" />
-                      <span>+ Auto-Add DOTSET Tasks</span>
-                    </button>
                   </div>
 
                   {editingCollab.customTasks && editingCollab.customTasks.length > 0 && (

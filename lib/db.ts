@@ -97,10 +97,10 @@ function mapDbRowToRaffle(row: any): Raffle {
     artworkType: row.artwork_type || 'genesis',
     logoUrl: row.logo_url || '/images/dotset-logo.png',
     bannerUrl: row.banner_url || '/images/dotset-logo.png',
-    followUrl: row.follow_url || 'https://x.com/dotsetxyz',
-    engageUrl: row.engage_url || 'https://x.com/dotsetxyz',
-    twitterUrl: row.twitter_url || 'https://x.com/dotsetxyz',
-    discordUrl: row.discord_url || 'https://discord.gg/Jq2Jt2HdfY',
+    followUrl: row.follow_url || '',
+    engageUrl: row.engage_url || '',
+    twitterUrl: row.twitter_url || '',
+    discordUrl: row.discord_url || '',
     mintUrl: row.mint_url || '',
     notes: row.notes || '',
     customTasks: Array.isArray(row.custom_tasks) 
@@ -449,7 +449,13 @@ export async function getEntriesAsync(raffleId?: string): Promise<RaffleEntry[]>
   try {
     let query = supabase.from('flamebound_entries').select('*').order('verified_at', { ascending: false });
     if (raffleId) {
-      query = query.eq('raffle_id', raffleId);
+      const r = await getRaffleByIdAsync(raffleId);
+      const canonId = r?.id || raffleId;
+      if (canonId !== raffleId) {
+        query = query.or(`raffle_id.eq.${canonId},raffle_id.eq.${raffleId}`);
+      } else {
+        query = query.eq('raffle_id', canonId);
+      }
     }
     const { data, error } = await query;
 
@@ -463,6 +469,7 @@ export async function getEntriesAsync(raffleId?: string): Promise<RaffleEntry[]>
       walletAddress: row.wallet_address,
       shortAddress: row.short_address || formatAddress(row.wallet_address),
       twitterUsername: row.twitter_username,
+      telegramUsername: row.telegram_username || row.metadata?.telegramUsername || '',
       taskStatus: row.task_status || {},
       isHolder: !!row.is_holder,
       tokenBalance: row.token_balance || 0,
@@ -570,12 +577,12 @@ export async function createEntryAsync(entryData: {
   }
 
   const isFcfs = raffle.entryMethod === 'fcfs';
-  const entryCount = await getEntriesAsync(entryData.raffleId);
+  const entryCount = await getEntriesAsync(raffle.id);
   const isFcfsWinner = isFcfs && (entryCount.length < (raffle.supply || 10));
 
   const newEntry: RaffleEntry = {
     id: `DS-${Math.floor(100000 + Math.random() * 900000)}`,
-    raffleId: entryData.raffleId,
+    raffleId: raffle.id,
     walletAddress: entryData.walletAddress,
     shortAddress: formatAddress(entryData.walletAddress),
     twitterUsername: entryData.twitterUsername || '',
@@ -591,11 +598,12 @@ export async function createEntryAsync(entryData: {
       ipHash: entryData.ipHash,
       entryMethod: raffle.entryMethod || 'raffle',
       isFcfsWinner: isFcfsWinner,
+      telegramUsername: entryData.telegramUsername || '',
     },
   };
 
   try {
-    await supabase.from('flamebound_entries').insert({
+    const { error: insertErr } = await supabase.from('flamebound_entries').insert({
       id: newEntry.id,
       raffle_id: newEntry.raffleId,
       wallet_address: newEntry.walletAddress,
@@ -611,11 +619,15 @@ export async function createEntryAsync(entryData: {
       metadata: newEntry.metadata,
     });
 
+    if (insertErr) {
+      console.error('Supabase create entry error:', insertErr);
+    }
+
     await supabase.from('flamebound_raffles').update({
       total_entries: (raffle.totalEntries || 0) + 1,
-    }).eq('id', entryData.raffleId);
+    }).eq('id', raffle.id);
   } catch (err) {
-    console.error('Supabase create entry error:', err);
+    console.error('Supabase create entry exception:', err);
   }
 
   createEntryLocal(newEntry);

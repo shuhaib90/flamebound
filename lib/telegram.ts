@@ -1,4 +1,5 @@
 import { Raffle } from './types';
+import { supabase } from './supabase';
 
 export interface TelegramConfig {
   botToken: string;
@@ -18,6 +19,34 @@ let runtimeConfig: TelegramConfig = {
   topicId: DEFAULT_TOPIC_ID,
   autoNotify: true,
 };
+
+export async function getEffectiveTelegramConfig(
+  overrideToken?: string,
+  overrideChatId?: string,
+  overrideTopicId?: string | number
+): Promise<{ token: string; chatId: string; topicId?: string | number }> {
+  let token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
+  let chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
+  let topicId = overrideTopicId !== undefined ? overrideTopicId : runtimeConfig.topicId || DEFAULT_TOPIC_ID;
+
+  if (!token) {
+    try {
+      const { data } = await supabase.from('flamebound_config').select('key, value');
+      if (data && data.length > 0) {
+        const tokenRow = data.find((r: any) => r.key === 'telegram_bot_token');
+        const chatRow = data.find((r: any) => r.key === 'telegram_chat_id');
+        const topicRow = data.find((r: any) => r.key === 'telegram_topic_id');
+        if (tokenRow?.value) token = tokenRow.value;
+        if (chatRow?.value && (!chatId || chatId === DEFAULT_CHAT_ID)) chatId = chatRow.value;
+        if (topicRow?.value && (!topicId || topicId === DEFAULT_TOPIC_ID)) topicId = topicRow.value;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch telegram config from supabase:', err);
+    }
+  }
+
+  return { token, chatId, topicId };
+}
 
 export function getTelegramConfig(): TelegramConfig {
   return { ...runtimeConfig };
@@ -99,9 +128,7 @@ export async function sendTelegramRaffleNotification(
   overrideToken?: string,
   overrideTopicId?: string | number
 ): Promise<{ success: boolean; messageId?: number; error?: string }> {
-  const token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  const chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
-  const topicId = overrideTopicId !== undefined ? overrideTopicId : runtimeConfig.topicId || DEFAULT_TOPIC_ID;
+  const { token, chatId, topicId } = await getEffectiveTelegramConfig(overrideToken, overrideChatId, overrideTopicId);
 
   if (!token) {
     return { success: false, error: 'Telegram Bot Token is not configured.' };
@@ -242,9 +269,7 @@ export async function sendTelegramWinnersNotification(
   overrideToken?: string,
   overrideTopicId?: string | number
 ): Promise<{ success: boolean; messageId?: number; error?: string }> {
-  const token = overrideToken || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  const chatId = overrideChatId || runtimeConfig.chatId || DEFAULT_CHAT_ID;
-  const topicId = overrideTopicId !== undefined ? overrideTopicId : runtimeConfig.topicId || DEFAULT_TOPIC_ID;
+  const { token, chatId, topicId } = await getEffectiveTelegramConfig(overrideToken, overrideChatId, overrideTopicId);
 
   if (!token) {
     return { success: false, error: 'Telegram Bot Token is not configured.' };
@@ -326,14 +351,13 @@ export async function sendTelegramWinnersNotification(
  * Send a quick test notification to verify bot connection in the specific topic
  */
 export async function sendTelegramTestMessage(
-  chatId: string,
-  token?: string,
-  topicId?: string | number
+  overrideChatId?: string,
+  overrideToken?: string,
+  overrideTopicId?: string | number
 ): Promise<{ success: boolean; error?: string }> {
-  const botToken = token || runtimeConfig.botToken || DEFAULT_BOT_TOKEN;
-  const targetTopic = topicId !== undefined ? topicId : runtimeConfig.topicId || DEFAULT_TOPIC_ID;
+  const { token, chatId, topicId } = await getEffectiveTelegramConfig(overrideToken, overrideChatId, overrideTopicId);
 
-  if (!botToken || !chatId) {
+  if (!token || !chatId) {
     return { success: false, error: 'Bot token and Chat ID are required.' };
   }
 
@@ -358,11 +382,11 @@ export async function sendTelegramTestMessage(
       },
     };
 
-    if (targetTopic) {
-      payload.message_thread_id = Number(targetTopic);
+    if (topicId) {
+      payload.message_thread_id = Number(topicId);
     }
 
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
