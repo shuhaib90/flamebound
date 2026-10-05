@@ -116,8 +116,23 @@ export default function SingleRafflePage() {
                     id: parsed.id || `TKT-${Math.floor(100000 + Math.random() * 900000)}`,
                     walletAddress: parsed.walletAddress || '',
                     twitterUsername: parsed.twitterUsername || '',
-                    verifiedAt: parsed.createdAt || new Date().toISOString(),
+                    telegramUsername: parsed.telegramUsername || '',
+                    verifiedAt: parsed.createdAt || parsed.verifiedAt || new Date().toISOString(),
                   });
+
+                  // Self-healing: guarantee cached entry is safely recorded in the database
+                  if (parsed.walletAddress) {
+                    fetch(`/api/raffles/${data.raffle.id}/enter`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        walletAddress: parsed.walletAddress,
+                        twitterUsername: parsed.twitterUsername || '',
+                        telegramUsername: parsed.telegramUsername || '',
+                        taskStatus: parsed.taskStatus || {},
+                      }),
+                    }).catch(() => {});
+                  }
                 } catch (e) {
                   // ignore
                 }
