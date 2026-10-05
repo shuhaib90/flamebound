@@ -63,7 +63,7 @@ export function EntryCardModal({
         await new Promise((resolve) => {
           bgImg.onload = resolve;
           bgImg.onerror = resolve;
-          bgImg.src = '/partnership-template.png';
+          bgImg.src = '/partnership-template.png?v=2';
         });
 
         if (bgImg.complete && bgImg.naturalWidth > 0) {
@@ -77,12 +77,12 @@ export function EntryCardModal({
           ctx.fillRect(0, 0, W, H);
         }
 
-        // 2. Project Box Coordinates on Template (Right Box)
-        const boxX = 595;
-        const boxY = 169;
-        const boxW = 251;
-        const boxH = 251;
-        const boxR = 38;
+        // 2. Project Box Coordinates on Template (Right Box inside glowing border)
+        const boxX = 600;
+        const boxY = 174;
+        const boxW = 241;
+        const boxH = 241;
+        const boxR = 34;
 
         // Helper for rounded rectangle path
         const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number) => {
