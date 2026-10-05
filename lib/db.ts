@@ -621,17 +621,125 @@ export async function createEntryAsync(entryData: {
 
     if (insertErr) {
       console.error('Supabase create entry error:', insertErr);
+      throw new Error(`Failed to save entry: ${insertErr.message}`);
     }
 
+    const { count: realCount } = await supabase
+      .from('flamebound_entries')
+      .select('*', { count: 'exact', head: true })
+      .eq('raffle_id', raffle.id);
+
     await supabase.from('flamebound_raffles').update({
-      total_entries: (raffle.totalEntries || 0) + 1,
+      total_entries: typeof realCount === 'number' ? realCount : (raffle.totalEntries || 0) + 1,
     }).eq('id', raffle.id);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Supabase create entry exception:', err);
+    throw err;
   }
 
   createEntryLocal(newEntry);
   return newEntry;
+}
+
+export async function syncRaffleEntryCountAsync(raffleId: string): Promise<number> {
+  const raffle = await getRaffleByIdAsync(raffleId);
+  if (!raffle) throw new Error('Raffle not found');
+
+  const { count, error } = await supabase
+    .from('flamebound_entries')
+    .select('*', { count: 'exact', head: true })
+    .eq('raffle_id', raffle.id);
+
+  if (error) {
+    console.error('Error syncing raffle count:', error);
+    throw error;
+  }
+
+  const realCount = count || 0;
+  await supabase
+    .from('flamebound_raffles')
+    .update({ total_entries: realCount })
+    .eq('id', raffle.id);
+
+  // Sync local if exists
+  const db = ensureDb();
+  const rLocal = db.raffles.find(r => r.id === raffle.id);
+  if (rLocal) {
+    rLocal.totalEntries = realCount;
+    writeDb(db);
+  }
+
+  return realCount;
+}
+
+export async function bulkImportEntriesAsync(
+  raffleId: string,
+  entriesData: Array<{ walletAddress: string; twitterUsername?: string; telegramUsername?: string }>
+): Promise<{ added: number; skipped: number; total: number }> {
+  const raffle = await getRaffleByIdAsync(raffleId);
+  if (!raffle) throw new Error('Raffle not found');
+
+  let added = 0;
+  let skipped = 0;
+
+  for (const item of entriesData) {
+    const cleanWallet = (item.walletAddress || '').trim().toLowerCase();
+    if (!cleanWallet) continue;
+    const cleanTwitter = (item.twitterUsername || '').trim().replace(/^@/, '');
+    const cleanTelegram = (item.telegramUsername || '').trim().replace(/^@/, '');
+
+    const existing = await checkExistingEntryAsync(raffle.id, cleanWallet);
+    if (existing) {
+      skipped++;
+      continue;
+    }
+
+    const newEntry: RaffleEntry = {
+      id: `DS-${Math.floor(100000 + Math.random() * 900000)}`,
+      raffleId: raffle.id,
+      walletAddress: cleanWallet,
+      shortAddress: formatAddress(cleanWallet),
+      twitterUsername: cleanTwitter,
+      telegramUsername: cleanTelegram,
+      taskStatus: { imported: true },
+      isHolder: true,
+      tokenBalance: 1,
+      verifiedAt: new Date().toISOString(),
+      status: 'confirmed',
+      network: raffle.customNetwork || raffle.network || 'ETHEREUM',
+      metadata: {
+        entryMethod: raffle.entryMethod || 'raffle',
+        imported: true,
+        telegramUsername: cleanTelegram,
+      },
+    };
+
+    const { error: insertErr } = await supabase.from('flamebound_entries').insert({
+      id: newEntry.id,
+      raffle_id: newEntry.raffleId,
+      wallet_address: newEntry.walletAddress,
+      short_address: newEntry.shortAddress,
+      twitter_username: newEntry.twitterUsername,
+      telegram_username: newEntry.telegramUsername,
+      task_status: newEntry.taskStatus,
+      is_holder: true,
+      token_balance: 1,
+      verified_at: newEntry.verifiedAt,
+      status: newEntry.status,
+      network: newEntry.network,
+      metadata: newEntry.metadata,
+    });
+
+    if (insertErr) {
+      console.error('Bulk import insert error:', insertErr);
+    } else {
+      added++;
+      createEntryLocal(newEntry);
+    }
+  }
+
+  const finalCount = await syncRaffleEntryCountAsync(raffle.id);
+  return { added, skipped, total: finalCount };
 }
 
 function createEntryLocal(newEntry: RaffleEntry): RaffleEntry {

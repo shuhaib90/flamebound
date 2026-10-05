@@ -138,6 +138,12 @@ export function AdminDashboard() {
   const [singleWinnerTelegram, setSingleWinnerTelegram] = useState('');
   const [savingWinners, setSavingWinners] = useState(false);
 
+  // Bulk Entrants Import & Sync State
+  const [bulkImportRaffle, setBulkImportRaffle] = useState<Raffle | null>(null);
+  const [bulkImportText, setBulkImportText] = useState('');
+  const [importingEntries, setImportingEntries] = useState(false);
+  const [syncingRaffleId, setSyncingRaffleId] = useState<string | null>(null);
+
   const editCollabLogoFileRef = useRef<HTMLInputElement>(null);
   const editCollabBannerFileRef = useRef<HTMLInputElement>(null);
   const editCollabChainLogoFileRef = useRef<HTMLInputElement>(null);
@@ -949,7 +955,7 @@ export function AdminDashboard() {
   // Random pick from existing entrants
   const handlePickRandomFromEntrants = () => {
     if (!managingWinnersRaffle) return;
-    const raffleEntries = entries.filter(e => e.raffleId === managingWinnersRaffle.id && e.status === 'confirmed');
+    const raffleEntries = entries.filter(e => (e.raffleId === managingWinnersRaffle.id || (managingWinnersRaffle.slug && e.raffleId === managingWinnersRaffle.slug)) && e.status === 'confirmed');
     if (raffleEntries.length === 0) {
       alert('No verified entrants found for this raffle yet to draw from.');
       return;
@@ -968,6 +974,61 @@ export function AdminDashboard() {
 
     setParsedWinnersList(newWinners);
     setBulkWinnersRawText(newWinners.map(w => `${w.wallet}${w.twitter ? `, ${w.twitter}` : ''}${w.telegram ? `, ${w.telegram}` : ''}`).join('\n'));
+  };
+
+  // Sync entry count with database
+  const handleSyncEntries = async (raffleId: string) => {
+    try {
+      setSyncingRaffleId(raffleId);
+      const res = await fetch('/api/admin/sync-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raffleId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchData();
+        alert(`✅ Entry count synchronized with database! Confirmed entries in database: ${data.count}`);
+      } else {
+        alert(`❌ Sync failed: ${data.error}`);
+      }
+    } catch (err: any) {
+      alert(`Error syncing: ${err.message}`);
+    } finally {
+      setSyncingRaffleId(null);
+    }
+  };
+
+  // Bulk Import Entrants
+  const handleBulkImportEntries = async () => {
+    if (!bulkImportRaffle || !bulkImportText.trim()) {
+      alert('Please enter at least one wallet address to import.');
+      return;
+    }
+    try {
+      setImportingEntries(true);
+      const res = await fetch('/api/admin/bulk-import-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          raffleId: bulkImportRaffle.id,
+          rawText: bulkImportText,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fetchData();
+        alert(`🎉 Successfully imported ${data.added} entries!\n(Skipped duplicates: ${data.skipped}, Total confirmed: ${data.total})`);
+        setBulkImportRaffle(null);
+        setBulkImportText('');
+      } else {
+        alert(`❌ Import failed: ${data.error}`);
+      }
+    } catch (err: any) {
+      alert(`Error importing entries: ${err.message}`);
+    } finally {
+      setImportingEntries(false);
+    }
   };
 
   // Save & Publish winners
@@ -1015,7 +1076,7 @@ export function AdminDashboard() {
     }
   };
 
-  // CSV Export (Wallet Address, X Username, Telegram Username) named <projectName>_winners.csv
+  // CSV Export (Wallet Address, X Username, Telegram Username) named <projectName>_winners.csv or <projectName>_entries.csv
   const exportCsv = (raffle: Raffle, entriesOrWinners: 'winners' | 'entries') => {
     let rows: { wallet: string; twitter: string; telegram: string }[] = [];
     const projectName = (raffle.project || raffle.title || 'dotset').toLowerCase().replace(/[^a-z0-9_-]/g, '_');
@@ -1027,7 +1088,7 @@ export function AdminDashboard() {
         telegram: w.telegramUsername || '',
       }));
     } else {
-      const raffleEntries = entries.filter(e => e.raffleId === raffle.id);
+      const raffleEntries = entries.filter(e => e.raffleId === raffle.id || (raffle.slug && e.raffleId === raffle.slug));
       rows = raffleEntries.map(e => ({
         wallet: e.walletAddress,
         twitter: e.twitterUsername || '',
@@ -1036,7 +1097,7 @@ export function AdminDashboard() {
     }
 
     if (rows.length === 0) {
-      alert('No data available to export.');
+      alert(`No ${entriesOrWinners} available to export for this raffle.`);
       return;
     }
 
@@ -1342,20 +1403,50 @@ export function AdminDashboard() {
                       </p>
 
                       {/* Stats Row */}
-                      <div className="grid grid-cols-3 gap-2 bg-gray-50 border border-gray-100 rounded-xl p-3 my-3 text-center">
-                        <div>
-                          <div className="text-[10px] font-mono-dm text-gray-400 uppercase">WL Spots</div>
-                          <div className="text-xs font-bold text-gray-900 mt-0.5">{r.supply} Spots</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-mono-dm text-gray-400 uppercase">Entries</div>
-                          <div className="text-xs font-bold text-[#293681] mt-0.5">{r.totalEntries || 0}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-mono-dm text-gray-400 uppercase">Winners</div>
-                          <div className="text-xs font-bold text-amber-600 mt-0.5">{r.winners?.length || 0}</div>
-                        </div>
-                      </div>
+                      {(() => {
+                        const verifiedEntriesInDb = entries.filter(e => e.raffleId === r.id || (r.slug && e.raffleId === r.slug)).length;
+                        const isDiscrepancy = verifiedEntriesInDb !== (r.totalEntries || 0);
+
+                        return (
+                          <div className="grid grid-cols-3 gap-2 bg-gray-50 border border-gray-100 rounded-xl p-3 my-3 text-center">
+                            <div>
+                              <div className="text-[10px] font-mono-dm text-gray-400 uppercase">WL Spots</div>
+                              <div className="text-xs font-bold text-gray-900 mt-0.5">{r.supply} Spots</div>
+                            </div>
+                            <div className="relative">
+                              <div className="text-[10px] font-mono-dm text-gray-400 uppercase flex items-center justify-center gap-1">
+                                <span>Entries</span>
+                                {isDiscrepancy && (
+                                  <button
+                                    type="button"
+                                    onClick={(ev) => {
+                                      ev.stopPropagation();
+                                      handleSyncEntries(r.id);
+                                    }}
+                                    disabled={syncingRaffleId === r.id}
+                                    title={`Discrepancy: Card shows ${r.totalEntries || 0}, but Supabase has ${verifiedEntriesInDb} records. Click to sync.`}
+                                    className="text-amber-500 hover:text-amber-600 transition-colors p-0.5"
+                                  >
+                                    <RefreshCw size={11} className={syncingRaffleId === r.id ? 'animate-spin' : ''} />
+                                  </button>
+                                )}
+                              </div>
+                              <div className="text-xs font-bold text-[#293681] mt-0.5">
+                                {r.totalEntries || 0}
+                                {isDiscrepancy && (
+                                  <span className="block text-[9px] font-normal text-amber-600 font-mono-dm">
+                                    (DB: {verifiedEntriesInDb})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-mono-dm text-gray-400 uppercase">Winners</div>
+                              <div className="text-xs font-bold text-amber-600 mt-0.5">{r.winners?.length || 0}</div>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Project Supply & Mint Date Meta */}
                       <div className="flex items-center justify-between text-[11px] font-mono-dm bg-gray-50/70 px-3 py-2 rounded-lg border border-gray-100 mb-3 text-gray-600">
@@ -1380,17 +1471,55 @@ export function AdminDashboard() {
                           title="Import, bulk paste, or auto-draw winners"
                         >
                           <Trophy size={14} />
-                          <span>{r.winners && r.winners.length > 0 ? `Winners (${r.winners.length})` : '🏆 Add / Draw Winners'}</span>
+                          <span>{r.winners && r.winners.length > 0 ? `Winners (${r.winners.length})` : '🏆 Draw Winners'}</span>
                         </button>
 
-                        {/* Export CSV Button */}
+                        {/* Bulk Import Entrants Button */}
                         <button
-                          onClick={() => exportCsv(r, r.winners && r.winners.length > 0 ? 'winners' : 'entries')}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-dm text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center gap-1 border border-gray-200"
-                          title="Export CSV (Wallets & X handles)"
+                          onClick={() => {
+                            setBulkImportRaffle(r);
+                            setBulkImportText('');
+                          }}
+                          className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-dm font-semibold text-xs py-2.5 px-3 rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                          title="Bulk import or restore entrant wallets directly into this raffle"
                         >
-                          <Download size={14} />
-                          <span>CSV</span>
+                          <Upload size={14} />
+                          <span>Import Entrants</span>
+                        </button>
+                      </div>
+
+                      {/* CSV & Sync Row */}
+                      <div className="flex items-center gap-2">
+                        {/* Export Entrants CSV Button */}
+                        <button
+                          onClick={() => exportCsv(r, 'entries')}
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-dm text-xs py-2 px-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 border border-gray-200"
+                          title="Export all confirmed entries to CSV"
+                        >
+                          <Download size={13} />
+                          <span>Entries CSV</span>
+                        </button>
+
+                        {/* Export Winners CSV Button (if any) */}
+                        {r.winners && r.winners.length > 0 && (
+                          <button
+                            onClick={() => exportCsv(r, 'winners')}
+                            className="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-dm text-xs py-2 px-2.5 rounded-lg transition-colors flex items-center gap-1"
+                            title="Export winning wallets to CSV"
+                          >
+                            <Trophy size={13} />
+                            <span>Winners CSV</span>
+                          </button>
+                        )}
+
+                        {/* Re-sync Count Button */}
+                        <button
+                          onClick={() => handleSyncEntries(r.id)}
+                          disabled={syncingRaffleId === r.id}
+                          className="p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 rounded-lg transition-colors"
+                          title="Sync entry counter with database"
+                        >
+                          <RefreshCw size={13} className={syncingRaffleId === r.id ? 'animate-spin' : ''} />
                         </button>
                       </div>
 
@@ -3646,6 +3775,92 @@ export function AdminDashboard() {
           </div>
         )}
 
+        {/* BULK IMPORT ENTRANTS MODAL */}
+        {bulkImportRaffle && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                    <Upload size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-syne font-bold text-gray-900 text-lg">
+                      Import Entrants to Raffle
+                    </h3>
+                    <p className="text-xs text-gray-500 font-dm truncate max-w-sm">
+                      {bulkImportRaffle.title}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setBulkImportRaffle(null)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="py-4 space-y-4 overflow-y-auto flex-1">
+                <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-900 leading-relaxed">
+                  <div className="font-semibold mb-1 flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-indigo-600" />
+                    <span>How to paste entrant records:</span>
+                  </div>
+                  <p className="text-indigo-700">
+                    Paste one wallet per line. You can optionally include X handles and Telegram handles separated by commas:
+                  </p>
+                  <div className="mt-2 bg-white/80 p-2 rounded-lg font-mono-dm text-[11px] text-gray-700 border border-indigo-100/60">
+                    0x9b597a86...f43d, @zenvic, @Zenvicalpha<br />
+                    0x2ca08bf7...b47b, @MONALISA_Ox, @Monalisa_0x_CM<br />
+                    0x123456789...
+                  </div>
+                  <p className="mt-2 text-[11px] text-indigo-600">
+                    Duplicate wallets already entered in this raffle will automatically be skipped.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase font-mono-dm mb-1.5">
+                    Entrant Data (Wallet, Twitter, Telegram)
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={bulkImportText}
+                    onChange={(e) => setBulkImportText(e.target.value)}
+                    placeholder={`0x1234567890abcdef1234567890abcdef12345678, @handle, @tg\n0xabcdef1234567890abcdef1234567890abcdef12, @user2`}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono-dm text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  />
+                  <div className="text-[11px] text-gray-400 mt-1 flex justify-between">
+                    <span>{bulkImportText.split('\n').filter(l => l.trim()).length} line(s) detected</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  disabled={importingEntries || !bulkImportText.trim()}
+                  onClick={handleBulkImportEntries}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold py-2.5 px-4 rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Upload size={14} />
+                  <span>{importingEntries ? 'Importing...' : 'Import Entrants Now'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkImportRaffle(null)}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors text-xs font-medium border border-gray-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
